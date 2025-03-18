@@ -9,6 +9,7 @@ use App\Http\Controllers\Auth\PasswordController;
 use App\Http\Controllers\Auth\PasswordResetLinkController;
 use App\Http\Controllers\Auth\RegisteredUserController;
 use App\Http\Controllers\Auth\VerifyEmailController;
+use App\Http\Controllers\Auth\SettingController;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware('guest')->group(function () {
@@ -56,4 +57,16 @@ Route::middleware('auth')->group(function () {
 
     Route::post('logout', [AuthenticatedSessionController::class, 'destroy'])
         ->name('logout');
+
+    // Settings Routes
+    Route::controller(SettingController::class)->group(function () {
+        Route::get('/settings', 'edit')->name('settings.edit');
+        Route::patch('/settings', 'update')->name('settings.update');
+        Route::patch('/settings/password', 'updatePassword')->name('settings.password.update');
+        Route::patch('/settings/email', 'updateEmail')->name('settings.email.update');
+        Route::post('/settings/email/verification-notification', 'sendVerification')
+            ->middleware('throttle:6,1')
+            ->name('settings.verification.send');
+        Route::delete('/settings', 'destroy')->name('settings.destroy');
+    });
 });

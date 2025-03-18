@@ -7,20 +7,30 @@ const ORGANIZER_STATUS = ['Pending', 'Verified', 'Rejected'];
 
 export default function OrganizerPersonalInformation({ user }) {
     const [isEditing, setIsEditing] = useState(false);
-    const { data, setData, patch, processing, errors, recentlySuccessful } = useForm({
-        organization_name: user.organizer?.organization_name || '',
-        contact_number: user.organizer?.contact_number || '',
-        official_email: user.organizer?.official_email || '',
-        website: user.organizer?.website || '',
-        linkedin: user.organizer?.linkedin || '',
-        bio: user.organizer?.bio || '',
+    
+    console.log('Organizer data:', user.organizer); 
+
+    const { data, setData, patch, processing, errors } = useForm({
+        organization_name: user?.organizer?.organization_name || '',
+        contact_number: user?.organizer?.contact_number || '',
+        official_email: user?.organizer?.official_email || '',
+        website: user?.organizer?.website || '',
+        linkedin: user?.organizer?.linkedin || '',
+        bio: user?.organizer?.bio || ''
     });
 
     const handleSubmit = (e) => {
         e.preventDefault();
-        patch(route('profile.organizer.update'), {
+        console.log('Submitting organizer data:', data);
+        
+        patch(route('profile.update'), {
+            preserveScroll: true,
             onSuccess: () => {
                 setIsEditing(false);
+                console.log('Organizer profile updated successfully');
+            },
+            onError: (errors) => {
+                console.error('Update failed:', errors);
             }
         });
     };
@@ -47,15 +57,15 @@ export default function OrganizerPersonalInformation({ user }) {
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 w-full max-w-3xl mb-12">
                             <div className="bg-white/10 backdrop-blur-md rounded-xl p-4">
                                 <p className="text-gray-400 text-sm">Organization</p>
-                                <p className="text-white font-medium">{data.organization_name || 'Not set'}</p>
+                                <p className="text-white font-medium">{data.organization_name || ''}</p>
                             </div>
                             <div className="bg-white/10 backdrop-blur-md rounded-xl p-4">
                                 <p className="text-gray-400 text-sm">Contact</p>
-                                <p className="text-white font-medium">{data.contact_number || 'Not set'}</p>
+                                <p className="text-white font-medium">{data.contact_number || ''}</p>
                             </div>
                             <div className="bg-white/10 backdrop-blur-md rounded-xl p-4">
                                 <p className="text-gray-400 text-sm">Official Email</p>
-                                <p className="text-white font-medium">{data.official_email || 'Not set'}</p>
+                                <p className="text-white font-medium">{data.official_email || ''}</p>
                             </div>
                         </div>
 
@@ -193,7 +203,7 @@ function InfoItem({ label, value, isLink }) {
                     {value}
                 </a>
             ) : (
-                <p className="text-white">{value || 'Not set'}</p>
+                <p className="text-white">{value || ''}</p>
             )}
         </div>
     );

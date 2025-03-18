@@ -33,8 +33,10 @@ class University extends Model
 
     public function getProfilePhotoUrlAttribute()
     {
-        return $this->profile_photo_path
-            ? Storage::disk('public')->url($this->profile_photo_path)
-            : null;
+        if ($this->profile_photo_path) {
+            // Use response()->file() to serve the image securely
+            return route('profile.photo', ['path' => $this->profile_photo_path]);
+        }
+        return null;
     }
 }

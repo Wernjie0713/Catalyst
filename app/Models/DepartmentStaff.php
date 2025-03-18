@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 
 class DepartmentStaff extends Model
 {
@@ -13,19 +14,31 @@ class DepartmentStaff extends Model
     protected $keyType = 'string';
 
     protected $fillable = [
-        'staff_id',
         'user_id',
         'department',
         'position',
+        'name',
+        'email',
         'contact_number',
         'bio',
         'linkedin',
         'profile_photo_path'
     ];
 
+    protected static function boot()
+    {
+        parent::boot();
+
+        static::creating(function ($model) {
+            if (!$model->staff_id) {
+                $model->staff_id = Str::uuid();
+            }
+        });
+    }
+
     public function user()
     {
-        return $this->belongsTo(User::class, 'user_id', 'id');
+        return $this->belongsTo(User::class, 'user_id');
     }
 
     // Department Staff can view/manage reports

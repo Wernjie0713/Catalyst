@@ -10,9 +10,11 @@ return new class extends Migration
     {
         Schema::create('students', function (Blueprint $table) {
             $table->uuid('student_id')->primary();
-            $table->uuid('user_id');
+            $table->foreignUuid('user_id')
+                  ->constrained('users')
+                  ->onDelete('cascade');
             $table->string('matric_no')->nullable();
-            $table->integer('year');
+            $table->integer('year')->nullable();
             $table->enum('level', ['Undergraduate', 'Postgraduate'])->nullable();
             $table->string('contact_number')->nullable();
             $table->text('bio')->nullable();
@@ -57,11 +59,6 @@ return new class extends Migration
             $table->integer('expected_graduate')->nullable();
             $table->string('profile_photo_path')->nullable();
             $table->timestamps();
-
-            $table->foreign('user_id')
-                  ->references('id')
-                  ->on('users')
-                  ->onDelete('cascade');
         });
     }
 

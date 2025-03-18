@@ -46,23 +46,33 @@ const LEVELS = ['Undergraduate', 'Postgraduate'];
 
 export default function StudentPersonalInformation({ user }) {
     const [isEditing, setIsEditing] = useState(false);
+    
+    console.log('Student data received:', user?.student);
+
     const { data, setData, patch, processing, errors, recentlySuccessful } = useForm({
-        matric_no: user.student?.matric_no || '',
-        year: user.student?.year || '',
-        level: user.student?.level || '',
-        contact_number: user.student?.contact_number || '',
-        bio: user.student?.bio || '',
-        faculty: user.student?.faculty || '',
-        university: user.student?.university || '',
-        expected_graduate: user.student?.expected_graduate || '',
+        matric_no: user?.student?.matric_no || '',
+        year: user?.student?.year || '',
+        level: user?.student?.level || '',
+        contact_number: user?.student?.contact_number || '',
+        bio: user?.student?.bio || '',
+        faculty: user?.student?.faculty || '',
+        university: user?.student?.university || '',
+        expected_graduate: user?.student?.expected_graduate || ''
     });
+
+    if (!user?.student) {
+        console.warn('No student data available');
+    }
 
     const handleSubmit = (e) => {
         e.preventDefault();
-        console.log('Submitting data:', data);
-        patch(route('profile.student.update'), {
+        console.log('Form data being submitted:', data);
+        
+        patch(route('profile.update'), data, {
+            preserveScroll: true,
             onSuccess: () => {
                 setIsEditing(false);
+                console.log('Success: Form submitted');
             },
             onError: (errors) => {
                 console.error('Submission errors:', errors);
@@ -72,36 +82,31 @@ export default function StudentPersonalInformation({ user }) {
 
     return (
         <div className="space-y-8">
-            {/* Profile Header Section */}
             <div className="relative rounded-[2.5rem] overflow-hidden">
-                {/* Profile Content */}
                 <div className="relative px-8 py-12">
                     <div className="flex flex-col items-center">
                         {/* Profile Photo */}
                         <div className="mb-6">
                             <UpdateProfilePhoto user={user} />
                         </div>
+                        
                         {/* User Info */}
-                        <h1 className="text-3xl font-bold text-white mb-2">
-                            {user.name}
-                        </h1>
-                        <p className="text-gray-300 mb-8">
-                            {user.email}
-                        </p>
+                        <h1 className="text-3xl font-bold text-white mb-2">{user.name}</h1>
+                        <p className="text-gray-300 mb-8">{user.email}</p>
 
                         {/* Quick Stats */}
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 w-full max-w-3xl mb-12">
                             <div className="bg-white/10 backdrop-blur-md rounded-xl p-4">
-                                <p className="text-gray-400 text-sm">Student ID</p>
-                                <p className="text-white font-medium">{data.matric_no || 'Not set'}</p>
-                            </div>
-                            <div className="bg-white/10 backdrop-blur-md rounded-xl p-4">
-                                <p className="text-gray-400 text-sm">Faculty</p>
-                                <p className="text-white font-medium">{data.faculty || 'Not set'}</p>
-                            </div>
-                            <div className="bg-white/10 backdrop-blur-md rounded-xl p-4">
                                 <p className="text-gray-400 text-sm">Year</p>
-                                <p className="text-white font-medium">{data.year || 'Not set'}</p>
+                                <p className="text-white font-medium">{data.year || 'Not Set'}</p>
+                            </div>
+                            <div className="bg-white/10 backdrop-blur-md rounded-xl p-4">
+                                <p className="text-gray-400 text-sm">Level</p>
+                                <p className="text-white font-medium">{data.level || 'Not Set'}</p>
+                            </div>
+                            <div className="bg-white/10 backdrop-blur-md rounded-xl p-4">
+                                <p className="text-gray-400 text-sm">Contact</p>
+                                <p className="text-white font-medium">{data.contact_number || 'Not Set'}</p>
                             </div>
                         </div>
 

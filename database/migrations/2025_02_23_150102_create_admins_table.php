@@ -12,7 +12,6 @@ return new class extends Migration
             $table->uuid('admin_id')->primary();
             $table->string('name');
             $table->string('email');
-            $table->string('role')->default('Admin');
             $table->timestamps();
 
             $table->foreign('admin_id')

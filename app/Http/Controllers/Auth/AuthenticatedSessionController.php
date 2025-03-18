@@ -8,6 +8,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Cache;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -33,7 +34,14 @@ class AuthenticatedSessionController extends Controller
 
         $request->session()->regenerate();
 
-        return redirect()->intended(route('dashboard', absolute: false));
+        // Clear all cache instead of using tags
+        Cache::flush();
+
+        if (!Auth::user()->roles()->exists()) {
+            return redirect()->route('role.selection');
+        }
+
+        return redirect()->intended('/dashboard');
     }
 
     /**

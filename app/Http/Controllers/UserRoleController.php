@@ -26,107 +26,91 @@ class UserRoleController extends Controller
     public function assignRole(Request $request)
     {
         $request->validate([
-            'role' => 'required|string|in:Student,Organizer,University,Admin,Lecturer,Department Staff'
+            'role' => 'required|string|in:student,organizer,university,admin,lecturer,department_staff'
         ]);
 
         try {
             DB::beginTransaction();
             
             $user = Auth::user();
+            \Log::info('Starting role assignment', ['user' => $user->id, 'requested_role' => $request->role]);
             
             // Remove all existing roles and abilities
             Bouncer::sync($user)->roles([]);
             
-            // Map roles to their entity types
-            $roleEntityMap = [
-                'Student' => 'App\\Models\\Student',
-                'Lecturer' => 'App\\Models\\Lecturer',
-                'Department Staff' => 'App\\Models\\DepartmentStaff',
-                'Organizer' => 'App\\Models\\Organizer',
-                'University' => 'App\\Models\\University',
-                'Admin' => 'App\\Models\\Admin'
-            ];
-
-            // Convert role name to Bouncer format (lowercase and underscored)
-            $bouncerRole = strtolower(str_replace(' ', '_', $request->role));
-            
             // Create the role if it doesn't exist
             $role = Bouncer::role()->firstOrCreate([
-                'name' => $bouncerRole,
-                'title' => $request->role,
-                'entity_type' => $roleEntityMap[$request->role]
+                'name' => $request->role,
+                'title' => ucwords(str_replace('_', ' ', $request->role))
             ]);
             
-            // Assign the role directly using DB to ensure entity_type is set
-            DB::table('assigned_roles')->insert([
-                'role_id' => $role->id,
-                'entity_id' => $user->id,
-                'entity_type' => 'App\\Models\\User',
-                'restricted_to_id' => null,
-                'restricted_to_type' => null,
-                'scope' => null
-            ]);
-            
-            // Update user role field in users table
-            DB::table('users')->where('id', $user->id)->update(['role' => $request->role]);
+            \Log::info('Role created/found', ['role_id' => $role->id]);
 
-            // Create role-specific profile
-            switch ($request->role) {
-                case 'Student':
+            // Assign role to user using Bouncer
+            Bouncer::assign($request->role)->to($user);
+            
+            \Log::info('Role assigned to user');
+
+            // Create the corresponding model instance with minimal required fields
+            switch($request->role) {
+                case 'student':
                     \App\Models\Student::create([
-                        'student_id' => Str::uuid()->toString(),
-                        'user_id' => $user->id,
-                        'year' => 1 // Default value
+                        'student_id' => Str::uuid(),
+                        'user_id' => $user->id
                     ]);
                     break;
-
-                case 'Lecturer':
-                    \App\Models\Lecturer::create([
-                        'lecturer_id' => Str::uuid()->toString(),
-                        'user_id' => $user->id,
-                        'department' => '' // Will be updated in profile
-                    ]);
-                    break;
-
-                case 'Department Staff':
+                
+                case 'department_staff':
                     \App\Models\DepartmentStaff::create([
-                        'staff_id' => Str::uuid()->toString(),
+                        'staff_id' => Str::uuid(),
                         'user_id' => $user->id,
-                        'department' => '', // Will be updated in profile
-                        'position' => ''    // Will be updated in profile
+                        'department' => 'Not Set', // Only if these are required fields
+                        'position' => 'Not Set'    // Only if these are required fields
                     ]);
                     break;
-
-                case 'Organizer':
+                
+                case 'lecturer':
+                    \App\Models\Lecturer::create([
+                        'lecturer_id' => Str::uuid(),
+                        'user_id' => $user->id,
+                        'department' => 'Not Set'  // Add this default value
+                    ]);
+                    break;
+                
+                case 'organizer':
                     \App\Models\Organizer::create([
-                        'organizer_id' => Str::uuid()->toString(),
-                        'user_id' => $user->id,
-                        'organization_name' => '', // Will be updated in profile
-                        'official_email' => $user->email,
-                        'status' => 'Pending'
+                        'organizer_id' => Str::uuid(),
+                        'user_id' => $user->id
                     ]);
                     break;
-
-                case 'University':
+                
+                case 'university':
                     \App\Models\University::create([
-                        'university_id' => Str::uuid()->toString(),
-                        'user_id' => $user->id,
-                        'name' => $user->name,
-                        'contact_email' => $user->email
+                        'university_id' => Str::uuid(),
+                        'user_id' => $user->id
                     ]);
                     break;
             }
-
-            // Clear any cached abilities
-            Bouncer::refresh();
             
+            \Log::info('Model instance created');
+
             DB::commit();
+            Bouncer::refresh();  // Refresh Bouncer's cache
+            
+            \Log::info('Role assignment completed successfully');
             
             return redirect()->route('dashboard');
-            
         } catch (\Exception $e) {
-            DB::rollback();
-            return back()->with('error', 'Failed to assign role. Please try again. Error: ' . $e->getMessage());
+            DB::rollBack();
+            
+            \Log::error('Role assignment failed', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+                'user_id' => Auth::id(),
+                'requested_role' => $request->role
+            ]);
+            
+            return back()->with('error', 'Failed to assign role: ' . $e->getMessage());
         }
     }
 }

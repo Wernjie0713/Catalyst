@@ -10,20 +10,17 @@ return new class extends Migration
     {
         Schema::create('universities', function (Blueprint $table) {
             $table->uuid('university_id')->primary();
-            $table->uuid('user_id');
-            $table->string('name');
+            $table->foreignUuid('user_id')
+                  ->constrained('users')
+                  ->onDelete('cascade');
+            $table->string('name')->nullable();
             $table->string('location')->nullable();
-            $table->string('contact_email');
+            $table->string('contact_email')->nullable();
             $table->string('website')->nullable();
             $table->string('contact_number')->nullable();
             $table->text('bio')->nullable();
             $table->string('profile_photo_path')->nullable();
             $table->timestamps();
-
-            $table->foreign('user_id')
-                  ->references('id')
-                  ->on('users')
-                  ->onDelete('cascade');
         });
     }
 

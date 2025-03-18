@@ -46,7 +46,6 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
-        'role',
     ];
 
     /**
@@ -77,7 +76,7 @@ class User extends Authenticatable
         return $this->hasOne(Organizer::class, 'user_id', 'id');
     }
 
-    public function departmentStaff()
+    public function department_staff()
     {
         return $this->hasOne(DepartmentStaff::class, 'user_id', 'id');
     }
@@ -120,6 +119,12 @@ class User extends Authenticatable
                     ->using(Enrollment::class)
                     ->withPivot(['enrollment_id'])
                     ->withTimestamps();
+    }
+
+    // Add this method to get role name
+    public function getRoleAttribute()
+    {
+        return $this->roles()->first()?->name ?? null;
     }
 
 }

@@ -95,7 +95,6 @@ class DatabaseSeeder extends Seeder
             'name' => 'Admin',
             'email' => 'admin@admin.com',
             'password' => bcrypt('password'),
-            'role' => 'Admin',
         ]);
 
         // Create related Admin model
@@ -103,7 +102,6 @@ class DatabaseSeeder extends Seeder
             'admin_id' => $adminUser->id,
             'name' => $adminUser->name,
             'email' => $adminUser->email,
-            'role' => 'Admin'
         ]);
 
         // Assign admin role to first user

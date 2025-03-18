@@ -3,38 +3,51 @@ import Aurora from '@/Components/Aurora';
 
 const roles = [
     {
-        name: 'Student',
+        name: 'student',
         description: 'Access learning resources, join events, and track your academic journey',
         icon: '👨‍🎓',
+        title: 'Student'
     },
     {
-        name: 'Lecturer',
+        name: 'lecturer',
         description: 'Organize events, and guide students in their academic pursuits',
         icon: '👨‍🏫',
+        title: 'Lecturer'
     },
     {
-        name: 'University',
+        name: 'university',
         description: 'Oversee institutional activities and manage university-wide events',
         icon: '🏛️',
+        title: 'University'
     },
     {
-        name: 'Department Staff',
+        name: 'department_staff',
         description: 'Coordinate department activities and support academic operations',
         icon: '👨‍💼',
+        title: 'Department Staff'
     },
     {
-        name: 'Organizer',
+        name: 'organizer',
         description: 'Create and manage events, workshops, and competitions',
         icon: '📋',
+        title: 'Organizer'
     },
 ];
 
 export default function RoleSelection() {
     const handleRoleSelect = (selectedRole) => {
+        console.log('Selected role:', selectedRole);
         router.post(route('user.assign.role'), {
-            role: selectedRole
+            role: selectedRole.toLowerCase().replace(' ', '_')
         }, {
-            preserveState: false
+            preserveState: false,
+            onSuccess: (page) => {
+                console.log('Role assigned successfully');
+                window.location.href = route('dashboard');
+            },
+            onError: (errors) => {
+                console.error('Role assignment failed:', errors);
+            }
         });
     };
 
@@ -69,7 +82,7 @@ export default function RoleSelection() {
                                     focus:outline-none focus:ring-2 focus:ring-[#635985] focus:ring-offset-2 focus:ring-offset-[#18122B]"
                             >
                                 <div className="text-4xl mb-4">{role.icon}</div>
-                                <h3 className="text-xl font-semibold text-white mb-2">{role.name}</h3>
+                                <h3 className="text-xl font-semibold text-white mb-2">{role.title}</h3>
                                 <p className="text-gray-400 text-sm">{role.description}</p>
                                 <div className="absolute inset-0 rounded-2xl bg-[#635985]/0 group-hover:bg-[#635985]/5 
                                     transition-colors duration-300 pointer-events-none" />
@@ -86,7 +99,7 @@ export default function RoleSelection() {
                                         focus:outline-none focus:ring-2 focus:ring-[#635985] focus:ring-offset-2 focus:ring-offset-[#18122B]"
                                 >
                                     <div className="text-4xl mb-4">{role.icon}</div>
-                                    <h3 className="text-xl font-semibold text-white mb-2">{role.name}</h3>
+                                    <h3 className="text-xl font-semibold text-white mb-2">{role.title}</h3>
                                     <p className="text-gray-400 text-sm">{role.description}</p>
                                     <div className="absolute inset-0 rounded-2xl bg-[#635985]/0 group-hover:bg-[#635985]/5 
                                         transition-colors duration-300 pointer-events-none" />

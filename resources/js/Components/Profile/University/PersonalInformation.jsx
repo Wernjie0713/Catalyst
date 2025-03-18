@@ -5,20 +5,30 @@ import { useState } from 'react';
 
 export default function UniversityPersonalInformation({ user }) {
     const [isEditing, setIsEditing] = useState(false);
-    const { data, setData, patch, processing, errors, recentlySuccessful } = useForm({
-        name: user.university?.name || '',
-        location: user.university?.location || '',
-        contact_email: user.university?.contact_email || '',
-        website: user.university?.website || '',
-        contact_number: user.university?.contact_number || '',
-        bio: user.university?.bio || '',
+    
+    console.log('University data:', user.university);
+
+    const { data, setData, patch, processing, errors } = useForm({
+        name: user?.university?.name || '',
+        location: user?.university?.location || '',
+        contact_email: user?.university?.contact_email || '',
+        website: user?.university?.website || '',
+        contact_number: user?.university?.contact_number || '',
+        bio: user?.university?.bio || ''
     });
 
     const handleSubmit = (e) => {
         e.preventDefault();
-        patch(route('profile.university.update'), {
+        console.log('Submitting university data:', data);
+
+        patch(route('profile.update'), {
+            preserveScroll: true,
             onSuccess: () => {
                 setIsEditing(false);
+                console.log('University profile updated successfully');
+            },
+            onError: (errors) => {
+                console.error('Update failed:', errors);
             }
         });
     };
@@ -45,15 +55,15 @@ export default function UniversityPersonalInformation({ user }) {
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 w-full max-w-3xl mb-12">
                             <div className="bg-white/10 backdrop-blur-md rounded-xl p-4">
                                 <p className="text-gray-400 text-sm">Name</p>
-                                <p className="text-white font-medium">{data.name || 'Not set'}</p>
+                                <p className="text-white font-medium">{data.name || ''}</p>
                             </div>
                             <div className="bg-white/10 backdrop-blur-md rounded-xl p-4">
                                 <p className="text-gray-400 text-sm">Location</p>
-                                <p className="text-white font-medium">{data.location || 'Not set'}</p>
+                                <p className="text-white font-medium">{data.location || ''}</p>
                             </div>
                             <div className="bg-white/10 backdrop-blur-md rounded-xl p-4">
                                 <p className="text-gray-400 text-sm">Contact</p>
-                                <p className="text-white font-medium">{data.contact_number || 'Not set'}</p>
+                                <p className="text-white font-medium">{data.contact_number || ''}</p>
                             </div>
                         </div>
 

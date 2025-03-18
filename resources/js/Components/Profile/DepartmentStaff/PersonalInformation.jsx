@@ -1,25 +1,52 @@
 import Input from '../Input';
 import { useForm } from '@inertiajs/react';
 import UpdateProfilePhoto from '@/Components/Profile/Common/UpdateProfilePhoto';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 export default function DepartmentStaffPersonalInformation({ user }) {
     const [isEditing, setIsEditing] = useState(false);
-    const { data, setData, patch, processing, errors, recentlySuccessful } = useForm({
-        department: user.departmentStaff?.department || '',
-        position: user.departmentStaff?.position || '',
-        contact_number: user.departmentStaff?.contact_number || '',
-        bio: user.departmentStaff?.bio || '',
-        linkedin: user.departmentStaff?.linkedin || '',
+    const [initialValues] = useState({
+        department: user?.department_staff?.department || '',
+        position: user?.department_staff?.position || '',
+        contact_number: user?.department_staff?.contact_number || '',
+        linkedin: user?.department_staff?.linkedin || '',
+        bio: user?.department_staff?.bio || ''
     });
+
+    const { data, setData, patch, processing, errors } = useForm(initialValues);
 
     const handleSubmit = (e) => {
         e.preventDefault();
+        console.log('Form data being submitted:', data);
+        
         patch(route('profile.department-staff.update'), {
-            onSuccess: () => {
-                setIsEditing(false);
+            preserveScroll: true,
+            onSuccess: (response) => {
+                console.log('Success response:', response);
+            },
+            onError: (errors) => {
+                console.error('Submission errors:', errors);
             }
         });
+    };
+
+    const handlePhotoChange = (e) => {
+        if (e.target.files[0]) {
+            const formData = new FormData();
+            formData.append('photo', e.target.files[0]);
+            
+            post(route('profile.photo'), formData, {
+                forceFormData: true,
+                preserveScroll: true,
+                onSuccess: () => {
+                    // Optional: Show success message or refresh the page
+                    console.log('Photo uploaded successfully');
+                },
+                onError: (errors) => {
+                    console.error('Upload failed:', errors);
+                }
+            });
+        }
     };
 
     return (
@@ -30,6 +57,13 @@ export default function DepartmentStaffPersonalInformation({ user }) {
                         {/* Profile Photo */}
                         <div className="mb-6">
                             <UpdateProfilePhoto user={user} />
+                            <input
+                                type="file"
+                                onChange={handlePhotoChange}
+                                accept="image/*"
+                                className="hidden"
+                                id="photo-upload"
+                            />
                         </div>
                         
                         {/* User Info */}
@@ -44,15 +78,15 @@ export default function DepartmentStaffPersonalInformation({ user }) {
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 w-full max-w-3xl mb-12">
                             <div className="bg-white/10 backdrop-blur-md rounded-xl p-4">
                                 <p className="text-gray-400 text-sm">Department</p>
-                                <p className="text-white font-medium">{data.department || 'Not set'}</p>
+                                <p className="text-white font-medium">{data.department || ''}</p>
                             </div>
                             <div className="bg-white/10 backdrop-blur-md rounded-xl p-4">
                                 <p className="text-gray-400 text-sm">Position</p>
-                                <p className="text-white font-medium">{data.position || 'Not set'}</p>
+                                <p className="text-white font-medium">{data.position || ''}</p>
                             </div>
                             <div className="bg-white/10 backdrop-blur-md rounded-xl p-4">
                                 <p className="text-gray-400 text-sm">Contact</p>
-                                <p className="text-white font-medium">{data.contact_number || 'Not set'}</p>
+                                <p className="text-white font-medium">{data.contact_number || ''}</p>
                             </div>
                         </div>
 
@@ -179,7 +213,7 @@ function InfoItem({ label, value, isLink }) {
                     {value}
                 </a>
             ) : (
-                <p className="text-white">{value || 'Not set'}</p>
+                <p className="text-white">{value || ''}</p>
             )}
         </div>
     );

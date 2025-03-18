@@ -29,7 +29,7 @@ export default function Index({ auth, roles }) {
                                         {roles.map((role) => (
                                             <tr key={role.id}>
                                                 <td className="px-6 py-4">{role.id}</td>
-                                                <td className="px-6 py-4">{role.name}</td>
+                                                <td className="px-6 py-4">{role.title}</td>
                                                 <td className="px-6 py-4 text-right">
                                                     <Link
                                                         href={route('admin.roles.edit', role.id)}

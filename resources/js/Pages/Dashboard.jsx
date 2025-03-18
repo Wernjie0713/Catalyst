@@ -36,7 +36,7 @@ export default function Dashboard() {
                             {getWelcomeMessage()}, {auth.user.name}
                         </h2>
                         <p className="text-gray-400">
-                            Welcome to your {auth.user.role} dashboard
+                            Welcome to your {auth.user.roles[0]?.title || 'dashboard'}
                         </p>
                     </motion.div>
 

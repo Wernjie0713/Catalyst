@@ -31,8 +31,8 @@ const navItems = [
   {
     name: "Settings",
     icon: "settings",
-    route: "setting.edit",
-    path: "/setting"
+    route: "settings.edit",
+    path: "/settings"
   },
   {
     name: "Roles Management",
@@ -65,10 +65,10 @@ export const Sidebar = () => {
   }, []);
 
   const filteredNavItems = navItems.filter(item => {
-    if (item.name === "Roles Management" && auth?.user?.role !== "Admin") {
+    if (item.name === "Roles Management" && !auth?.user?.roles?.some(role => role.name === 'admin')) {
       return false;
     }
-    if (item.name === "Profile" && auth?.user?.role === "Admin") {
+    if (item.name === "Profile" && auth?.user?.roles?.some(role => role.name === 'admin')) {
       return false;
     }
     return true;

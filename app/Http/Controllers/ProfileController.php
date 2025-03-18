@@ -3,441 +3,470 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\ProfileUpdateRequest;
-use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Redirect;
-use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
 use Inertia\Response;
+use App\Models\Student;
+use App\Models\Lecturer;
+use App\Models\Organizer;
+use App\Models\DepartmentStaff;
+use App\Models\University;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
-use Silber\Bouncer\BouncerFacade as Bouncer;
 use Illuminate\Support\Facades\DB;
-use Symfony\Component\HttpFoundation\BinaryFileResponse;
-use Symfony\Component\HttpFoundation\StreamedResponse;
-use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Facades\Log;
 
 class ProfileController extends Controller
 {
     /**
-     * Display the user's profile form.
+     * Display the user's profile page based on their role.
+     */
+    public function show(Request $request): Response|RedirectResponse
+    {
+        $user = $request->user();
+        $role = $user->roles()->first()?->name;
+        
+        if (!$role) {
+            return redirect()->route('role.selection');
+        }
+
+        // Map roles to their respective profile components
+        $roleComponents = [
+            'student' => 'Profile/Student/Profile',
+            'lecturer' => 'Profile/Lecturer/Profile',
+            'organizer' => 'Profile/Organizer/Profile',
+            'department_staff' => 'Profile/DepartmentStaff/Profile',
+            'university' => 'Profile/University/Profile',
+        ];
+
+        if (!isset($roleComponents[$role])) {
+            abort(403, 'Unauthorized role');
+        }
+
+        return Inertia::render($roleComponents[$role], [
+            'auth' => [
+                'user' => $user->load($role)
+            ]
+        ]);
+    }
+
+    /**
+     * Show the profile editing form.
      */
     public function edit(Request $request): Response
     {
         return Inertia::render('Profile/Edit', [
-            'mustVerifyEmail' => $request->user() instanceof MustVerifyEmail,
-            'status' => session('status'),
+            'user' => $request->user()->load(['department_staff' => function($query) {
+                $query->select('staff_id', 'user_id', 'profile_photo_path', /* other fields */);
+            }])
         ]);
     }
 
     /**
-     * Delete the user's account.
+     * Update the user's profile information.
      */
-    public function destroy(Request $request): RedirectResponse
+    public function update(Request $request): RedirectResponse
     {
-        $request->validate([
-            'password' => ['required', 'current_password'],
+        Log::info('Profile update request received:', [
+            'all_data' => $request->all(),
+            'user' => $request->user(),
+            'role' => $request->user()->role
         ]);
 
-        $user = $request->user();
-        Auth::logout();
-        $user->delete();
-        $request->session()->invalidate();
-        $request->session()->regenerateToken();
-
-        return Redirect::to('/');
-    }
-
-    /**
-     * Display the user's profile.
-     */
-    public function show(Request $request): Response
-    {
         try {
             $user = $request->user();
+            $role = strtolower($user->role);
 
-            if ($user->isA('student')) {
-                $user->load('student');
-                $user->profile_photo_url = $user->student?->profile_photo_path 
-                    ? Storage::disk('public')->url($user->student->profile_photo_path)
-                    : null;
-                return Inertia::render('Profile/Student/Profile', [
-                    'user' => $user
-                ]);
+            // Remove common validation since these fields might not always be updated
+            // Only validate what's being updated
+            $validationRules = [];
+            if ($request->has('name')) {
+                $validationRules['name'] = 'required|string|max:255';
+            }
+            if ($request->has('email')) {
+                $validationRules['email'] = 'required|email|max:255|unique:users,email,' . $user->id;
             }
 
-            if ($user->isA('lecturer')) {
-                $user->load('lecturer');
-                $user->profile_photo_url = $user->lecturer?->profile_photo_path 
-                    ? Storage::disk('public')->url($user->lecturer->profile_photo_path)
-                    : null;
-                return Inertia::render('Profile/Lecturer/Profile', [
-                    'user' => $user
-                ]);
+            if (!empty($validationRules)) {
+                $request->validate($validationRules);
+
+                // Only update user model if name or email is provided
+                $userUpdates = array_intersect_key($request->all(), array_flip(['name', 'email']));
+                if (!empty($userUpdates)) {
+                    $user->update($userUpdates);
+                }
             }
 
-            if ($user->isA('organizer')) {
-                $user->load('organizer');
-                return Inertia::render('Profile/Organizer/Profile', [
-                    'user' => $user
-                ]);
+            // Update role-specific profile
+            switch ($role) {
+                case 'student':
+                    $this->updateStudentProfile($user, $request);
+                    break;
+                case 'lecturer':
+                    $this->updateLecturerProfile($user, $request);
+                    break;
+                case 'organizer':
+                    $this->updateOrganizerProfile($user, $request);
+                    break;
+                case 'department_staff':
+                    $this->updateDepartmentStaffProfile($user, $request);
+                    break;
+                case 'university':
+                    $this->updateUniversityProfile($user, $request);
+                    break;
             }
 
-            if ($user->isA('department_staff')) {
-                $user->load('departmentStaff');
-                return Inertia::render('Profile/DepartmentStaff/Profile', [
-                    'user' => $user
-                ]);
-            }
-
-            if ($user->isA('university')) {
-                $user->load('university');
-                return Inertia::render('Profile/University/Profile', [
-                    'user' => $user
-                ]);
-            }
-
-            // Fallback for unknown roles
-            Log::warning('User with unknown role attempted to access profile', ['user_id' => $user->id]);
-            return Inertia::render('Profile/Profile', [
-                'user' => $user
+            Log::info('Profile updated successfully', [
+                'user_id' => $user->id,
+                'role' => $role
             ]);
+
+            return back()->with('success', 'Profile updated successfully.');
+        } catch (\Exception $e) {
+            Log::error('Profile update failed:', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            return back()->with('error', 'Failed to update profile: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Handle profile photo upload
+     */
+    public function updateProfilePhoto(Request $request)
+    {
+        try {
+            $request->validate([
+                'photo' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048',
+                'profile_type' => 'required|string'
+            ]);
+
+            $user = $request->user();
+            $profile = null;
+            
+            // Get the correct profile model based on type
+            switch ($request->profile_type) {
+                case 'department_staff':
+                    $profile = $user->department_staff;
+                    break;
+                case 'student':
+                    $profile = $user->student;
+                    break;
+                case 'lecturer':
+                    $profile = $user->lecturer;
+                    break;
+                case 'university':
+                    $profile = $user->university;
+                    break;
+                case 'organizer':
+                    $profile = $user->organizer;
+                    break;
+                default:
+                    throw new \Exception('Invalid profile type');
+            }
+
+            if (!$profile) {
+                throw new \Exception('Profile not found');
+            }
+
+            if (!$request->hasFile('photo')) {
+                throw new \Exception('No photo file received');
+            }
+
+            // Get the file and generate filename
+            $file = $request->file('photo');
+            $filename = time() . '_' . Str::random(10) . '.' . $file->getClientOriginalExtension();
+            
+            // Move the file to public directory
+            $file->move(public_path('images/profile-photos'), $filename);
+            $path = 'images/profile-photos/' . $filename;
+
+            // Delete old photo if exists
+            if ($profile->profile_photo_path) {
+                if (file_exists(public_path($profile->profile_photo_path))) {
+                    unlink(public_path($profile->profile_photo_path));
+                }
+            }
+
+            // Update the profile photo path using query builder to ensure it saves
+            DB::table($profile->getTable())
+                ->where($profile->getKeyName(), $profile->getKey())
+                ->update([
+                    'profile_photo_path' => $path,
+                    'updated_at' => now()
+                ]);
+
+            return back()->with('success', 'Profile photo updated successfully.');
 
         } catch (\Exception $e) {
-            Log::error('Error in profile show method', [
+            \Log::error('Profile photo update failed:', [
                 'error' => $e->getMessage(),
-                'user_id' => $request->user()?->id
+                'trace' => $e->getTraceAsString()
             ]);
-            
+            return back()->with('error', 'Failed to update profile photo: ' . $e->getMessage());
+        }
+    }
+
+    // Private methods for updating role-specific profiles
+    private function updateStudentProfile($user, $request): void
+    {
+        Log::info('Updating student profile:', [
+            'user_id' => $user->id,
+            'request_data' => $request->all()
+        ]);
+
+        $request->validate([
+            'matric_no' => 'nullable|string',
+            'year' => 'nullable|integer',
+            'level' => 'nullable|string',
+            'contact_number' => 'nullable|string',
+            'bio' => 'nullable|string',
+            'faculty' => 'nullable|string',
+            'university' => 'nullable|string',
+            'expected_graduate' => 'nullable|integer'
+        ]);
+
+        try {
+            $student = $user->student;
+            if (!$student) {
+                Log::error('Student record not found for user:', ['user_id' => $user->id]);
+                throw new \Exception('Student record not found.');
+            }
+
+            $student->update($request->only([
+                'matric_no', 'year', 'level', 'contact_number', 
+                'bio', 'faculty', 'university', 'expected_graduate'
+            ]));
+
+            Log::info('Student profile updated successfully:', [
+                'student_id' => $student->student_id,
+                'updated_data' => $student->fresh()->toArray()
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Failed to update student profile:', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
             throw $e;
         }
     }
 
-    /**
-     * Update student profile information.
-     */
-    public function updateStudentProfile(Request $request): RedirectResponse
+    private function updateLecturerProfile($user, $request): void
+    {
+        $request->validate([
+            'department' => 'required|string',
+            'specialization' => 'required|string',
+        ]);
+
+        $user->lecturer()->update($request->only([
+            'department', 'specialization', 'contact_number', 'bio', 'linkedin'
+        ]));
+    }
+
+    private function updateOrganizerProfile($user, $request): void
     {
         try {
-            $user = $request->user();
+            $organizer = $user->organizer;
             
-            // Add debug logging
-            Log::info('Received student profile update request', [
-                'user_id' => $user->id,
+            if (!$organizer) {
+                throw new \Exception('Organizer profile not found.');
+            }
+
+            Log::info('Updating organizer profile:', [
+                'before' => $organizer->toArray(),
                 'request_data' => $request->all()
             ]);
 
-            if (!$user->isA('student')) {
-                Log::warning('Unauthorized access attempt', ['user_id' => $user->id]);
-                return back()->withErrors(['error' => 'Unauthorized access.']);
-            }
+            // Remove validation since fields are nullable
+            $organizer->update($request->only([
+                'organization_name',
+                'official_email',
+                'website',
+                'contact_number',
+                'bio',
+                'linkedin'
+            ]));
 
-            // Validate request
-            $validated = $request->validate([
-                'matric_no' => ['required', 'string', 'max:255'],
-                'year' => ['required', 'integer', 'min:1', 'max:6'],
-                'level' => ['required', 'string'],
-                'contact_number' => ['required', 'string', 'max:15'],
-                'bio' => ['nullable', 'string'],
-                'faculty' => ['required', 'string', 'max:255'],
-                'university' => ['required', 'string', 'max:255'],
-                'expected_graduate' => ['required', 'integer'],
+            Log::info('Organizer profile updated:', [
+                'after' => $organizer->fresh()->toArray()
             ]);
-
-            Log::info('Validated data', ['validated' => $validated]);
-
-            // Find or create student record
-            $student = $user->student ?? $user->student()->create([]);
-
-            if (!$student) {
-                Log::error('Student record not found and could not be created', ['user_id' => $user->id]);
-                return back()->withErrors(['error' => 'Student record not found.']);
-            }
-
-            DB::beginTransaction();
-            try {
-                // Log before update
-                Log::info('Current student data', ['before_update' => $student->toArray()]);
-                
-                $student->fill($validated);
-                $student->save();
-
-                // Log after update
-                Log::info('Updated student data', ['after_update' => $student->fresh()->toArray()]);
-
-                DB::commit();
-                
-                return back()->with('message', 'Profile updated successfully.');
-            } catch (\Exception $e) {
-                DB::rollBack();
-                Log::error('Error updating student profile', [
-                    'user_id' => $user->id,
-                    'error' => $e->getMessage(),
-                    'trace' => $e->getTraceAsString()
-                ]);
-                return back()->withErrors(['error' => 'Failed to update profile: ' . $e->getMessage()]);
-            }
         } catch (\Exception $e) {
-            Log::critical('Unexpected error in updateStudentProfile', [
+            Log::error('Failed to update organizer profile:', [
                 'error' => $e->getMessage(),
                 'trace' => $e->getTraceAsString()
             ]);
-            return back()->withErrors(['error' => 'Something went wrong: ' . $e->getMessage()]);
+            throw $e;
         }
     }
 
-    /**
-     * Update lecturer profile information.
-     */
-    public function updateLecturerProfile(Request $request): RedirectResponse
+    private function updateDepartmentStaffProfile($user, $request): void
+    {
+        $request->validate([
+            'department' => 'required|string',
+            'position' => 'required|string',
+        ]);
+
+        $user->department_staff()->update($request->only([
+            'department', 'position', 'contact_number', 'bio', 'linkedin'
+        ]));
+    }
+
+    private function updateUniversityProfile($user, $request): void
     {
         try {
-            $user = $request->user();
+            $university = $user->university;
             
-            if (!$user->isA('lecturer')) {
-                return Redirect::back()->withErrors(['error' => 'Unauthorized access']);
+            if (!$university) {
+                throw new \Exception('University profile not found.');
             }
 
-            $validated = $request->validate([
-                'department' => ['required', 'string', 'max:255'],
-                'specialization' => ['nullable', 'string', 'max:255'],
-                'contact_number' => ['required', 'string', 'max:255'],
-                'bio' => ['nullable', 'string'],
-                'linkedin' => ['nullable', 'string', 'url', 'max:255'],
+            Log::info('Updating university profile:', [
+                'before' => $university->toArray(),
+                'request_data' => $request->all()
             ]);
 
-            $user->lecturer->update($validated);
-            return Redirect::back()->with('message', 'Profile updated successfully');
+            $university->update($request->only([
+                'name',
+                'location',
+                'contact_email',
+                'website',
+                'contact_number',
+                'bio'
+            ]));
 
-        } catch (\Exception $e) {
-            return Redirect::back()->withErrors(['error' => 'Failed to update profile. ' . $e->getMessage()]);
-        }
-    }
-
-    /**
-     * Update organizer profile information.
-     */
-    public function updateOrganizerProfile(Request $request): RedirectResponse
-    {
-        try {
-            $user = $request->user();
-            
-            if (!$user->isA('organizer')) {
-                return Redirect::back()->withErrors(['error' => 'Unauthorized access']);
-            }
-
-            $validated = $request->validate([
-                'contact_number' => ['required', 'string', 'max:255'],
-                'bio' => ['nullable', 'string'],
-                'linkedin' => ['nullable', 'string', 'url', 'max:255'],
-                'website' => ['nullable', 'string', 'url', 'max:255'],
-                'organization_name' => ['required', 'string', 'max:255'],
-                'official_email' => ['required', 'email', 'max:255'],
+            Log::info('University profile updated:', [
+                'after' => $university->fresh()->toArray()
             ]);
-
-            $user->organizer->update($validated);
-            return Redirect::back()->with('message', 'Profile updated successfully');
-
         } catch (\Exception $e) {
-            return Redirect::back()->withErrors(['error' => 'Failed to update profile. ' . $e->getMessage()]);
-        }
-    }
-
-    /**
-     * Update department staff profile information.
-     */
-    public function updateDepartmentStaffProfile(Request $request): RedirectResponse
-    {
-        try {
-            $user = $request->user();
-            
-            if (!$user->isA('department_staff')) {
-                return Redirect::back()->withErrors(['error' => 'Unauthorized access']);
-            }
-
-            $validated = $request->validate([
-                'department' => ['required', 'string', 'max:255'],
-                'position' => ['required', 'string', 'max:255'],
-                'contact_number' => ['required', 'string', 'max:255'],
-                'bio' => ['nullable', 'string'],
-                'linkedin' => ['nullable', 'string', 'url', 'max:255'],
-            ]);
-
-            $user->departmentStaff->update($validated);
-            return Redirect::back()->with('message', 'Profile updated successfully');
-
-        } catch (\Exception $e) {
-            return Redirect::back()->withErrors(['error' => 'Failed to update profile. ' . $e->getMessage()]);
-        }
-    }
-
-    /**
-     * Update university profile information.
-     */
-    public function updateUniversityProfile(Request $request): RedirectResponse
-    {
-        try {
-            $user = $request->user();
-            
-            if (!$user->isA('university')) {
-                return Redirect::back()->withErrors(['error' => 'Unauthorized access']);
-            }
-
-            $validated = $request->validate([
-                'name' => ['required', 'string', 'max:255'],
-                'location' => ['required', 'string', 'max:255'],
-                'contact_email' => ['required', 'email', 'max:255'],
-                'website' => ['nullable', 'string', 'url', 'max:255'],
-                'contact_number' => ['required', 'string', 'max:255'],
-                'bio' => ['nullable', 'string'],
-            ]);
-
-            if (!$user->university) {
-                $university = new \App\Models\University($validated);
-                $university->user_id = $user->id;
-                $university->university_id = Str::uuid()->toString();
-                $university->save();
-            } else {
-                $user->university->update($validated);
-            }
-
-            return Redirect::back()->with('message', 'Profile updated successfully');
-
-        } catch (\Exception $e) {
-            return Redirect::back()->withErrors(['error' => 'Failed to update profile. ' . $e->getMessage()]);
-        }
-    }
-
-    public function showPhoto(string $path): BinaryFileResponse|StreamedResponse
-    {
-        // Check if user is authorized to view this photo
-        $user = auth()->user();
-        $model = null;
-
-        if ($user->isA('student')) {
-            $model = $user->student;
-        } elseif ($user->isA('lecturer')) {
-            $model = $user->lecturer;
-        } elseif ($user->isA('organizer')) {
-            $model = $user->organizer;
-        } elseif ($user->isA('university')) {
-            $model = $user->university;
-        } elseif ($user->isA('department_staff')) {
-            $model = $user->departmentStaff;
-        }
-
-        // Check if this photo belongs to the user
-        if (!$model || $model->profile_photo_path !== $path) {
-            abort(403);
-        }
-
-        // Check if file exists
-        if (!Storage::disk('local')->exists($path)) {
-            abort(404);
-        }
-
-        // Return file response
-        return response()->file(
-            Storage::disk('local')->path($path)
-        );
-    }
-
-    public function storePhoto(Request $request): JsonResponse
-    {
-        try {
-            $request->validate([
-                'photo' => ['required', 'image', 'mimes:jpeg,png,jpg,gif', 'max:5120'],
-            ]);
-
-            $user = $request->user();
-            $model = null;
-            $type = '';
-
-            if ($user->isA('student')) {
-                $model = $user->student;
-                $type = 'Student';
-            } elseif ($user->isA('organizer')) {
-                $model = $user->organizer;
-                $type = 'Organizer';
-            } elseif ($user->isA('university')) {
-                $model = $user->university;
-                $type = 'University';
-            } elseif ($user->isA('lecturer')) {
-                $model = $user->lecturer;
-                $type = 'Lecturer';
-            } elseif ($user->isA('department_staff')) {
-                $model = $user->departmentStaff;
-                $type = 'DepartmentStaff';
-            }
-
-            if (!$model) {
-                return response()->json(['error' => 'User type not found'], 400);
-            }
-
-            if ($request->hasFile('photo')) {
-                // Delete old photo if exists
-                if ($model->profile_photo_path && file_exists(public_path($model->profile_photo_path))) {
-                    unlink(public_path($model->profile_photo_path));
-                }
-
-                $file = $request->file('photo');
-                $filename = time() . '_' . $file->getClientOriginalName();
-                
-                // Store in public directory like events
-                $file->move(public_path('images/' . $type . 'Profile'), $filename);
-                $path = 'images/' . $type . 'Profile/' . $filename;
-
-                // Save path to database
-                $model->profile_photo_path = $path;
-                $model->save();
-
-                return response()->json([
-                    'message' => 'Photo updated successfully',
-                    'path' => $path,
-                    'url' => asset($path)
-                ]);
-            }
-
-            return response()->json(['error' => 'No photo file in request'], 400);
-
-        } catch (\Exception $e) {
-            Log::error('Photo upload failed', [
+            Log::error('Failed to update university profile:', [
                 'error' => $e->getMessage(),
                 'trace' => $e->getTraceAsString()
             ]);
-            return response()->json(['error' => $e->getMessage()], 500);
+            throw $e;
         }
     }
 
-    public function destroyPhoto(Request $request): RedirectResponse
+    public function updateDepartmentStaff(Request $request): RedirectResponse
     {
-        $user = $request->user();
-        $model = null;
+        try {
+            \Log::info('Raw request data:', $request->all());
 
-        if ($user->isA('student')) {
-            $model = $user->student;
-        } elseif ($user->isA('organizer')) {
-            $model = $user->organizer;
-        } elseif ($user->isA('university')) {
-            $model = $user->university;
-        } elseif ($user->isA('lecturer')) {
-            $model = $user->lecturer;
-        } elseif ($user->isA('department_staff')) {
-            $model = $user->departmentStaff;
+            $validated = $request->validate([
+                'department' => 'required|string|max:255',
+                'position' => 'required|string|max:255',
+                'contact_number' => 'nullable|string|max:255',
+                'linkedin' => 'nullable|string|max:255',
+                'bio' => 'nullable|string'
+            ]);
+
+            \Log::info('Validated data:', ['data' => $validated]);
+
+            // Use department_staff instead of departmentStaff
+            $department_staff = $request->user()->department_staff()->first();
+
+            if (!$department_staff) {
+                \Log::error('Department staff not found for user:', ['user_id' => $request->user()->id]);
+                return back()->with('error', 'Department staff profile not found.');
+            }
+
+            \Log::info('Found department staff:', ['before_update' => $department_staff->toArray()]);
+
+            // Update using query builder to bypass any model issues
+            $updated = DB::table('department_staff')
+                ->where('staff_id', $department_staff->staff_id)
+                ->update([
+                    'department' => $validated['department'],
+                    'position' => $validated['position'],
+                    'contact_number' => $validated['contact_number'],
+                    'linkedin' => $validated['linkedin'],
+                    'bio' => $validated['bio'],
+                    'updated_at' => now()
+                ]);
+
+            \Log::info('Update result:', [
+                'updated' => $updated,
+                'after_update' => DepartmentStaff::find($department_staff->staff_id)->toArray()
+            ]);
+
+            return back()->with('success', 'Profile updated successfully.');
+        } catch (\Exception $e) {
+            \Log::error('Update failed:', [
+                'message' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            return back()->with('error', 'Failed to update profile: ' . $e->getMessage());
         }
+    }
 
-        if (!$model) {
-            return back()->withErrors(['error' => 'Unable to determine user type']);
+    public function updateStudent(Request $request): RedirectResponse
+    {
+        $validated = $request->validate([
+            'student_number' => 'nullable|string|max:255',
+            'year' => 'nullable|integer',
+            'course' => 'nullable|string|max:255',
+            'contact_number' => 'nullable|string|max:255',
+            'bio' => 'nullable|string'
+        ]);
+
+        return $this->updateRoleProfile($request->user()->student, $validated);
+    }
+
+    public function updateLecturer(Request $request): RedirectResponse
+    {
+        $validated = $request->validate([
+            'department' => 'required|string|max:255',
+            'specialization' => 'nullable|string|max:255',
+            'contact_number' => 'nullable|string|max:255',
+            'linkedin' => 'nullable|string|max:255',
+            'bio' => 'nullable|string'
+        ]);
+
+        return $this->updateRoleProfile($request->user()->lecturer, $validated);
+    }
+
+    public function updateOrganizer(Request $request): RedirectResponse
+    {
+        $validated = $request->validate([
+            'organization_name' => 'required|string|max:255',
+            'contact_number' => 'nullable|string|max:255',
+            'website' => 'nullable|string|max:255',
+            'description' => 'nullable|string'
+        ]);
+
+        return $this->updateRoleProfile($request->user()->organizer, $validated);
+    }
+
+    public function updateUniversity(Request $request): RedirectResponse
+    {
+        $validated = $request->validate([
+            'university_name' => 'required|string|max:255',
+            'address' => 'nullable|string|max:255',
+            'contact_number' => 'nullable|string|max:255',
+            'website' => 'nullable|string|max:255',
+            'description' => 'nullable|string'
+        ]);
+
+        return $this->updateRoleProfile($request->user()->university, $validated);
+    }
+
+    /**
+     * Helper method to handle profile updates
+     */
+    private function updateRoleProfile($profile, array $validated): RedirectResponse
+    {
+        try {
+            if (!$profile) {
+                return back()->with('error', 'Profile not found.');
+            }
+
+            $profile->update($validated);
+            return back()->with('success', 'Profile updated successfully.');
+        } catch (\Exception $e) {
+            return back()->with('error', 'Failed to update profile: ' . $e->getMessage());
         }
-
-        if ($model->profile_photo_path) {
-            Storage::disk('local')->delete($model->profile_photo_path);
-            $model->profile_photo_path = null;
-            $model->save();
-        }
-
-        return back()->with('success', 'Photo removed successfully.');
     }
 }

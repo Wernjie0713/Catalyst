@@ -4,9 +4,12 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
 
 class Lecturer extends Model
 {
+    use HasUuids;
+
     protected $primaryKey = 'lecturer_id';
     public $incrementing = false;
     protected $keyType = 'string';
@@ -17,14 +20,14 @@ class Lecturer extends Model
         'department',
         'specialization',
         'contact_number',
-        'bio',
         'linkedin',
+        'bio',
         'profile_photo_path'
     ];
 
     public function user()
     {
-        return $this->belongsTo(User::class, 'user_id', 'id');
+        return $this->belongsTo(User::class, 'user_id');
     }
 
     // Lecturer can view/manage reports
@@ -35,8 +38,10 @@ class Lecturer extends Model
 
     public function getProfilePhotoUrlAttribute()
     {
-        return $this->profile_photo_path
-            ? Storage::disk('public')->url($this->profile_photo_path)
-            : null;
+        if ($this->profile_photo_path) {
+            // Use response()->file() to serve the image securely
+            return route('profile.photo', ['path' => $this->profile_photo_path]);
+        }
+        return null;
     }
 }

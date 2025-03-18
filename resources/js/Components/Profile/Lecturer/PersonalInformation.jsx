@@ -5,19 +5,23 @@ import { useState } from 'react';
 
 export default function LecturerPersonalInformation({ user }) {
     const [isEditing, setIsEditing] = useState(false);
-    const { data, setData, patch, processing, errors, recentlySuccessful } = useForm({
-        department: user.lecturer?.department || '',
-        specialization: user.lecturer?.specialization || '',
-        contact_number: user.lecturer?.contact_number || '',
-        bio: user.lecturer?.bio || '',
-        linkedin: user.lecturer?.linkedin || '',
+
+    console.log('Lecturer data:', user.lecturer);
+
+    const { data, setData, patch, processing, errors } = useForm({
+        department: user.lecturer.department,
+        specialization: user.lecturer.specialization,
+        contact_number: user.lecturer.contact_number,
+        bio: user.lecturer.bio,
+        linkedin: user.lecturer.linkedin
     });
 
     const handleSubmit = (e) => {
         e.preventDefault();
         patch(route('profile.lecturer.update'), {
-            onSuccess: () => {
-                setIsEditing(false);
+            onSuccess: () => setIsEditing(false),
+            onError: (errors) => {
+                console.error('Submission errors:', errors);
             }
         });
     };
@@ -44,15 +48,15 @@ export default function LecturerPersonalInformation({ user }) {
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 w-full max-w-3xl mb-12">
                             <div className="bg-white/10 backdrop-blur-md rounded-xl p-4">
                                 <p className="text-gray-400 text-sm">Department</p>
-                                <p className="text-white font-medium">{data.department || 'Not set'}</p>
+                                <p className="text-white font-medium">{data.department || ''}</p>
                             </div>
                             <div className="bg-white/10 backdrop-blur-md rounded-xl p-4">
                                 <p className="text-gray-400 text-sm">Specialization</p>
-                                <p className="text-white font-medium">{data.specialization || 'Not set'}</p>
+                                <p className="text-white font-medium">{data.specialization || ''}</p>
                             </div>
                             <div className="bg-white/10 backdrop-blur-md rounded-xl p-4">
                                 <p className="text-gray-400 text-sm">Contact</p>
-                                <p className="text-white font-medium">{data.contact_number || 'Not set'}</p>
+                                <p className="text-white font-medium">{data.contact_number || ''}</p>
                             </div>
                         </div>
 
@@ -183,7 +187,7 @@ function InfoItem({ label, value, isLink }) {
                     {value}
                 </a>
             ) : (
-                <p className="text-white">{value || 'Not set'}</p>
+                <p className="text-white">{value || ''}</p>
             )}
         </div>
     );

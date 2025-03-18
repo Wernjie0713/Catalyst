@@ -24,23 +24,43 @@ Route::get('/', function () {
 Route::get('/dashboard', [DashboardController::class, 'index'])
     ->middleware(['auth', 'verified'])
     ->name('dashboard');
+    
+// User and Profile routes
+Route::middleware(['auth'])->group(function () {
+    // Role selection routes
+    Route::get('/role-selection', [UserRoleController::class, 'showRoleSelection'])
+        ->name('role.selection');
+    Route::post('/user/assign-role', [UserRoleController::class, 'assignRole'])
+        ->name('user.assign.role')
+        ->middleware(['auth', 'web']);
 
-Route::middleware('auth')->group(function () {
-    Route::get('/setting', [ProfileController::class, 'edit'])->name('setting.edit');
-    Route::patch('/setting', [ProfileController::class, 'update'])->name('setting.update');
-    Route::delete('/setting', [ProfileController::class, 'destroy'])->name('setting.destroy');
-    
     // Profile routes
-    Route::get('/profile', [ProfileController::class, 'show'])->name('profile.show');
-    
-    // Profile form submission routes for each role
-    Route::patch('/profile/student', [ProfileController::class, 'updateStudentProfile'])->name('profile.student.update');
-    Route::patch('/profile/lecturer', [ProfileController::class, 'updateLecturerProfile'])->name('profile.lecturer.update');
-    Route::patch('/profile/organizer', [ProfileController::class, 'updateOrganizerProfile'])->name('profile.organizer.update');
-    Route::patch('/profile/department-staff', [ProfileController::class, 'updateDepartmentStaffProfile'])->name('profile.department-staff.update');
-    Route::patch('/profile/university', [ProfileController::class, 'updateUniversityProfile'])->name('profile.university.update');
-    Route::post('/profile/photo', [ProfileController::class, 'storePhoto'])->name('profile.photo');
-    Route::delete('/profile/photo', [ProfileController::class, 'destroyPhoto'])->name('profile.photo.destroy');
+    Route::middleware(['auth', 'verified'])->group(function () {
+        // Common profile routes
+        Route::get('/profile', [ProfileController::class, 'show'])->name('profile.show');
+        Route::get('/profile/edit', [ProfileController::class, 'edit'])->name('profile.edit');
+        Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
+        Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+        Route::post('/profile/photo', [ProfileController::class, 'updateProfilePhoto'])->name('profile.photo');
+
+        // Role-specific profile updates
+        Route::patch('/profile/department-staff/update', [ProfileController::class, 'updateDepartmentStaff'])
+            ->name('profile.department-staff.update');
+        
+        Route::patch('/profile/student/update', [ProfileController::class, 'updateStudent'])
+            ->name('profile.student.update');
+        
+        Route::patch('/profile/lecturer/update', [ProfileController::class, 'updateLecturer'])
+            ->name('profile.lecturer.update');
+        
+        Route::patch('/profile/organizer/update', [ProfileController::class, 'updateOrganizer'])
+            ->name('profile.organizer.update');
+        
+        Route::patch('/profile/university/update', [ProfileController::class, 'updateUniversity'])
+            ->name('profile.university.update');
+
+        Route::patch('/profile/update', [ProfileController::class, 'update'])->name('profile.update');
+    });
 });
 
 Route::middleware(['auth', 'can:admin'])->group(function () {
@@ -52,14 +72,6 @@ Route::middleware(['auth', 'can:admin'])->group(function () {
             Route::delete('/roles/{role}', 'destroy')->name('roles.destroy');
         });
     });
-});
-
-
-Route::middleware(['auth'])->group(function () {
-    Route::get('/role-selection', [UserRoleController::class, 'showRoleSelection'])
-        ->name('role.selection');
-    Route::post('/assign-role', [UserRoleController::class, 'assignRole'])
-        ->name('user.assign.role');
 });
 
 Route::middleware(['auth','can:event_upload'])->group(function () {
@@ -78,12 +90,6 @@ Route::middleware(['auth'])->group(function () {
     Route::put('/events/{event}', [EventController::class, 'update'])->name('events.update');
     Route::post('/events/{event}/enroll', [EnrollmentController::class, 'store'])->name('events.enroll');
     Route::delete('/events/{event}/unenroll', [EnrollmentController::class, 'destroy'])->name('events.unenroll');
-});
-
-Route::middleware(['auth'])->group(function () {
-    Route::post('/profile/photo', [ProfileController::class, 'storePhoto'])->name('profile.photo');
-    Route::delete('/profile/photo', [ProfileController::class, 'destroyPhoto'])->name('profile.photo.destroy');
-    Route::get('/profile/photo/{path}', [ProfileController::class, 'showPhoto'])->name('profile.photo');
 });
 
 require __DIR__.'/auth.php';

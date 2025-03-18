@@ -5,6 +5,8 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Log;
 
 class Student extends Model
 {
@@ -39,10 +41,62 @@ class Student extends Model
     // Ensure timestamps are enabled
     public $timestamps = true;
 
+    protected static function boot()
+    {
+        parent::boot();
+        
+        static::creating(function ($model) {
+            Log::info('Creating new student record:', [
+                'attributes' => $model->getAttributes(),
+                'fillable' => $model->getFillable(),
+                'dirty' => $model->getDirty()
+            ]);
+
+            if (empty($model->{$model->getKeyName()})) {
+                $model->{$model->getKeyName()} = Str::uuid()->toString();
+            }
+        });
+
+        static::created(function ($model) {
+            Log::info('Student record created:', [
+                'student_id' => $model->student_id,
+                'attributes' => $model->getAttributes()
+            ]);
+        });
+
+        static::updating(function ($model) {
+            Log::info('Updating student record:', [
+                'student_id' => $model->student_id,
+                'changes' => $model->getDirty(),
+                'original' => $model->getOriginal()
+            ]);
+        });
+
+        static::updated(function ($model) {
+            Log::info('Student record updated:', [
+                'student_id' => $model->student_id,
+                'attributes' => $model->getAttributes()
+            ]);
+        });
+
+        static::saving(function ($model) {
+            Log::info('Before saving student record:', [
+                'attributes' => $model->getAttributes(),
+                'dirty' => $model->getDirty()
+            ]);
+        });
+
+        static::saved(function ($model) {
+            Log::info('After saving student record:', [
+                'attributes' => $model->getAttributes()
+            ]);
+        });
+    }
+
     // Relationship with User
     public function user()
     {
-        return $this->belongsTo(User::class, 'user_id', 'id');
+        return $this->belongsTo(User::class, 'user_id');
     }
 
     // Relationship with Enrollments

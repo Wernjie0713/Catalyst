@@ -13,6 +13,7 @@ class DashboardController extends Controller
     public function index()
     {
         $user = auth()->user();
+        $role = $user->roles()->first()?->name;
 
         $stats = [
             'totalEvents' => Event::count(),
@@ -37,13 +38,26 @@ class DashboardController extends Controller
 
         return Inertia::render('Dashboard', [
             'abilities' => [
-                'isStudent' => $user->can('view-studentdashboard'),
-                'isLecturer' => $user->can('view-lecturerdashboard'),
-                'isUniversity' => $user->can('view-universitydashboard'),
-                'isDepartment' => $user->can('view-departmentdashboard'),
-                'isOrganizer' => $user->can('view-organizerdashboard'),
+                'isStudent' => $user->isA('student'),
+                'isLecturer' => $user->isA('lecturer'),
+                'isUniversity' => $user->isA('university'),
+                'isDepartment' => $user->isA('department_staff'),
+                'isOrganizer' => $user->isA('organizer'),
             ],
-            'currentRole' => $user->role,
+            'auth' => [
+                'user' => [
+                    'id' => $user->id,
+                    'name' => $user->name,
+                    'email' => $user->email,
+                    'roles' => $user->roles()->get()->map(function($role) {
+                        return [
+                            'name' => $role->name,
+                            'title' => $role->title
+                        ];
+                    })
+                ]
+            ],
+            'currentRole' => $role,
             'stats' => $stats,
             'recentEvents' => $recentEvents
         ]);

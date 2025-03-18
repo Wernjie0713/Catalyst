@@ -23,13 +23,13 @@ export default function Edit({ auth, role, abilities, roleAbilities }) {
 
     return (
         <AuthenticatedLayout user={auth.user}>
-            <Head title={`Edit Role - ${role.name}`} />
+            <Head title={`Edit Role - ${role.title}`} />
 
             <div className="py-12">
                 <div className="max-w-6xl mx-auto sm:px-6 lg:px-8">
                     <div className="bg-white overflow-hidden shadow-sm sm:rounded-lg relative">
                         <div className="p-6">
-                            <h2 className="text-2xl font-semibold mb-6">Edit Role: {role.name}</h2>
+                            <h2 className="text-2xl font-semibold mb-6">Edit Role: {role.title}</h2>
 
                             <form onSubmit={handleSubmit}>
                                 <div className="mb-6">

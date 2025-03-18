@@ -10,28 +10,23 @@ return new class extends Migration
     {
         Schema::create('organizers', function (Blueprint $table) {
             $table->uuid('organizer_id')->primary();
-            $table->uuid('user_id');
+            $table->foreignUuid('user_id')
+                  ->constrained('users')
+                  ->onDelete('cascade');
             $table->string('contact_number')->nullable();
             $table->text('bio')->nullable();
             $table->string('linkedin')->nullable();
             $table->string('website')->nullable();
-            $table->string('organization_name');
+            $table->string('organization_name')->nullable();
             $table->string('application_document')->nullable();
-            $table->string('official_email');
-            $table->enum('status', ['Pending', 'Verified', 'Rejected']);
-            $table->uuid('verified_by')->nullable();
+            $table->string('official_email')->nullable();
+            $table->enum('status', ['Pending', 'Verified', 'Rejected'])->default('Pending');
+            $table->foreignUuid('verified_by')
+                  ->nullable()
+                  ->constrained('users')
+                  ->onDelete('set null');
             $table->string('profile_photo_path')->nullable();
             $table->timestamps();
-
-            $table->foreign('user_id')
-                  ->references('id')
-                  ->on('users')
-                  ->onDelete('cascade');
-            
-            $table->foreign('verified_by')
-                  ->references('id')
-                  ->on('users')
-                  ->onDelete('set null');
         });
     }
 
