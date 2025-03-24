@@ -13,7 +13,6 @@ createInertiaApp({
     title: (title) => title ? `${title} - ${appName}` : appName,
     
     resolve: (name) => {
-        console.log('Resolving page:', name);
         const pages = import.meta.glob('./Pages/**/*.jsx', { eager: true });
         const page = pages[`./Pages/${name}.jsx`];
         if (!page) {

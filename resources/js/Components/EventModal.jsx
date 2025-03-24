@@ -24,7 +24,7 @@ export default function EventModal({ event: initialEvent, isOpen, onClose, onEve
         setIsEnrolling(true);
         post(route('events.enroll', event.event_id), {
             preserveScroll: true,
-            onSuccess: (response) => {
+            onSuccess: () => {
                 setIsEnrolling(false);
                 // Update local event state
                 setEvent(prev => ({
@@ -41,9 +41,7 @@ export default function EventModal({ event: initialEvent, isOpen, onClose, onEve
                     });
                 }
             },
-            onError: () => {
-                setIsEnrolling(false);
-            }
+            onError: () => setIsEnrolling(false)
         });
     };
 
@@ -68,10 +66,12 @@ export default function EventModal({ event: initialEvent, isOpen, onClose, onEve
                     });
                 }
             },
-            onError: () => {
-                setIsEnrolling(false);
-            }
+            onError: () => setIsEnrolling(false)
         });
+    };
+
+    const handleExternalRegistration = () => {
+        window.open(event.registration_url, '_blank');
     };
 
     return (
@@ -117,15 +117,24 @@ export default function EventModal({ event: initialEvent, isOpen, onClose, onEve
                             <div className="mb-6">
                                 <div className="flex items-center justify-between">
                                     <h2 className="text-2xl font-bold text-white">{event.title}</h2>
-                                    <span className={`px-3 py-1 rounded-full text-sm font-medium ${
-                                        event.status === 'Upcoming' ? 'bg-green-500/20 text-green-400' :
-                                        event.status === 'Ongoing' ? 'bg-blue-500/20 text-blue-400' :
-                                        'bg-gray-500/20 text-gray-400'
-                                    }`}>
-                                        {event.status}
-                                    </span>
+                                    <div className="flex items-center space-x-2">
+                                        {event.is_external && (
+                                            <span className="px-3 py-1 rounded-full text-sm font-medium bg-purple-500/20 text-purple-400">
+                                                External Event
+                                            </span>
+                                        )}
+                                        <span className={`px-3 py-1 rounded-full text-sm font-medium ${
+                                            event.status === 'Upcoming' ? 'bg-green-500/20 text-green-400' :
+                                            event.status === 'Ongoing' ? 'bg-blue-500/20 text-blue-400' :
+                                            'bg-gray-500/20 text-gray-400'
+                                        }`}>
+                                            {event.status}
+                                        </span>
+                                    </div>
                                 </div>
-                                <p className="text-gray-400 mt-1">Created by {event.creator.name}</p>
+                                <p className="text-gray-400 mt-1">
+                                    {event.is_external ? `Organized by ${event.organizer_name}` : `Created by ${event.creator.name}`}
+                                </p>
                             </div>
 
                             {/* Event Details Grid */}
@@ -154,25 +163,48 @@ export default function EventModal({ event: initialEvent, isOpen, onClose, onEve
                                     </div>
                                 </div>
 
-                                <div>
-                                    <h3 className="text-sm font-medium text-gray-400 mb-2">Enrollment Status</h3>
-                                    <div className="space-y-2">
-                                        <div className="flex justify-between text-sm">
-                                            <span className="text-white">{event.enrolled_count} enrolled of {event.max_participants} spots</span>
-                                            <span className="text-white">{enrollmentPercentage.toFixed(0)}%</span>
-                                        </div>
-                                        <div className="w-full bg-gray-700 rounded-full h-2">
-                                            <div
-                                                className={`h-2 rounded-full ${
-                                                    enrollmentPercentage >= 90 ? 'bg-red-500' :
-                                                    enrollmentPercentage >= 75 ? 'bg-yellow-500' :
-                                                    'bg-green-500'
-                                                }`}
-                                                style={{ width: `${enrollmentPercentage}%` }}
-                                            />
+                                {!event.is_external && (
+                                    <div>
+                                        <h3 className="text-sm font-medium text-gray-400 mb-2">Enrollment Status</h3>
+                                        <div className="space-y-2">
+                                            <div className="flex justify-between text-sm">
+                                                <span className="text-white">
+                                                    {event.enrolled_count} enrolled of {event.max_participants} spots
+                                                </span>
+                                                <span className="text-white">
+                                                    {((event.enrolled_count / event.max_participants) * 100).toFixed(0)}%
+                                                </span>
+                                            </div>
+                                            <div className="w-full bg-gray-700 rounded-full h-2">
+                                                <div
+                                                    className={`h-2 rounded-full ${
+                                                        (event.enrolled_count / event.max_participants) >= 0.9 ? 'bg-red-500' :
+                                                        (event.enrolled_count / event.max_participants) >= 0.75 ? 'bg-yellow-500' :
+                                                        'bg-green-500'
+                                                    }`}
+                                                    style={{ width: `${(event.enrolled_count / event.max_participants) * 100}%` }}
+                                                />
+                                            </div>
                                         </div>
                                     </div>
-                                </div>
+                                )}
+
+                                {event.is_external && event.organizer_website && (
+                                    <div>
+                                        <h3 className="text-sm font-medium text-gray-400 mb-2">Organizer Website</h3>
+                                        <div className="flex items-center text-white">
+                                            <span className="material-symbols-outlined mr-2 text-blue-400">language</span>
+                                            <a 
+                                                href={event.organizer_website}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                className="text-blue-400 hover:text-blue-300 transition-colors"
+                                            >
+                                                Visit Website
+                                            </a>
+                                        </div>
+                                    </div>
+                                )}
                             </div>
 
                             {/* Description */}
@@ -186,28 +218,37 @@ export default function EventModal({ event: initialEvent, isOpen, onClose, onEve
                                 <button
                                     onClick={onClose}
                                     className="px-4 py-2 text-gray-400 hover:text-white transition-colors"
-                                    disabled={isEnrolling}
                                 >
                                     Close
                                 </button>
-                                {event.is_enrolled ? (
+                                
+                                {event.is_external ? (
                                     <button
-                                        onClick={handleUnenroll}
-                                        disabled={isEnrolling || event.status !== 'Upcoming'}
-                                        className="px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                        onClick={handleExternalRegistration}
+                                        className="px-4 py-2 bg-purple-500 hover:bg-purple-600 text-white rounded-lg transition-colors"
                                     >
-                                        {isEnrolling ? 'Processing...' : 'Unenroll'}
+                                        Register at External Site
                                     </button>
                                 ) : (
-                                    <button
-                                        onClick={handleEnrollment}
-                                        disabled={isEnrolling || event.enrolled_count >= event.max_participants || event.status !== 'Upcoming'}
-                                        className="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                                    >
-                                        {isEnrolling ? 'Processing...' : 
-                                         event.enrolled_count >= event.max_participants ? 'Event Full' : 
-                                         'Enroll Now'}
-                                    </button>
+                                    event.is_enrolled ? (
+                                        <button
+                                            onClick={handleUnenroll}
+                                            disabled={isEnrolling || event.status !== 'Upcoming'}
+                                            className="px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                        >
+                                            {isEnrolling ? 'Processing...' : 'Unenroll'}
+                                        </button>
+                                    ) : (
+                                        <button
+                                            onClick={handleEnrollment}
+                                            disabled={isEnrolling || event.enrolled_count >= event.max_participants || event.status !== 'Upcoming'}
+                                            className="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                        >
+                                            {isEnrolling ? 'Processing...' : 
+                                             event.enrolled_count >= event.max_participants ? 'Event Full' : 
+                                             'Enroll Now'}
+                                        </button>
+                                    )
                                 )}
                             </div>
                         </div>

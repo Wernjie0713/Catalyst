@@ -11,6 +11,9 @@ use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
 use App\Models\Event;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\ViewProfileController;
+use App\Http\Controllers\NotificationController;
+use App\Http\Controllers\FriendController;
 
 Route::get('/', function () {
     return Inertia::render('Welcome', [
@@ -61,6 +64,25 @@ Route::middleware(['auth'])->group(function () {
 
         Route::patch('/profile/update', [ProfileController::class, 'update'])->name('profile.update');
     });
+
+    Route::post('notifications/{notification}/mark-as-read', [NotificationController::class, 'markAsRead'])
+        ->name('notifications.markAsRead');
+
+    // Friend System Routes
+    Route::post('/friend/request/{user}', [FriendController::class, 'sendRequest'])
+        ->name('friend.request');
+    Route::post('/friend/accept/{request}', [FriendController::class, 'acceptRequest'])
+        ->name('friend.accept');
+    Route::post('/friend/reject/{request}', [FriendController::class, 'rejectRequest'])
+        ->name('friend.reject');
+    Route::get('/friends', [FriendController::class, 'getFriendsList'])
+        ->name('friends.list');
+
+    Route::delete('/friend/remove/{friend}', [FriendController::class, 'removeFriend'])
+        ->name('friend.remove');
+
+    Route::get('/friend/pending', [FriendController::class, 'getPendingRequests'])
+        ->name('friend.pending');
 });
 
 Route::middleware(['auth', 'can:admin'])->group(function () {
@@ -91,5 +113,18 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/events/{event}/enroll', [EnrollmentController::class, 'store'])->name('events.enroll');
     Route::delete('/events/{event}/unenroll', [EnrollmentController::class, 'destroy'])->name('events.unenroll');
 });
+
+Route::get('/view/{user}',[ViewProfileController::class,'show'])
+    ->name('profile.view')
+    ->middleware('auth','verified','can:view_otherprofile');
+
+Route::post('/notifications/{id}/read',function(string $id){
+    auth()->user()->notifications()->findOrFail($id)->markAsRead();
+    return back();
+})->middleware(['auth']);
+
+Route::post('/notifications/mark-all-as-read',[NotificationController::class,'markAllAsRead'])
+    ->middleware(['auth'])
+    ->name('notifications.mark-all-as-read');
 
 require __DIR__.'/auth.php';

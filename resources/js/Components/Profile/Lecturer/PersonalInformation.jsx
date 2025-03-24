@@ -1,25 +1,39 @@
 import Input from '../Input';
 import { useForm } from '@inertiajs/react';
 import UpdateProfilePhoto from '@/Components/Profile/Common/UpdateProfilePhoto';
+import DisplayProfilePhoto from '@/Components/Profile/Common/DisplayProfilePhoto';
 import { useState } from 'react';
+import FriendRequestButton from '@/Components/Profile/Common/FriendRequestButton';
 
-export default function LecturerPersonalInformation({ user }) {
+export default function LecturerPersonalInformation({ 
+    user, 
+    viewOnly = false,
+    showFriendButton = false,
+    friendStatus,
+    friendRequestId 
+}) {
     const [isEditing, setIsEditing] = useState(false);
 
     console.log('Lecturer data:', user.lecturer);
 
-    const { data, setData, patch, processing, errors } = useForm({
-        department: user.lecturer.department,
-        specialization: user.lecturer.specialization,
-        contact_number: user.lecturer.contact_number,
-        bio: user.lecturer.bio,
-        linkedin: user.lecturer.linkedin
+    const { data, setData, patch, processing, errors } = useForm({    
+        department: user?.lecturer?.department || '',
+        specialization: user?.lecturer?.specialization || '',
+        contact_number: user?.lecturer?.contact_number || '',
+        bio: user?.lecturer?.bio || '',
+        linkedin: user?.lecturer?.linkedin || ''
     });
 
     const handleSubmit = (e) => {
         e.preventDefault();
-        patch(route('profile.lecturer.update'), {
-            onSuccess: () => setIsEditing(false),
+        console.log('Submitting lecturer data:', data);
+
+        patch(route('profile.update'), {
+            preserveScroll: true,
+            onSuccess: () => {
+                setIsEditing(false);
+                console.log('Lecturer profile updated successfully');
+            },
             onError: (errors) => {
                 console.error('Submission errors:', errors);
             }
@@ -33,7 +47,13 @@ export default function LecturerPersonalInformation({ user }) {
                     <div className="flex flex-col items-center">
                         {/* Profile Photo */}
                         <div className="mb-6">
-                            <UpdateProfilePhoto user={user} />
+                            {!viewOnly ? (
+                                <UpdateProfilePhoto user={user} />
+                            ) : (
+                                <DisplayProfilePhoto 
+                                    profilePhotoPath={user?.lecturer?.profile_photo_path}
+                                />
+                            )}
                         </div>
                         
                         {/* User Info */}
@@ -43,6 +63,17 @@ export default function LecturerPersonalInformation({ user }) {
                         <p className="text-gray-300 mb-8">
                             {user.email}
                         </p>
+
+                        {/* Add Friend Request Button here */}
+                        {showFriendButton && (
+                            <div className="mb-8">
+                                <FriendRequestButton
+                                    userId={user.id}
+                                    friendStatus={friendStatus}
+                                    friendRequestId={friendRequestId}
+                                />
+                            </div>
+                        )}
 
                         {/* Quick Stats */}
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 w-full max-w-3xl mb-12">
@@ -67,17 +98,19 @@ export default function LecturerPersonalInformation({ user }) {
                                     <h2 className="text-xl font-semibold text-white">
                                         Lecturer Information
                                     </h2>
-                                    <button
-                                        onClick={() => setIsEditing(!isEditing)}
-                                        className="text-white/70 hover:text-white transition-colors"
-                                    >
+                                    {!viewOnly && (
+                                        <button
+                                            onClick={() => setIsEditing(!isEditing)}
+                                            className="text-white/70 hover:text-white transition-colors"
+                                        >
                                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
                                             <path strokeLinecap="round" strokeLinejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" />
-                                        </svg>
-                                    </button>
+                                            </svg>
+                                        </button>
+                                    )}
                                 </div>
 
-                                {isEditing ? (
+                                {(isEditing && !viewOnly) ? (
                                     <form onSubmit={handleSubmit} className="space-y-6">
                                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                             <Input

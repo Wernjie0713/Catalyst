@@ -15,12 +15,16 @@ return new class extends Migration
             $table->time('time');
             $table->string('location');
             $table->text('description');
-            $table->integer('max_participants');
-            $table->integer('enrolled_count')->default(0);
+            $table->integer('max_participants')->nullable();
+            $table->integer('enrolled_count')->default(0)->nullable();
             $table->enum('status', ['Upcoming', 'Ongoing', 'Completed']);
             $table->enum('event_type', ['Workshop', 'Competition', 'Seminar']);
             $table->uuid('creator_id');
             $table->string('cover_image')->nullable();
+            $table->boolean('is_external')->default(false);
+            $table->string('registration_url')->nullable();
+            $table->string('organizer_name')->nullable();
+            $table->string('organizer_website')->nullable();
             $table->timestamps();
 
             $table->foreign('creator_id')

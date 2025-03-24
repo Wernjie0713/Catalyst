@@ -21,6 +21,10 @@ const Edit = ({ event }) => {
         event_type: event.event_type,
         status: event.status,
         cover_image: null,
+        is_external: event.is_external,
+        registration_url: event.registration_url || '',
+        organizer_name: event.organizer_name || '',
+        organizer_website: event.organizer_website || '',
     });
 
     const [imagePreview, setImagePreview] = useState(
@@ -38,20 +42,48 @@ const Edit = ({ event }) => {
     const handleSubmit = (e) => {
         e.preventDefault();
         
-        router.post(route('events.update', event.event_id), {
+        // Create form data based on event type
+        const formData = {
             _method: 'PUT',
             title: data.title,
             date: data.date,
             time: data.time,
             location: data.location,
             description: data.description,
-            max_participants: data.max_participants,
             event_type: data.event_type,
             status: data.status,
             cover_image: data.cover_image,
-        }, {
+            is_external: data.is_external,
+        };
+
+        // Add fields specific to event type
+        if (data.is_external) {
+            Object.assign(formData, {
+                registration_url: data.registration_url,
+                organizer_name: data.organizer_name,
+                organizer_website: data.organizer_website,
+                // Set max_participants to null for external events
+                max_participants: null
+            });
+        } else {
+            Object.assign(formData, {
+                max_participants: data.max_participants,
+                // Set external fields to null for internal events
+                registration_url: null,
+                organizer_name: null,
+                organizer_website: null
+            });
+        }
+
+        router.post(route('events.update', event.event_id), formData, {
             forceFormData: true,
             preserveScroll: true,
+            onSuccess: () => {
+                // Optional: Add success notification or redirect
+            },
+            onError: (errors) => {
+                console.error('Update failed:', errors);
+            }
         });
     };
 
@@ -72,6 +104,18 @@ const Edit = ({ event }) => {
                         </div>
                         
                         <form onSubmit={handleSubmit} className="space-y-6" encType="multipart/form-data">
+                            {/* Event Type Toggle */}
+                            <div className="flex items-center justify-end space-x-4 mb-6">
+                                <span className="text-gray-400">External Event</span>
+                                <div className={`px-3 py-1 rounded-full text-sm ${
+                                    data.is_external 
+                                        ? 'bg-purple-500/20 text-purple-400' 
+                                        : 'bg-blue-500/20 text-blue-400'
+                                }`}>
+                                    {data.is_external ? 'External' : 'Internal'}
+                                </div>
+                            </div>
+
                             {/* Event Details Section */}
                             <div className="border-t border-gray-700 pt-6">
                                 <h3 className="text-xl font-semibold text-blue-400 mb-4">Event Details</h3>
@@ -80,92 +124,118 @@ const Edit = ({ event }) => {
                             {/* Two columns grid for form fields */}
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 <div>
-                                    <InputLabel 
-                                        htmlFor="title" 
-                                        value="Title *" 
-                                        className="text-white text-base font-semibold mb-1.5"
-                                    />
+                                    <InputLabel htmlFor="title" value="Title * " className="text-white" />
                                     <TextInput
                                         id="title"
                                         type="text"
                                         value={data.title}
+                                        onChange={e => setData('title', e.target.value)}
                                         className="mt-1 block w-full bg-[#2A2A3A] border-gray-600 focus:border-blue-500 focus:ring-blue-500 rounded-lg text-white"
                                     />
+                                    <InputError message={errors.title} className="mt-2" />
                                 </div>
 
                                 <div>
-                                    <InputLabel 
-                                        htmlFor="event_type" 
-                                        value="Event Type *" 
-                                        className="text-white text-base font-semibold mb-1.5"
-                                    />
+                                    <InputLabel htmlFor="event_type" value="Event Type *" className="text-white" />
                                     <select
                                         id="event_type"
                                         value={data.event_type}
-                                        className="mt-1 block w-full bg-[#2A2A3A] border-gray-600 text-white rounded-lg focus:border-blue-500 focus:ring-blue-500"
+                                        onChange={e => setData('event_type', e.target.value)}
+                                        className="mt-1 block w-full bg-[#2A2A3A] border-gray-600 focus:border-blue-500 focus:ring-blue-500 rounded-lg text-white"
                                     >
                                         <option value="">Select Event Type</option>
                                         <option value="Workshop">Workshop</option>
                                         <option value="Competition">Competition</option>
                                         <option value="Seminar">Seminar</option>
                                     </select>
+                                    <InputError message={errors.event_type} className="mt-2" />
                                 </div>
 
                                 <div>
-                                    <InputLabel 
-                                        htmlFor="date" 
-                                        value="Date" 
-                                        className="text-white text-base font-semibold mb-1.5"
-                                    />
+                                    <InputLabel htmlFor="date" value="Date" className="text-white" />
                                     <TextInput
                                         id="date"
                                         type="date"
                                         value={data.date}
+                                        onChange={e => setData('date', e.target.value)}
                                         className="mt-1 block w-full bg-[#2A2A3A] border-gray-600 focus:border-blue-500 focus:ring-blue-500 rounded-lg text-white"
                                     />
+                                    <InputError message={errors.date} className="mt-2" />
                                 </div>
 
                                 <div>
-                                    <InputLabel 
-                                        htmlFor="time" 
-                                        value="Time" 
-                                        className="text-white text-base font-semibold mb-1.5"
-                                    />
+                                    <InputLabel htmlFor="time" value="Time" className="text-white" />
                                     <TextInput
                                         id="time"
                                         type="time"
                                         value={data.time}
+                                        onChange={e => setData('time', e.target.value)}
                                         className="mt-1 block w-full bg-[#2A2A3A] border-gray-600 focus:border-blue-500 focus:ring-blue-500 rounded-lg text-white"
                                     />
+                                    <InputError message={errors.time} className="mt-2" />
                                 </div>
 
                                 <div>
-                                    <InputLabel 
-                                        htmlFor="location" 
-                                        value="Location" 
-                                        className="text-white text-base font-semibold mb-1.5"
-                                    />
+                                    <InputLabel htmlFor="location" value="Location" className="text-white" />
                                     <TextInput
                                         id="location"
                                         type="text"
                                         value={data.location}
+                                        onChange={e => setData('location', e.target.value)}
                                         className="mt-1 block w-full bg-[#2A2A3A] border-gray-600 focus:border-blue-500 focus:ring-blue-500 rounded-lg text-white"
                                     />
+                                    <InputError message={errors.location} className="mt-2" />
                                 </div>
 
-                                <div>
-                                    <InputLabel 
-                                        htmlFor="max_participants" 
-                                        value="Maximum Participants" 
-                                        className="text-white text-base font-semibold mb-1.5"
-                                    />
-                                    <TextInput
-                                        id="max_participants"
-                                        type="number"
-                                        value={data.max_participants}
-                                        className="mt-1 block w-full bg-[#2A2A3A] border-gray-600 focus:border-blue-500 focus:ring-blue-500 rounded-lg text-white"
-                                    />
-                                </div>
+                                {data.is_external ? (
+                                    <>
+                                        <div>
+                                            <InputLabel htmlFor="registration_url" value="Registration URL *" className="text-white" />
+                                            <TextInput
+                                                id="registration_url"
+                                                type="url"
+                                                value={data.registration_url}
+                                                onChange={e => setData('registration_url', e.target.value)}
+                                                className="mt-1 block w-full bg-[#2A2A3A] border-gray-600 focus:border-blue-500 focus:ring-blue-500 rounded-lg text-white"
+                                            />
+                                            <InputError message={errors.registration_url} className="mt-2" />
+                                        </div>
+                                        <div>
+                                            <InputLabel htmlFor="organizer_name" value="Organizer Name *" className="text-white" />
+                                            <TextInput
+                                                id="organizer_name"
+                                                type="text"
+                                                value={data.organizer_name}
+                                                onChange={e => setData('organizer_name', e.target.value)}
+                                                className="mt-1 block w-full bg-[#2A2A3A] border-gray-600 focus:border-blue-500 focus:ring-blue-500 rounded-lg text-white"
+                                            />
+                                            <InputError message={errors.organizer_name} className="mt-2" />
+                                        </div>
+                                        <div>
+                                            <InputLabel htmlFor="organizer_website" value="Organizer Website" className="text-white" />
+                                            <TextInput
+                                                id="organizer_website"
+                                                type="url"
+                                                value={data.organizer_website}
+                                                onChange={e => setData('organizer_website', e.target.value)}
+                                                className="mt-1 block w-full bg-[#2A2A3A] border-gray-600 focus:border-blue-500 focus:ring-blue-500 rounded-lg text-white"
+                                            />
+                                            <InputError message={errors.organizer_website} className="mt-2" />
+                                        </div>
+                                    </>
+                                ) : (
+                                    <div>
+                                        <InputLabel htmlFor="max_participants" value="Maximum Participants *" className="text-white" />
+                                        <TextInput
+                                            id="max_participants"
+                                            type="number"
+                                            value={data.max_participants}
+                                            onChange={e => setData('max_participants', e.target.value)}
+                                            className="mt-1 block w-full bg-[#2A2A3A] border-gray-600 focus:border-blue-500 focus:ring-blue-500 rounded-lg text-white"
+                                        />
+                                        <InputError message={errors.max_participants} className="mt-2" />
+                                    </div>
+                                )}
                             </div>
 
                             {/* Status Section */}
@@ -180,12 +250,14 @@ const Edit = ({ event }) => {
                                     <select
                                         id="status"
                                         value={data.status}
+                                        onChange={e => setData('status', e.target.value)}
                                         className="mt-1 block w-full bg-[#2A2A3A] border-gray-600 text-white rounded-lg focus:border-blue-500 focus:ring-blue-500"
                                     >
                                         <option value="Upcoming">Upcoming</option>
                                         <option value="Ongoing">Ongoing</option>
                                         <option value="Completed">Completed</option>
                                     </select>
+                                    <InputError message={errors.status} className="mt-2" />
                                 </div>
                             </div>
 
@@ -201,9 +273,11 @@ const Edit = ({ event }) => {
                                     <textarea
                                         id="description"
                                         value={data.description}
+                                        onChange={e => setData('description', e.target.value)}
                                         className="mt-1 block w-full bg-[#2A2A3A] border-gray-600 focus:border-blue-500 focus:ring-blue-500 rounded-lg text-white"
                                         rows="4"
                                     />
+                                    <InputError message={errors.description} className="mt-2" />
                                 </div>
                             </div>
 
@@ -251,7 +325,7 @@ const Edit = ({ event }) => {
                                 <button
                                     type="submit"
                                     disabled={processing}
-                                    className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 disabled:opacity-50"
+                                    className="px-6 py-3 bg-gradient-to-r from-blue-500 to-indigo-600 text-white rounded-lg hover:from-blue-600 hover:to-indigo-700 disabled:opacity-50 font-medium shadow-lg shadow-blue-500/20 transition-all duration-200"
                                 >
                                     {processing ? 'Updating...' : 'Update Event'}
                                 </button>

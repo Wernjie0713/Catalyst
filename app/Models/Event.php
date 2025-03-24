@@ -17,15 +17,20 @@ class Event extends Model
     protected $fillable = [
         'event_id',
         'title',
-        'description',
         'date',
         'time',
         'location',
+        'description',
         'max_participants',
+        'enrolled_count',
+        'status',
         'event_type',
         'creator_id',
         'cover_image',
-        'status'
+        'is_external',
+        'registration_url',
+        'organizer_name',
+        'organizer_website',
     ];
 
     protected $appends = ['enrolled_count', 'is_enrolled'];
@@ -35,13 +40,49 @@ class Event extends Model
         'time' => 'datetime',
         'max_participants' => 'integer',
         'status' => 'string',
-        'event_type' => 'string'
+        'event_type' => 'string',
+        'is_external' => 'boolean'
     ];
+
+    protected static function booted()
+    {
+        static::retrieved(function ($event) {
+            $event->updateStatus();
+        });
+    }
+
+    public function updateStatus()
+    {
+        $eventDate = Carbon::parse($this->date)->startOfDay();
+        $today = Carbon::now()->startOfDay();
+        $newStatus = null;
+
+        if ($eventDate->equalTo($today)) {
+            $newStatus = 'Ongoing';
+        } else if ($eventDate->greaterThan($today)) {
+            $newStatus = 'Upcoming';
+        } else {
+            $newStatus = 'Completed';
+        }
+
+        // Only update if status has changed
+        if ($newStatus !== $this->status) {
+            $this->status = $newStatus;
+            $this->saveQuietly();
+        }
+    }
+
+    public function saveQuietly(array $options = [])
+    {
+        return static::withoutEvents(function () use ($options) {
+            return $this->save($options);
+        });
+    }
 
     // Add this method to get the enrollment count
     public function getEnrolledCountAttribute()
     {
-        return $this->enrollments()->count();
+        return $this->is_external ? null : $this->enrollments()->count();
     }
 
     // Check if current user is enrolled
@@ -84,5 +125,11 @@ class Event extends Model
                     ->using(Enrollment::class)
                     ->withPivot('enrollment_id')
                     ->withTimestamps();
+    }
+
+    // Add new method to check if event is external
+    public function isExternal()
+    {
+        return $this->is_external;
     }
 }

@@ -1,11 +1,22 @@
 import Input from '../Input';
 import { useForm } from '@inertiajs/react';
 import UpdateProfilePhoto from '@/Components/Profile/Common/UpdateProfilePhoto';
+import DisplayProfilePhoto from '@/Components/Profile/Common/DisplayProfilePhoto';
 import { useState, useEffect } from 'react';
+import FriendRequestButton from '@/Components/Profile/Common/FriendRequestButton';
 
-export default function DepartmentStaffPersonalInformation({ user }) {
+export default function DepartmentStaffPersonalInformation({ 
+    user, 
+    viewOnly = false,
+    showFriendButton = false,
+    friendStatus,
+    friendRequestId 
+}) {
     const [isEditing, setIsEditing] = useState(false);
-    const [initialValues] = useState({
+
+    console.log('Department staff data:', user.department_staff);
+
+    const { data, setData, patch, processing, errors } = useForm({
         department: user?.department_staff?.department || '',
         position: user?.department_staff?.position || '',
         contact_number: user?.department_staff?.contact_number || '',
@@ -13,40 +24,20 @@ export default function DepartmentStaffPersonalInformation({ user }) {
         bio: user?.department_staff?.bio || ''
     });
 
-    const { data, setData, patch, processing, errors } = useForm(initialValues);
-
     const handleSubmit = (e) => {
         e.preventDefault();
         console.log('Form data being submitted:', data);
         
-        patch(route('profile.department-staff.update'), {
+        patch(route('profile.update'), {
             preserveScroll: true,
-            onSuccess: (response) => {
-                console.log('Success response:', response);
+            onSuccess: () => {
+                setIsEditing(false);
+                console.log('Department staff profile updated successfully');
             },
             onError: (errors) => {
                 console.error('Submission errors:', errors);
             }
         });
-    };
-
-    const handlePhotoChange = (e) => {
-        if (e.target.files[0]) {
-            const formData = new FormData();
-            formData.append('photo', e.target.files[0]);
-            
-            post(route('profile.photo'), formData, {
-                forceFormData: true,
-                preserveScroll: true,
-                onSuccess: () => {
-                    // Optional: Show success message or refresh the page
-                    console.log('Photo uploaded successfully');
-                },
-                onError: (errors) => {
-                    console.error('Upload failed:', errors);
-                }
-            });
-        }
     };
 
     return (
@@ -56,14 +47,13 @@ export default function DepartmentStaffPersonalInformation({ user }) {
                     <div className="flex flex-col items-center">
                         {/* Profile Photo */}
                         <div className="mb-6">
-                            <UpdateProfilePhoto user={user} />
-                            <input
-                                type="file"
-                                onChange={handlePhotoChange}
-                                accept="image/*"
-                                className="hidden"
-                                id="photo-upload"
-                            />
+                            {!viewOnly ? (
+                                <UpdateProfilePhoto user={user} />
+                            ) : (
+                                <DisplayProfilePhoto 
+                                    profilePhotoPath={user?.department_staff?.profile_photo_path}
+                                />
+                            )}
                         </div>
                         
                         {/* User Info */}
@@ -73,6 +63,17 @@ export default function DepartmentStaffPersonalInformation({ user }) {
                         <p className="text-gray-300 mb-8">
                             {user.email}
                         </p>
+
+                        {/* Add Friend Request Button here */}
+                        {showFriendButton && (
+                            <div className="mb-8">
+                                <FriendRequestButton
+                                    userId={user.id}
+                                    friendStatus={friendStatus}
+                                    friendRequestId={friendRequestId}
+                                />
+                            </div>
+                        )}
 
                         {/* Quick Stats */}
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 w-full max-w-3xl mb-12">
@@ -97,17 +98,19 @@ export default function DepartmentStaffPersonalInformation({ user }) {
                                     <h2 className="text-xl font-semibold text-white">
                                         Department Staff Information
                                     </h2>
-                                    <button
-                                        onClick={() => setIsEditing(!isEditing)}
-                                        className="text-white/70 hover:text-white transition-colors"
+                                    {!viewOnly && (
+                                        <button
+                                            onClick={() => setIsEditing(!isEditing)}
+                                            className="text-white/70 hover:text-white transition-colors"
                                     >
                                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
                                             <path strokeLinecap="round" strokeLinejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" />
                                         </svg>
                                     </button>
+                                )}
                                 </div>
 
-                                {isEditing ? (
+                                {(isEditing && !viewOnly) ? (
                                     <form onSubmit={handleSubmit} className="space-y-6">
                                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                             <Input

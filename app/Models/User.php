@@ -17,6 +17,7 @@ use App\Models\Event;
 use App\Models\Notification;
 use Illuminate\Support\Str;
 use App\Models\Enrollment;
+use App\Models\Friend;
 
 class User extends Authenticatable
 {
@@ -107,12 +108,6 @@ class User extends Authenticatable
         return $this->hasMany(Event::class, 'creator_id', 'id');
     }
 
-    // Relationship with Notifications
-    public function notifications()
-    {
-        return $this->hasMany(Notification::class, 'user_id', 'id');
-    }
-
     public function enrolledEvents()
     {
         return $this->belongsToMany(Event::class, 'enrollments', 'user_id', 'event_id')
@@ -127,4 +122,20 @@ class User extends Authenticatable
         return $this->roles()->first()?->name ?? null;
     }
 
+    public function friends()
+    {
+        return $this->belongsToMany(User::class, 'friends', 'user_id', 'friend_id')
+                    ->withPivot('status')
+                    ->withTimestamps();
+    }
+
+    public function friendsTo()
+    {
+        return $this->hasMany(Friend::class, 'user_id');
+    }
+
+    public function friendsFrom()
+    {
+        return $this->hasMany(Friend::class, 'friend_id');
+    }
 }

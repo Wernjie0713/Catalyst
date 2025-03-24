@@ -1,8 +1,11 @@
 import { Sidebar } from '@/Components/siderbar';
 import { Link, usePage } from '@inertiajs/react';
 import { useState, useEffect } from 'react';
+import NotificationDropdown from '@/Components/NotificationDropdown';
 
 export default function AuthenticatedLayout({ header, children }) {
+    const { auth } = usePage().props;
+    console.log("Notifications:", auth.user?.notifications);
     const user = usePage().props.auth.user;
     const [isMobile, setIsMobile] = useState(false);
 

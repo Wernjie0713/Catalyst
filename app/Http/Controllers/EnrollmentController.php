@@ -7,6 +7,9 @@ use App\Models\Enrollment;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Gate;
+use App\Notifications\EventReminderNotification;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\DB;
 
 class EnrollmentController extends Controller
 {
@@ -38,6 +41,29 @@ class EnrollmentController extends Controller
         $enrollment->user_id = $user->id;
         $enrollment->event_id = $event->event_id;
         $enrollment->save();
+
+        // Send notification with detailed error handling
+        try {
+            Log::info('Attempting to send notification', [
+                'user_id' => $user->id,
+                'event_id' => $event->event_id,
+                'user_type' => get_class($user)
+            ]);
+            
+            $notification = new EventReminderNotification($event);
+            $user->notify($notification);
+            
+            Log::info('Notification sent successfully');
+        } catch (\Exception $e) {
+            Log::error('Notification failed', [
+                'error' => $e->getMessage(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+                'user_id' => $user->id,
+                'event_id' => $event->event_id
+            ]);
+            report($e);
+        }
 
         return back()->with('success', 'Successfully enrolled in the event.');
     }

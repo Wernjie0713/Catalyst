@@ -35,9 +35,14 @@ class EventController extends Controller
             'time' => 'required',
             'location' => 'required|string|max:255',
             'description' => 'required|string',
-            'max_participants' => 'required|integer|min:1',
             'event_type' => 'required|in:Workshop,Competition,Seminar',
             'cover_image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+            'is_external' => 'required|boolean',
+            // Conditional validation based on event type
+            'max_participants' => 'required_if:is_external,false|nullable|integer|min:1',
+            'registration_url' => 'required_if:is_external,true|nullable|url',
+            'organizer_name' => 'required_if:is_external,true|nullable|string|max:255',
+            'organizer_website' => 'nullable|url',
         ]);
 
         // Handle image upload
@@ -49,6 +54,18 @@ class EventController extends Controller
             $coverImagePath = 'images/EventCover/' . $filename;
         }
 
+        // Calculate initial status based on event date
+        $eventDate = Carbon::parse($validated['date'])->startOfDay();
+        $today = Carbon::now()->startOfDay();
+
+        if ($eventDate->equalTo($today)) {
+            $status = 'Ongoing';
+        } else if ($eventDate->greaterThan($today)) {
+            $status = 'Upcoming';
+        } else {
+            $status = 'Completed';
+        }
+
         $event = Event::create([
             'event_id' => Str::uuid()->toString(),
             'title' => $validated['title'],
@@ -56,12 +73,16 @@ class EventController extends Controller
             'time' => Carbon::parse($validated['time'])->format('H:i:s'),
             'location' => $validated['location'],
             'description' => $validated['description'],
-            'max_participants' => $validated['max_participants'],
-            'enrolled_count' => 0,
-            'status' => 'Upcoming',
+            'max_participants' => $validated['is_external'] ? null : $validated['max_participants'],
+            'enrolled_count' => $validated['is_external'] ? null : 0,
+            'status' => $status, // Set the calculated status
             'event_type' => $validated['event_type'],
             'creator_id' => auth()->id(),
             'cover_image' => $coverImagePath,
+            'is_external' => $validated['is_external'],
+            'registration_url' => $validated['registration_url'] ?? null,
+            'organizer_name' => $validated['organizer_name'] ?? null,
+            'organizer_website' => $validated['organizer_website'] ?? null,
         ]);
 
         return redirect()->route('events.index')
@@ -105,34 +126,9 @@ class EventController extends Controller
     public function myEvents()
     {
         $user = auth()->user();
-        
-        $organizedEvents = Event::where('creator_id', $user->id)
-            ->with(['creator', 'enrollments.user'])
-            ->withCount('enrollments')
-            ->orderBy('date', 'asc')
-            ->get()
-            ->map(function ($event) {
-                return [
-                    ...$event->toArray(),
-                    'formatted_time' => Carbon::parse($event->time)->format('g:i A'),
-                    'enrolled_count' => $event->enrollments_count,
-                    'status' => $this->getEventStatus($event)
-                ];
-            });
 
-        $enrolledEvents = $user->enrolledEvents()
-            ->with(['creator', 'enrollments.user'])
-            ->withCount('enrollments')
-            ->orderBy('date', 'asc')
-            ->get()
-            ->map(function ($event) {
-                return [
-                    ...$event->toArray(),
-                    'formatted_time' => Carbon::parse($event->time)->format('g:i A'),
-                    'enrolled_count' => $event->enrollments_count,
-                    'status' => $this->getEventStatus($event)
-                ];
-            });
+        $organizedEvents = Event::where('creator_id', $user->id)->get();
+        $enrolledEvents = $user->enrolledEvents()->get();
 
         return Inertia::render('Events/MyEvents', [
             'organizedEvents' => $organizedEvents,
@@ -168,78 +164,68 @@ class EventController extends Controller
 
     public function update(Request $request, Event $event)
     {
-        Log::info('Update event request started', [
-            'event_id' => $event->event_id,
-            'request_data' => $request->all(),
-            'files' => $request->hasFile('cover_image') ? 'yes' : 'no'
-        ]);
-
-        // Check if user is the creator
-        if ($event->creator_id !== auth()->id()) {
-            Log::warning('Unauthorized update attempt', [
-                'user_id' => auth()->id(),
-                'event_creator_id' => $event->creator_id
-            ]);
-            abort(403);
-        }
-
         if (!Gate::allows('event_edit')) {
-            Log::warning('User lacks event_edit permission', [
-                'user_id' => auth()->id()
-            ]);
             abort(403);
         }
 
-        // Get current enrollment count
-        $currentEnrollments = $event->enrollments()->count();
-        Log::info('Current enrollments', [
-            'count' => $currentEnrollments,
-            'event_id' => $event->event_id
-        ]);
+        // Separate validation rules for external and internal events
+        $commonRules = [
+            'title' => 'required|string|max:255',
+            'date' => 'required|date',
+            'time' => 'required',
+            'location' => 'required|string|max:255',
+            'description' => 'required|string',
+            'event_type' => 'required|in:Workshop,Competition,Seminar',
+            'status' => 'required|in:Upcoming,Ongoing,Completed',
+            'cover_image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+            'is_external' => 'required|boolean',
+        ];
 
-        try {
-            $validated = $request->validate([
-                'title' => 'required|string|max:255',
-                'date' => 'required|date',
-                'time' => 'required',
-                'location' => 'required|string|max:255',
-                'description' => 'required|string',
-                'max_participants' => [
-                    'required',
-                    'integer',
-                    'min:' . $currentEnrollments,
-                ],
-                'event_type' => 'required|in:Workshop,Competition,Seminar',
-                'status' => 'required|in:Upcoming,Ongoing,Completed',
-                'cover_image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
-            ]);
-
-            // Handle image upload if present
-            if ($request->hasFile('cover_image')) {
-                $file = $request->file('cover_image');
-                $filename = time() . '_' . $file->getClientOriginalName();
-                $file->move(public_path('images/EventCover'), $filename);
-                $validated['cover_image'] = 'images/EventCover/' . $filename;
-            }
-
-            // Update the event
-            $event->update($validated);
-
-            Log::info('Event updated successfully', [
-                'event_id' => $event->event_id,
-                'updated_data' => $validated
-            ]);
-
-            return redirect()->route('events.my-events')
-                ->with('message', 'Event updated successfully');
-
-        } catch (\Exception $e) {
-            Log::error('Event update failed', [
-                'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString()
-            ]);
-            throw $e;
+        // Add specific rules based on event type
+        if ($request->boolean('is_external')) {
+            $specificRules = [
+                'registration_url' => 'required|url',
+                'organizer_name' => 'required|string|max:255',
+                'organizer_website' => 'nullable|url',
+            ];
+        } else {
+            $specificRules = [
+                'max_participants' => 'required|integer|min:1',
+                'registration_url' => 'nullable',
+                'organizer_name' => 'nullable',
+                'organizer_website' => 'nullable',
+            ];
         }
+
+        $validated = $request->validate(array_merge($commonRules, $specificRules));
+
+        // Start with validated data
+        $dataToUpdate = $validated;
+
+        // Handle image upload if provided
+        if ($request->hasFile('cover_image')) {
+            // Delete old image if exists
+            if ($event->cover_image) {
+                Storage::delete($event->cover_image);
+            }
+            
+            $file = $request->file('cover_image');
+            $filename = time() . '_' . $file->getClientOriginalName();
+            $file->move(public_path('images/EventCover'), $filename);
+            $dataToUpdate['cover_image'] = 'images/EventCover/' . $filename;
+        } else {
+            // Remove cover_image from update data if no new image is uploaded
+            unset($dataToUpdate['cover_image']);
+        }
+
+        // Format time
+        $dataToUpdate['time'] = Carbon::parse($validated['time'])->format('H:i:s');
+
+        // Update the event
+        $event->update($dataToUpdate);
+
+        return redirect()->route('events.my-events')
+            ->with('message', 'Event updated successfully');
     }
 
     public function dashboard()
@@ -277,17 +263,19 @@ class EventController extends Controller
         ]);
     }
 
-    private function getEventStatus($event)
+    private function calculateEventStatus($event)
     {
-        $today = Carbon::today();
-        $eventDate = Carbon::parse($event->date);
-        
-        if ($eventDate->isPast()) {
+        $eventDate = Carbon::parse($event->date)->startOfDay();
+        $today = Carbon::now()->startOfDay();
+
+        if ($event->status === 'Completed') {
             return 'Completed';
-        } elseif ($eventDate->isToday()) {
+        } else if ($eventDate->equalTo($today)) {
             return 'Ongoing';
-        } else {
+        } else if ($eventDate->greaterThan($today)) {
             return 'Upcoming';
+        } else {
+            return 'Completed';
         }
     }
 } 

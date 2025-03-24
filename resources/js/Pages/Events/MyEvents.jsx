@@ -56,7 +56,7 @@ const MyEvents = ({ organizedEvents, enrolledEvents }) => {
                                 Status
                             </th>
                             <th className="px-6 py-4 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
-                                Participants
+                                {activeTab === 'organized' ? 'Participants' : 'Type'}
                             </th>
                             <th className="px-6 py-4 text-right text-xs font-medium text-gray-300 uppercase tracking-wider">
                                 Actions
@@ -67,11 +67,20 @@ const MyEvents = ({ organizedEvents, enrolledEvents }) => {
                         {events.map((event) => (
                             <tr key={event.event_id} className="hover:bg-gray-800/50 transition-colors">
                                 <td className="px-6 py-4 whitespace-nowrap">
-                                    <div className="text-sm font-medium text-gray-100">
-                                        {event.title}
-                                    </div>
-                                    <div className="text-sm text-gray-400">
-                                        {event.event_type}
+                                    <div className="flex items-center space-x-2">
+                                        <div>
+                                            <div className="text-sm font-medium text-gray-100">
+                                                {event.title}
+                                            </div>
+                                            <div className="text-sm text-gray-400">
+                                                {event.event_type}
+                                                {event.is_external && (
+                                                    <span className="ml-2 px-2 py-0.5 text-xs rounded-full bg-purple-500/20 text-purple-400">
+                                                        External
+                                                    </span>
+                                                )}
+                                            </div>
+                                        </div>
                                     </div>
                                 </td>
                                 <td className="px-6 py-4 whitespace-nowrap">
@@ -92,23 +101,29 @@ const MyEvents = ({ organizedEvents, enrolledEvents }) => {
                                     </span>
                                 </td>
                                 <td className="px-6 py-4 whitespace-nowrap">
-                                    <div className="flex items-center">
-                                        {showEditButton && (
-                                            <button
-                                                onClick={() => {
-                                                    setSelectedEvent(event);
-                                                    setIsParticipantsModalOpen(true);
-                                                }}
-                                                className="text-gray-400 hover:text-gray-300 transition-colors mr-2"
-                                                title="View Participants"
-                                            >
-                                                <span className="material-symbols-outlined text-base">group</span>
-                                            </button>
-                                        )}
+                                    {activeTab === 'organized' ? (
+                                        <div className="flex items-center">
+                                            {!event.is_external && (
+                                                <button
+                                                    onClick={() => {
+                                                        setSelectedEvent(event);
+                                                        setIsParticipantsModalOpen(true);
+                                                    }}
+                                                    className="text-gray-400 hover:text-gray-300 transition-colors mr-2"
+                                                    title="View Participants"
+                                                >
+                                                    <span className="material-symbols-outlined text-base">group</span>
+                                                </button>
+                                            )}
+                                            <span className="text-sm text-gray-400">
+                                                {event.is_external ? 'External Registration' : `${event.enrolled_count}/${event.max_participants}`}
+                                            </span>
+                                        </div>
+                                    ) : (
                                         <span className="text-sm text-gray-400">
-                                            {event.enrollments_count || event.enrolled_count || 0}/{event.max_participants}
+                                            {event.is_external ? 'External Event' : 'Internal Event'}
                                         </span>
-                                    </div>
+                                    )}
                                 </td>
                                 <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                                     <button
@@ -145,7 +160,7 @@ const MyEvents = ({ organizedEvents, enrolledEvents }) => {
                             <h2 className="text-3xl font-semibold text-white">My Events</h2>
                         </div>
 
-                        {/* Enhanced Tab Navigation */}
+                        {/* Tab Navigation */}
                         <div className="bg-gray-800/50 rounded-lg p-1 inline-flex items-center justify-center space-x-1 mx-auto">
                             <button
                                 onClick={() => setActiveTab('organized')}
@@ -206,14 +221,16 @@ const MyEvents = ({ organizedEvents, enrolledEvents }) => {
                             setSelectedEvent(null);
                         }}
                     />
-                    <ParticipantsModal
-                        event={selectedEvent}
-                        isOpen={isParticipantsModalOpen}
-                        onClose={() => {
-                            setIsParticipantsModalOpen(false);
-                            setSelectedEvent(null);
-                        }}
-                    />
+                    {!selectedEvent.is_external && (
+                        <ParticipantsModal
+                            event={selectedEvent}
+                            isOpen={isParticipantsModalOpen}
+                            onClose={() => {
+                                setIsParticipantsModalOpen(false);
+                                setSelectedEvent(null);
+                            }}
+                        />
+                    )}
                 </>
             )}
         </AuthenticatedLayout>

@@ -4,6 +4,7 @@ namespace App\Http\Middleware;
 
 use Illuminate\Http\Request;
 use Inertia\Middleware;
+use Illuminate\Support\Facades\DB;
 
 class HandleInertiaRequests extends Middleware
 {
@@ -29,8 +30,7 @@ class HandleInertiaRequests extends Middleware
      */
     public function share(Request $request): array
     {
-        return [
-            ...parent::share($request),
+        return array_merge(parent::share($request), [
             'auth' => [
                 'user' => $request->user() ? [
                     'id' => $request->user()->id,
@@ -41,10 +41,17 @@ class HandleInertiaRequests extends Middleware
                             'name' => $role->name,
                             'title' => $role->title
                         ];
-                    })
+                    }),
+                    'notifications' => $request->user()->unreadNotifications->map(function($notification) {
+                        return [
+                            'id' => $notification->id,
+                            'data' => $notification->data,
+                            'created_at' => $notification->created_at->diffForHumans(),
+                        ];
+                    }),
                 ] : null,
+                'url' => $request->path(),
             ],
-            'url' => $request->path(),
-        ];
+        ]);
     }
 }

@@ -1,6 +1,8 @@
 import Input from '../Input';
 import { useForm } from '@inertiajs/react';
 import UpdateProfilePhoto from '@/Components/Profile/Common/UpdateProfilePhoto';
+import DisplayProfilePhoto from '@/Components/Profile/Common/DisplayProfilePhoto';
+import FriendRequestButton from '@/Components/Profile/Common/FriendRequestButton';
 import { useState } from 'react';
 
 const FACULTIES = [
@@ -44,10 +46,18 @@ const UNIVERSITIES = [
 
 const LEVELS = ['Undergraduate', 'Postgraduate'];
 
-export default function StudentPersonalInformation({ user }) {
+export default function StudentPersonalInformation({ 
+    user, 
+    viewOnly = false,
+    showFriendButton = false,
+    friendStatus,
+    friendRequestId 
+}) {
     const [isEditing, setIsEditing] = useState(false);
-    
-    console.log('Student data received:', user?.student);
+
+    if (!user) {
+        return <div>Loading...</div>;
+    }
 
     const { data, setData, patch, processing, errors, recentlySuccessful } = useForm({
         matric_no: user?.student?.matric_no || '',
@@ -87,12 +97,29 @@ export default function StudentPersonalInformation({ user }) {
                     <div className="flex flex-col items-center">
                         {/* Profile Photo */}
                         <div className="mb-6">
-                            <UpdateProfilePhoto user={user} />
+                            {!viewOnly ? (
+                                <UpdateProfilePhoto user={user} />
+                            ) : (
+                                <DisplayProfilePhoto 
+                                    profilePhotoPath={user?.student?.profile_photo_path}
+                                />
+                            )}
                         </div>
                         
                         {/* User Info */}
-                        <h1 className="text-3xl font-bold text-white mb-2">{user.name}</h1>
-                        <p className="text-gray-300 mb-8">{user.email}</p>
+                        <h1 className="text-3xl font-bold text-white mb-2">{user?.name || 'User'}</h1>
+                        <p className="text-gray-300 mb-4">{user?.email || 'No email provided'}</p>
+
+                        {/* Friend Request Button */}
+                        {showFriendButton && (
+                            <div className="mb-8">
+                                <FriendRequestButton
+                                    userId={user.id}
+                                    friendStatus={friendStatus}
+                                    friendRequestId={friendRequestId}
+                                />
+                            </div>
+                        )}
 
                         {/* Quick Stats */}
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 w-full max-w-3xl mb-12">
@@ -117,17 +144,19 @@ export default function StudentPersonalInformation({ user }) {
                                     <h2 className="text-xl font-semibold text-white">
                                         Student Information
                                     </h2>
-                                    <button
-                                        onClick={() => setIsEditing(!isEditing)}
-                                        className="text-white/70 hover:text-white transition-colors"
-                                    >
-                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
-                                            <path strokeLinecap="round" strokeLinejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" />
-                                        </svg>
-                                    </button>
+                                    {!viewOnly && (
+                                        <button
+                                            onClick={() => setIsEditing(!isEditing)}
+                                            className="text-white/70 hover:text-white transition-colors"
+                                        >
+                                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
+                                                <path strokeLinecap="round" strokeLinejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" />
+                                            </svg>
+                                        </button>
+                                    )}
                                 </div>
 
-                                {isEditing ? (
+                                {(isEditing && !viewOnly) ? (
                                     <form onSubmit={handleSubmit} className="space-y-6">
                                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                             <Input

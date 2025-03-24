@@ -48,7 +48,10 @@ class ProfileController extends Controller
 
         return Inertia::render($roleComponents[$role], [
             'auth' => [
-                'user' => $user->load($role)
+                'user' => array_merge($user->toArray(), [
+                    'notifications' => $user->notifications,
+                    $role => $user->load($role)[$role]
+                ])
             ]
         ]);
     }
@@ -70,11 +73,6 @@ class ProfileController extends Controller
      */
     public function update(Request $request): RedirectResponse
     {
-        Log::info('Profile update request received:', [
-            'all_data' => $request->all(),
-            'user' => $request->user(),
-            'role' => $request->user()->role
-        ]);
 
         try {
             $user = $request->user();

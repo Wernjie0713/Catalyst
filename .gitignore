@@ -1,6 +1,7 @@
 /.phpunit.cache
 /public/images/EventCover/*
 !/public/images/EventCover/.gitkeep
+/public/images/profile-photos/*
 /node_modules
 /public/build
 /public/hot
