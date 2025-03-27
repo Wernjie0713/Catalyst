@@ -132,4 +132,15 @@ class Event extends Model
     {
         return $this->is_external;
     }
+
+    // Add this method to the Event model
+    public function feedback()
+    {
+        return $this->hasMany(Feedback::class, 'event_id', 'event_id');
+    }
+
+    public function certificateTemplates()
+    {
+        return $this->hasMany(CertificateTemplate::class, 'event_id', 'event_id');
+    }
 }

@@ -138,4 +138,26 @@ class User extends Authenticatable
     {
         return $this->hasMany(Friend::class, 'friend_id');
     }
+
+    public function teams()
+    {
+        return $this->belongsToMany(Team::class, 'team_members', 'user_id', 'team_id')
+                    ->withPivot('status')
+                    ->withTimestamps();
+    }
+
+    public function teamMembers()
+    {
+        return $this->hasMany(TeamMember::class, 'user_id');
+    }
+
+    // Add this method to your User model
+    public function getAllFriends()
+    {
+        return Friend::where(function($query) {
+                $query->where('user_id', $this->id)
+                      ->orWhere('friend_id', $this->id);
+            })
+            ->where('status', 'accepted');
+    }
 }

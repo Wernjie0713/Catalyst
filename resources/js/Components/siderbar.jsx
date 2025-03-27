@@ -107,8 +107,8 @@ export const Sidebar = () => {
     {
       name: "Settings",
       icon: "settings",
-      route: "profile.edit",
-      path: "/profile/edit"
+      route: "settings.edit",
+      path: "/Setting/edit"
     },
     {
       name: "Logout",

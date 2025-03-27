@@ -1,4 +1,4 @@
-import { Head, usePage } from '@inertiajs/react';
+import { Head, usePage, router } from '@inertiajs/react';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { format } from 'date-fns';
 import { useState } from 'react';
@@ -30,10 +30,19 @@ const MyEvents = ({ organizedEvents, enrolledEvents }) => {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [isParticipantsModalOpen, setIsParticipantsModalOpen] = useState(false);
     const [activeTab, setActiveTab] = useState('organized');
+    const [selectedParticipants, setSelectedParticipants] = useState([]);
+    const [showCertificateOptions, setShowCertificateOptions] = useState(false);
 
     const handleViewEvent = (event) => {
         setSelectedEvent(event);
         setIsModalOpen(true);
+    };
+
+    const handleAssignCertificates = (event) => {
+        router.get(route('certificates.create', {
+            event: event.event_id,
+            participants: selectedParticipants
+        }));
     };
 
     const EventTable = ({ events, showEditButton = false }) => (
@@ -63,7 +72,7 @@ const MyEvents = ({ organizedEvents, enrolledEvents }) => {
                             </th>
                         </tr>
                     </thead>
-                    <tbody className="divide-y divide-gray-700/50">
+                    <tbody className="divide-y divide-gray-800/50">
                         {events.map((event) => (
                             <tr key={event.event_id} className="hover:bg-gray-800/50 transition-colors">
                                 <td className="px-6 py-4 whitespace-nowrap">
@@ -104,16 +113,32 @@ const MyEvents = ({ organizedEvents, enrolledEvents }) => {
                                     {activeTab === 'organized' ? (
                                         <div className="flex items-center">
                                             {!event.is_external && (
-                                                <button
-                                                    onClick={() => {
-                                                        setSelectedEvent(event);
-                                                        setIsParticipantsModalOpen(true);
-                                                    }}
-                                                    className="text-gray-400 hover:text-gray-300 transition-colors mr-2"
-                                                    title="View Participants"
-                                                >
-                                                    <span className="material-symbols-outlined text-base">group</span>
-                                                </button>
+                                                <>
+                                                    <button
+                                                        onClick={() => {
+                                                            setSelectedEvent(event);
+                                                            setSelectedParticipants([]);
+                                                            setIsParticipantsModalOpen(true);
+                                                        }}
+                                                        className="text-gray-400 hover:text-gray-300 transition-colors mr-2"
+                                                        title="View Participants"
+                                                    >
+                                                        <span className="material-symbols-outlined text-base">group</span>
+                                                    </button>
+                                                    {event.status === 'Completed' && (
+                                                        <button
+                                                            onClick={() => {
+                                                                setSelectedEvent(event);
+                                                                setShowCertificateOptions(true);
+                                                                setIsParticipantsModalOpen(true);
+                                                            }}
+                                                            className="text-yellow-400 hover:text-yellow-300 transition-colors mr-2"
+                                                            title="Assign Certificates"
+                                                        >
+                                                            <span className="material-symbols-outlined text-base">workspace_premium</span>
+                                                        </button>
+                                                    )}
+                                                </>
                                             )}
                                             <span className="text-sm text-gray-400">
                                                 {event.is_external ? 'External Registration' : `${event.enrolled_count}/${event.max_participants}`}
@@ -132,6 +157,22 @@ const MyEvents = ({ organizedEvents, enrolledEvents }) => {
                                     >
                                         View
                                     </button>
+                                    {activeTab === 'enrolled' && event.status === 'Completed' && can.event_feedback && (
+                                        <a
+                                            href={route('feedback.create', event.event_id)}
+                                            className="text-yellow-400 hover:text-yellow-300 transition-colors mr-4"
+                                        >
+                                            Feedback
+                                        </a>
+                                    )}
+                                    {activeTab === 'organized' && event.status === 'Completed' && can.event_feedbackview && (
+                                        <a
+                                            href={route('feedback.index', event.event_id)}
+                                            className="text-purple-400 hover:text-purple-300 transition-colors mr-4"
+                                        >
+                                            View Feedback
+                                        </a>
+                                    )}
                                     {showEditButton && can.event_edit && (
                                         <a
                                             href={route('events.edit', event.event_id)}
@@ -147,6 +188,56 @@ const MyEvents = ({ organizedEvents, enrolledEvents }) => {
                 </table>
             )}
         </div>
+    );
+
+    const EnhancedParticipantsModal = ({ event, isOpen, onClose }) => (
+        <ParticipantsModal
+            event={event}
+            isOpen={isOpen}
+            onClose={onClose}
+        >
+            <div className="mt-4 border-t border-gray-700 pt-4">
+                <div className="flex items-center justify-between">
+                    <h3 className="text-lg font-medium text-gray-200">Certificate Assignment</h3>
+                    <button
+                        onClick={() => setShowCertificateOptions(!showCertificateOptions)}
+                        className="text-indigo-400 hover:text-indigo-300 transition-colors"
+                    >
+                        {showCertificateOptions ? 'Hide Options' : 'Show Options'}
+                    </button>
+                </div>
+
+                {showCertificateOptions && (
+                    <div className="mt-4 space-y-4">
+                        <div className="flex items-center justify-between">
+                            <span className="text-sm text-gray-400">
+                                Selected Participants: {selectedParticipants.length}
+                            </span>
+                            <div className="space-x-2">
+                                <button
+                                    onClick={() => setSelectedParticipants([])}
+                                    className="px-3 py-1 text-sm text-gray-400 hover:text-gray-300 transition-colors"
+                                >
+                                    Clear Selection
+                                </button>
+                                <button
+                                    onClick={() => handleAssignCertificates(event)}
+                                    disabled={selectedParticipants.length === 0}
+                                    className={`px-4 py-2 rounded-md text-sm font-medium transition-colors
+                                        ${selectedParticipants.length === 0
+                                            ? 'bg-gray-700 text-gray-400 cursor-not-allowed'
+                                            : 'bg-indigo-600 hover:bg-indigo-700 text-white'
+                                        }
+                                    `}
+                                >
+                                    Create Certificates
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                )}
+            </div>
+        </ParticipantsModal>
     );
 
     return (
@@ -222,12 +313,14 @@ const MyEvents = ({ organizedEvents, enrolledEvents }) => {
                         }}
                     />
                     {!selectedEvent.is_external && (
-                        <ParticipantsModal
+                        <EnhancedParticipantsModal
                             event={selectedEvent}
                             isOpen={isParticipantsModalOpen}
                             onClose={() => {
                                 setIsParticipantsModalOpen(false);
                                 setSelectedEvent(null);
+                                setSelectedParticipants([]);
+                                setShowCertificateOptions(false);
                             }}
                         />
                     )}

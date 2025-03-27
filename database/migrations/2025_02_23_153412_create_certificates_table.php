@@ -12,9 +12,14 @@ return new class extends Migration
             $table->uuid('certificate_id')->primary();
             $table->uuid('event_id');
             $table->uuid('student_id');
-            $table->string('template');
-            $table->string('issue_date');
+            $table->uuid('template_id');
+            $table->string('certificate_number')->unique();
+            $table->string('status')->default('issued');
+            $table->timestamp('issue_date');
+            $table->timestamp('expiry_date')->nullable();
+            $table->json('certificate_data')->nullable();
             $table->timestamps();
+            $table->softDeletes();
 
             $table->foreign('event_id')
                   ->references('event_id')
@@ -26,7 +31,11 @@ return new class extends Migration
                   ->on('students')
                   ->onDelete('cascade');
 
-            // Prevent duplicate certificates
+            $table->foreign('template_id')
+                  ->references('id')
+                  ->on('certificate_templates')
+                  ->onDelete('restrict');
+
             $table->unique(['event_id', 'student_id']);
         });
     }

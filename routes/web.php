@@ -14,6 +14,11 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ViewProfileController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\FriendController;
+use App\Http\Controllers\FeedbackController;
+use App\Http\Controllers\TeamController;
+use App\Http\Controllers\CertificateTemplateController;
+use App\Http\Controllers\CertificateController;
+
 
 Route::get('/', function () {
     return Inertia::render('Welcome', [
@@ -76,13 +81,31 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/friend/reject/{request}', [FriendController::class, 'rejectRequest'])
         ->name('friend.reject');
     Route::get('/friends', [FriendController::class, 'getFriendsList'])
+        ->middleware(['can:team_grouping'])
         ->name('friends.list');
+    Route::get('/friend/pending', [FriendController::class, 'getPendingRequests'])
+        ->name('friend.pending');
 
     Route::delete('/friend/remove/{friend}', [FriendController::class, 'removeFriend'])
         ->name('friend.remove');
 
-    Route::get('/friend/pending', [FriendController::class, 'getPendingRequests'])
-        ->name('friend.pending');
+});
+
+Route::middleware(['can:team_grouping'])->group(function () {
+    Route::get('/teams', [TeamController::class, 'index'])->name('teams.index');
+    Route::post('/teams', [TeamController::class, 'store'])->name('teams.store');
+    Route::post('/teams/add-member', [TeamController::class, 'addMember'])->name('teams.add-member');
+    Route::delete('/teams/{teamId}/members/{userId}', [TeamController::class, 'removeMember'])
+        ->name('teams.remove-member');
+    Route::delete('/teams/{team}', [TeamController::class, 'destroy'])->name('teams.destroy');
+    Route::post('/teams/{teamId}/accept', [TeamController::class, 'acceptTeamInvitation'])
+        ->name('teams.accept-invitation');
+    Route::post('/teams/{teamId}/reject', [TeamController::class, 'rejectTeamInvitation'])
+        ->name('teams.reject-invitation');
+    Route::get('/teams/pending', [TeamController::class, 'getPendingInvitations'])
+        ->name('teams.pending');
+    Route::get('/teams/{teamId}/available-friends', [TeamController::class, 'getAvailableFriends'])
+        ->name('teams.available-friends');
 });
 
 Route::middleware(['auth', 'can:admin'])->group(function () {
@@ -103,7 +126,6 @@ Route::middleware(['auth','can:event_upload'])->group(function () {
 
 Route::middleware(['auth','can:event_view'])->group(function () {
     Route::get('/events', [EventController::class, 'index'])->name('events.index');
-    Route::get('/events/{event}', [EventController::class, 'show'])->name('events.show');
 });
 
 Route::middleware(['auth'])->group(function () {
@@ -112,6 +134,8 @@ Route::middleware(['auth'])->group(function () {
     Route::put('/events/{event}', [EventController::class, 'update'])->name('events.update');
     Route::post('/events/{event}/enroll', [EnrollmentController::class, 'store'])->name('events.enroll');
     Route::delete('/events/{event}/unenroll', [EnrollmentController::class, 'destroy'])->name('events.unenroll');
+    Route::get('/events/{event}/enrolled-users', [EventController::class, 'getEnrolledUsers'])
+        ->name('events.enrolled-users');
 });
 
 Route::get('/view/{user}',[ViewProfileController::class,'show'])
@@ -126,5 +150,37 @@ Route::post('/notifications/{id}/read',function(string $id){
 Route::post('/notifications/mark-all-as-read',[NotificationController::class,'markAllAsRead'])
     ->middleware(['auth'])
     ->name('notifications.mark-all-as-read');
+
+// Certificate Template Routes
+Route::middleware(['auth'])->group(function () {
+    Route::get('/events/{event}/certificates/create', [CertificateTemplateController::class, 'create'])
+        ->name('certificates.create');
+    Route::post('/events/{event}/certificates', [CertificateTemplateController::class, 'store'])
+        ->name('certificates.store');
+    Route::get('/events/{event}/certificates/{template}/preview', [CertificateTemplateController::class, 'preview'])
+        ->name('certificates.preview');
+});
+
+Route::middleware(['auth'])->group(function () {
+    // Feedback routes with specific ability checks
+    Route::get('/events/{event}/feedback/create', [FeedbackController::class, 'create'])
+        ->middleware('can:event_feedback')
+        ->name('feedback.create');
+
+    Route::post('/events/{event}/feedback', [FeedbackController::class, 'store'])
+        ->middleware('can:event_feedback')
+        ->name('feedback.store');
+
+    Route::get('/events/{event}/feedback', [FeedbackController::class, 'index'])
+        ->middleware('can:event_feedbackview')
+        ->name('feedback.index');
+});
+
+Route::middleware(['auth'])->group(function () {
+    Route::get('/student/certificates', [CertificateController::class, 'studentCertificates'])
+        ->name('student.certificates');
+    Route::get('/certificates/{certificate}/download', [CertificateController::class, 'download'])
+        ->name('certificates.download');
+});
 
 require __DIR__.'/auth.php';

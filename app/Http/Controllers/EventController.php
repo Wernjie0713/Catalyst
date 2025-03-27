@@ -114,28 +114,38 @@ class EventController extends Controller
         ]);
     }
 
-    public function show(Event $event)
-    {
-        $event->formatted_time = Carbon::parse($event->time)->format('g:i A');
-        
-        return Inertia::render('Events/Show', [
-            'event' => $event->load('creator')
-        ]);
-    }
-
     public function myEvents()
     {
         $user = auth()->user();
-
-        $organizedEvents = Event::where('creator_id', $user->id)->get();
-        $enrolledEvents = $user->enrolledEvents()->get();
-
+        
+        // Get events organized by the user
+        $organizedEvents = Event::where('creator_id', $user->id)
+            ->with('creator')
+            ->get()
+            ->map(function ($event) {
+                // Calculate and add status to each event
+                $event->status = $this->calculateEventStatus($event);
+                $event->enrolled_count = $event->enrolledUsers()->count();
+                return $event;
+            });
+        
+        // Get events the user is enrolled in
+        $enrolledEvents = $user->enrolledEvents()
+            ->with('creator')
+            ->get()
+            ->map(function ($event) {
+                // Calculate and add status to each event
+                $event->status = $this->calculateEventStatus($event);
+                return $event;
+            });
+        
         return Inertia::render('Events/MyEvents', [
             'organizedEvents' => $organizedEvents,
             'enrolledEvents' => $enrolledEvents,
             'can' => [
-                'event_upload' => Gate::allows('event_upload'),
-                'event_edit' => Gate::allows('event_edit')
+                'event_edit' => Gate::allows('event_edit'),
+                'event_feedback' => Gate::allows('event_feedback'),
+                'event_feedbackview' => Gate::allows('event_feedbackview'),
             ]
         ]);
     }
@@ -277,5 +287,15 @@ class EventController extends Controller
         } else {
             return 'Completed';
         }
+    }
+
+    public function getEnrolledUsers(Event $event)
+    {
+        // Eager load the enrolledUsers with their basic information
+        $enrolledUsers = $event->enrolledUsers()
+            ->select('users.id', 'users.name', 'users.email')
+            ->get();
+
+        return response()->json($enrolledUsers);
     }
 } 

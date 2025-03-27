@@ -238,29 +238,6 @@ const Edit = ({ event }) => {
                                 )}
                             </div>
 
-                            {/* Status Section */}
-                            <div className="border-t border-gray-700 pt-6">
-                                <h3 className="text-xl font-semibold text-blue-400 mb-4">Event Status</h3>
-                                <div>
-                                    <InputLabel 
-                                        htmlFor="status" 
-                                        value="Status" 
-                                        className="text-white text-base font-semibold mb-1.5"
-                                    />
-                                    <select
-                                        id="status"
-                                        value={data.status}
-                                        onChange={e => setData('status', e.target.value)}
-                                        className="mt-1 block w-full bg-[#2A2A3A] border-gray-600 text-white rounded-lg focus:border-blue-500 focus:ring-blue-500"
-                                    >
-                                        <option value="Upcoming">Upcoming</option>
-                                        <option value="Ongoing">Ongoing</option>
-                                        <option value="Completed">Completed</option>
-                                    </select>
-                                    <InputError message={errors.status} className="mt-2" />
-                                </div>
-                            </div>
-
                             {/* Description Section */}
                             <div className="border-t border-gray-700 pt-6">
                                 <h3 className="text-xl font-semibold text-blue-400 mb-4">Additional Information</h3>

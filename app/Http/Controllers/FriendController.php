@@ -6,6 +6,8 @@ use App\Models\Friend;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
+use Illuminate\Support\Facades\Gate;
+use App\Models\TeamMember;
 
 class FriendController extends Controller
 {
@@ -22,9 +24,9 @@ class FriendController extends Controller
                 if ($existingRequest->status === 'rejected') {
                     // If rejected, allow new request
                     $existingRequest->update(['status' => 'pending']);
-                    return redirect()->back()->with('success', 'Friend request sent!');
+                    return back()->with('success', 'Friend request sent!');
                 } elseif ($existingRequest->status === 'pending') {
-                    return redirect()->back()->with('info', 'Friend request already pending.');
+                    return back()->with('info', 'Friend request already pending.');
                 }
             }
 
@@ -35,9 +37,9 @@ class FriendController extends Controller
                 'status' => 'pending'
             ]);
 
-            return redirect()->back()->with('success', 'Friend request sent!');
+            return back()->with('success', 'Friend request sent!');
         } catch (\Exception $e) {
-            return redirect()->back()->with('error', 'Unable to send friend request.');
+            return back()->with('error', 'Unable to send friend request.');
         }
     }
 
@@ -48,14 +50,14 @@ class FriendController extends Controller
             
             // Verify the current user is the recipient of the request
             if ($friend->friend_id !== auth()->id()) {
-                return redirect()->back()->with('error', 'Unauthorized action.');
+                return back()->with('error', 'Unauthorized action.');
             }
 
             $friend->update(['status' => 'accepted']);
 
-            return redirect()->back()->with('success', 'Friend request accepted!');
+            return back()->with('success', 'Friend request accepted!');
         } catch (\Exception $e) {
-            return redirect()->back()->with('error', 'Unable to accept friend request.');
+            return back()->with('error', 'Unable to accept friend request.');
         }
     }
 
@@ -66,19 +68,25 @@ class FriendController extends Controller
             
             // Verify the current user is the recipient of the request
             if ($friend->friend_id !== auth()->id()) {
-                return redirect()->back()->with('error', 'Unauthorized action.');
+                return back()->with('error', 'Unauthorized action.');
             }
 
             $friend->update(['status' => 'rejected']);
 
-            return redirect()->back()->with('success', 'Friend request rejected.');
+            return back()->with('success', 'Friend request rejected.');
         } catch (\Exception $e) {
-            return redirect()->back()->with('error', 'Unable to reject friend request.');
+            return back()->with('error', 'Unable to reject friend request.');
         }
     }
 
     public function getFriendsList()
     {
+        if (!Gate::allows('team_grouping')) {
+            return Inertia::render('Unauthorized', [
+                'message' => 'You are not authorized to access Team Grouping.'
+            ]);
+        }
+
         $friends = Friend::where('user_id', auth()->id())
             ->orWhere('friend_id', auth()->id())
             ->with(['user.student', 'user.lecturer', 'user.department_staff', 'user.organizer',
@@ -86,19 +94,21 @@ class FriendController extends Controller
             ->get();
 
         return Inertia::render('Friend/list', [
-            'friends' => $friends
+            'friends' => $friends,
+            'can' => [
+                'team_grouping' => Gate::allows('team_grouping')
+            ]
         ]);
     }
 
     public function getPendingRequests()
     {
+        // Only get requests where current user is the recipient (friend_id)
         $pendingRequests = Friend::where('friend_id', auth()->id())
             ->where('status', 'pending')
-            ->with('user')
+            ->with(['user', 'friend'])
             ->get();
 
-        return Inertia::render('Friend/PendingRequests', [
-            'pendingRequests' => $pendingRequests
-        ]);
+        return response()->json($pendingRequests);
     }
 }
