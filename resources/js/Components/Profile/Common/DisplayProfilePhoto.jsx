@@ -11,8 +11,6 @@ export default function DisplayProfilePhoto({ profilePhotoPath }) {
         return `/${cleanPath}`;
     };
 
-    console.log('Display Path:', getDisplayPath()); // Add this for debugging
-
     return (
         <div className="relative flex flex-col items-center w-32">
             <div className="w-32 h-32 rounded-full overflow-hidden bg-gray-100 relative shadow-lg">

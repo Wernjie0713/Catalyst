@@ -306,10 +306,11 @@ class ProfileController extends Controller
         $request->validate([
             'department' => 'required|string',
             'position' => 'required|string',
+            'faculty' => 'required|string',
         ]);
 
         $user->department_staff()->update($request->only([
-            'department', 'position', 'contact_number', 'bio', 'linkedin'
+            'department', 'position', 'faculty', 'contact_number', 'bio', 'linkedin'
         ]));
     }
 
@@ -322,22 +323,32 @@ class ProfileController extends Controller
                 throw new \Exception('University profile not found.');
             }
 
-            Log::info('Updating university profile:', [
-                'before' => $university->toArray(),
-                'request_data' => $request->all()
+            // Validate the incoming data
+            $validated = $request->validate([
+                'name' => 'required|string|max:255',
+                'location' => 'nullable|string|max:255',
+                'contact_email' => 'nullable|email|max:255',
+                'website' => 'nullable|url|max:255',
+                'contact_number' => 'nullable|string|max:20',
+                'bio' => 'nullable|string'
             ]);
 
-            $university->update($request->only([
-                'name',
-                'location',
-                'contact_email',
-                'website',
-                'contact_number',
-                'bio'
-            ]));
+            // Update using query builder to ensure it saves
+            DB::table('universities')
+                ->where('university_id', $university->university_id)
+                ->update([
+                    'name' => $validated['name'],
+                    'location' => $validated['location'],
+                    'contact_email' => $validated['contact_email'],
+                    'website' => $validated['website'],
+                    'contact_number' => $validated['contact_number'],
+                    'bio' => $validated['bio'],
+                    'updated_at' => now()
+                ]);
 
             Log::info('University profile updated:', [
-                'after' => $university->fresh()->toArray()
+                'university_id' => $university->university_id,
+                'updated_data' => $validated
             ]);
         } catch (\Exception $e) {
             Log::error('Failed to update university profile:', [

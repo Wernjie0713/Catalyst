@@ -2,11 +2,15 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Str;
 
 class Team extends Model
 {
+    use HasFactory;
+
+    protected $primaryKey = 'id';
     public $incrementing = false;
     protected $keyType = 'string';
 
@@ -14,7 +18,11 @@ class Team extends Model
         'id',
         'name',
         'creator_id',
-        'member_count'
+        'member_count',
+    ];
+
+    protected $casts = [
+        'member_count' => 'integer',
     ];
 
     protected $appends = ['available_slots'];
@@ -26,7 +34,20 @@ class Team extends Model
 
     public function members()
     {
-        return $this->hasMany(TeamMember::class, 'team_id')->with('user');
+        return $this->hasMany(TeamMember::class, 'team_id');
+    }
+
+    public function enrollments()
+    {
+        return $this->hasMany(Enrollment::class, 'team_id');
+    }
+
+    public function enrolledEvents()
+    {
+        return $this->belongsToMany(Event::class, 'enrollments', 'team_id', 'event_id')
+                    ->using(Enrollment::class)
+                    ->withPivot('enrollment_id')
+                    ->withTimestamps();
     }
 
     public function getAvailableSlotsAttribute()
@@ -36,13 +57,23 @@ class Team extends Model
 
     public function updateMemberCount()
     {
-        // Count accepted members including the creator
-        $count = $this->members()
-            ->where('status', 'accepted')
-            ->count();
-        
-        // Update the member count
+        $count = $this->members()->where('status', 'accepted')->count();
         $this->update(['member_count' => $count]);
+        return $this;
+    }
+
+    public function meetsEventRequirements(Event $event)
+    {
+        if (!$event->is_team_event) {
+            return false;
+        }
+
+        $acceptedMembersCount = $this->members()->where('status', 'accepted')->count();
+        
+        $meetsMin = !$event->min_team_members || $acceptedMembersCount >= $event->min_team_members;
+        $meetsMax = !$event->max_team_members || $acceptedMembersCount <= $event->max_team_members;
+        
+        return $meetsMin && $meetsMax;
     }
 
     protected static function boot()

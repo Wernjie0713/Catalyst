@@ -12,6 +12,7 @@ return new class extends Migration
             $table->uuid('certificate_id')->primary();
             $table->uuid('event_id');
             $table->uuid('student_id');
+            $table->uuid('team_id')->nullable();
             $table->uuid('template_id');
             $table->string('certificate_number')->unique();
             $table->string('status')->default('issued');
@@ -36,7 +37,10 @@ return new class extends Migration
                   ->on('certificate_templates')
                   ->onDelete('restrict');
 
-            $table->unique(['event_id', 'student_id']);
+            $table->foreign('team_id')
+                  ->references('id')
+                  ->on('teams')
+                  ->onDelete('set null');
         });
     }
 

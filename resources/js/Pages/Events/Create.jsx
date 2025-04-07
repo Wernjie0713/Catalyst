@@ -1,15 +1,18 @@
-import { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Head, useForm } from '@inertiajs/react';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import InputError from '@/Components/InputError';
 import InputLabel from '@/Components/InputLabel';
 import TextInput from '@/Components/TextInput';
+import TextArea from '@/Components/TextArea';
 import { motion } from 'framer-motion';
+import { BackButton } from '@/Components/BackButton';
+import PrimaryButton from '@/Components/PrimaryButton';
 
-const Create = () => {
+const Create = ({ auth }) => {
     const [imagePreview, setImagePreview] = useState(null);
     
-    const { data, setData, post, processing, errors } = useForm({
+    const { data, setData, post, processing, errors, reset } = useForm({
         title: '',
         date: '',
         time: '',
@@ -22,30 +25,77 @@ const Create = () => {
         registration_url: '',
         organizer_name: '',
         organizer_website: '',
+        is_team_event: false,
+        min_team_members: '2',
+        max_team_members: '',
     });
 
-    const handleImageChange = (e) => {
-        const file = e.target.files[0];
-        setData('cover_image', file);
-        
-        if (file) {
-            const reader = new FileReader();
-            reader.onloadend = () => {
-                setImagePreview(reader.result);
-            };
-            reader.readAsDataURL(file);
+    const handleChange = (e) => {
+        const { name, value, type, checked, files } = e.target;
+
+        if (type === 'file') {
+            setData(name, files[0]);
+            
+            // Create image preview
+            if (files[0]) {
+                const reader = new FileReader();
+                reader.onloadend = () => {
+                    setImagePreview(reader.result);
+                };
+                reader.readAsDataURL(files[0]);
+            } else {
+                setImagePreview(null);
+            }
+        } else if (type === 'checkbox') {
+            setData(name, checked);
+        } else {
+            setData(name, value);
         }
     };
 
+    // If event is external, clear internal fields and vice versa
+    useEffect(() => {
+        if (data.is_external) {
+            setData({
+                ...data,
+                max_participants: '',
+                is_team_event: false,
+                min_team_members: '',
+                max_team_members: '',
+            });
+        } else if (data.is_team_event === false) {
+            setData({
+                ...data,
+                min_team_members: '',
+                max_team_members: '',
+            });
+        }
+    }, [data.is_external, data.is_team_event]);
+
     const handleSubmit = (e) => {
         e.preventDefault();
+        
         post(route('events.store'), {
             forceFormData: true,
+            onSuccess: () => {
+                reset();
+                setImagePreview(null);
+            }
         });
     };
 
     return (
-        <AuthenticatedLayout>
+        <AuthenticatedLayout
+            user={auth.user}
+            header={
+                <div className="flex justify-between items-center">
+                    <h2 className="font-semibold text-xl text-gray-800 dark:text-gray-200 leading-tight">
+                        Create Event
+                    </h2>
+                    <BackButton href={route('events.index')}>Back to Events</BackButton>
+                </div>
+            }
+        >
             <Head title="Create Event" />
 
             <motion.div 
@@ -58,18 +108,37 @@ const Create = () => {
                         <h2 className="text-3xl font-bold text-white mb-8">Create New Event</h2>
                         
                         <form onSubmit={handleSubmit} className="space-y-6">
-                            {/* Event Type Toggle */}
-                            <div className="flex items-center justify-end space-x-4 mb-6">
-                                <span className="text-gray-400">External Event</span>
-                                <label className="relative inline-flex items-center cursor-pointer">
+                            {/* Event Type Selector */}
+                            <div className="flex justify-between p-6 bg-[#2A2A3A] rounded-lg mb-6">
+                                <div className="flex items-center space-x-2">
                                     <input
                                         type="checkbox"
-                                        className="sr-only peer"
+                                        id="is_external"
+                                        name="is_external"
+                                        className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500"
                                         checked={data.is_external}
-                                        onChange={e => setData('is_external', e.target.checked)}
+                                        onChange={handleChange}
                                     />
-                                    <div className="w-11 h-6 bg-gray-700 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-800 rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
-                                </label>
+                                    <label htmlFor="is_external" className="text-white">
+                                        This is an external event
+                                    </label>
+                                </div>
+
+                                {!data.is_external && (
+                                    <div className="flex items-center space-x-2">
+                                        <input
+                                            type="checkbox"
+                                            id="is_team_event"
+                                            name="is_team_event"
+                                            className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500"
+                                            checked={data.is_team_event}
+                                            onChange={handleChange}
+                                        />
+                                        <label htmlFor="is_team_event" className="text-white">
+                                            Team-based event
+                                        </label>
+                                    </div>
+                                )}
                             </div>
 
                             {/* Cover Image Upload */}
@@ -78,7 +147,8 @@ const Create = () => {
                                     <input
                                         type="file"
                                         id="cover_image"
-                                        onChange={handleImageChange}
+                                        name="cover_image"
+                                        onChange={handleChange}
                                         className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
                                         accept="image/*"
                                     />
@@ -106,9 +176,10 @@ const Create = () => {
                                     <TextInput
                                         id="title"
                                         type="text"
+                                        name="title"
                                         value={data.title}
                                         className="mt-1 block w-full bg-[#2A2A3A] border-gray-600 focus:border-blue-500 focus:ring-blue-500 rounded-lg text-white"
-                                        onChange={e => setData('title', e.target.value)}
+                                        onChange={handleChange}
                                     />
                                     <InputError message={errors.title} className="mt-2" />
                                 </div>
@@ -117,9 +188,10 @@ const Create = () => {
                                     <InputLabel htmlFor="event_type" value="Event Type" className="text-white text-base font-semibold mb-1.5" />
                                     <select
                                         id="event_type"
+                                        name="event_type"
                                         value={data.event_type}
                                         className="mt-1 block w-full bg-[#2A2A3A] border-gray-600 text-white rounded-lg focus:border-blue-500 focus:ring-blue-500"
-                                        onChange={e => setData('event_type', e.target.value)}
+                                        onChange={handleChange}
                                     >
                                         <option value="">Select event type</option>
                                         <option value="Workshop">Workshop</option>
@@ -134,9 +206,10 @@ const Create = () => {
                                     <TextInput
                                         id="date"
                                         type="date"
+                                        name="date"
                                         value={data.date}
                                         className="mt-1 block w-full bg-[#2A2A3A] border-gray-600 focus:border-blue-500 focus:ring-blue-500 rounded-lg text-white"
-                                        onChange={e => setData('date', e.target.value)}
+                                        onChange={handleChange}
                                     />
                                     <InputError message={errors.date} className="mt-2" />
                                 </div>
@@ -146,9 +219,10 @@ const Create = () => {
                                     <TextInput
                                         id="time"
                                         type="time"
+                                        name="time"
                                         value={data.time}
                                         className="mt-1 block w-full bg-[#2A2A3A] border-gray-600 focus:border-blue-500 focus:ring-blue-500 rounded-lg text-white"
-                                        onChange={e => setData('time', e.target.value)}
+                                        onChange={handleChange}
                                     />
                                     <InputError message={errors.time} className="mt-2" />
                                 </div>
@@ -158,9 +232,10 @@ const Create = () => {
                                     <TextInput
                                         id="location"
                                         type="text"
+                                        name="location"
                                         value={data.location}
                                         className="mt-1 block w-full bg-[#2A2A3A] border-gray-600 focus:border-blue-500 focus:ring-blue-500 rounded-lg text-white"
-                                        onChange={e => setData('location', e.target.value)}
+                                        onChange={handleChange}
                                     />
                                     <InputError message={errors.location} className="mt-2" />
                                 </div>
@@ -168,13 +243,18 @@ const Create = () => {
                                 {/* Conditional fields based on event type */}
                                 {!data.is_external ? (
                                     <div>
-                                        <InputLabel htmlFor="max_participants" value="Maximum Participants" className="text-white text-base font-semibold mb-1.5" />
+                                        <InputLabel 
+                                            htmlFor="max_participants" 
+                                            value={data.is_team_event ? "Maximum Teams" : "Maximum Participants"} 
+                                            className="text-white text-base font-semibold mb-1.5" 
+                                        />
                                         <TextInput
                                             id="max_participants"
                                             type="number"
+                                            name="max_participants"
                                             value={data.max_participants}
                                             className="mt-1 block w-full bg-[#2A2A3A] border-gray-600 focus:border-blue-500 focus:ring-blue-500 rounded-lg text-white"
-                                            onChange={e => setData('max_participants', e.target.value)}
+                                            onChange={handleChange}
                                         />
                                         <InputError message={errors.max_participants} className="mt-2" />
                                     </div>
@@ -185,9 +265,10 @@ const Create = () => {
                                             <TextInput
                                                 id="registration_url"
                                                 type="url"
+                                                name="registration_url"
                                                 value={data.registration_url}
                                                 className="mt-1 block w-full bg-[#2A2A3A] border-gray-600 focus:border-blue-500 focus:ring-blue-500 rounded-lg text-white"
-                                                onChange={e => setData('registration_url', e.target.value)}
+                                                onChange={handleChange}
                                                 placeholder="https://..."
                                             />
                                             <InputError message={errors.registration_url} className="mt-2" />
@@ -197,9 +278,10 @@ const Create = () => {
                                             <TextInput
                                                 id="organizer_name"
                                                 type="text"
+                                                name="organizer_name"
                                                 value={data.organizer_name}
                                                 className="mt-1 block w-full bg-[#2A2A3A] border-gray-600 focus:border-blue-500 focus:ring-blue-500 rounded-lg text-white"
-                                                onChange={e => setData('organizer_name', e.target.value)}
+                                                onChange={handleChange}
                                             />
                                             <InputError message={errors.organizer_name} className="mt-2" />
                                         </div>
@@ -208,9 +290,10 @@ const Create = () => {
                                             <TextInput
                                                 id="organizer_website"
                                                 type="url"
+                                                name="organizer_website"
                                                 value={data.organizer_website}
                                                 className="mt-1 block w-full bg-[#2A2A3A] border-gray-600 focus:border-blue-500 focus:ring-blue-500 rounded-lg text-white"
-                                                onChange={e => setData('organizer_website', e.target.value)}
+                                                onChange={handleChange}
                                                 placeholder="https://..."
                                             />
                                             <InputError message={errors.organizer_website} className="mt-2" />
@@ -219,15 +302,48 @@ const Create = () => {
                                 )}
                             </div>
 
+                            {/* Team-specific fields for non-external events */}
+                            {!data.is_external && data.is_team_event && (
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                    <div>
+                                        <InputLabel htmlFor="min_team_members" value="Minimum Team Size" className="text-white text-base font-semibold mb-1.5" />
+                                        <TextInput
+                                            id="min_team_members"
+                                            type="number"
+                                            name="min_team_members"
+                                            min="2"
+                                            value={data.min_team_members}
+                                            className="mt-1 block w-full bg-[#2A2A3A] border-gray-600 focus:border-blue-500 focus:ring-blue-500 rounded-lg text-white"
+                                            onChange={handleChange}
+                                        />
+                                        <InputError message={errors.min_team_members} className="mt-2" />
+                                    </div>
+                                    <div>
+                                        <InputLabel htmlFor="max_team_members" value="Maximum Team Size" className="text-white text-base font-semibold mb-1.5" />
+                                        <TextInput
+                                            id="max_team_members"
+                                            type="number"
+                                            name="max_team_members"
+                                            min={data.min_team_members || 2}
+                                            value={data.max_team_members}
+                                            className="mt-1 block w-full bg-[#2A2A3A] border-gray-600 focus:border-blue-500 focus:ring-blue-500 rounded-lg text-white"
+                                            onChange={handleChange}
+                                        />
+                                        <InputError message={errors.max_team_members} className="mt-2" />
+                                    </div>
+                                </div>
+                            )}
+
                             {/* Description field */}
                             <div>
                                 <InputLabel htmlFor="description" value="Description" className="text-white text-base font-semibold mb-1.5" />
-                                <textarea
+                                <TextArea
                                     id="description"
+                                    name="description"
                                     value={data.description}
                                     className="mt-1 block w-full bg-[#2A2A3A] border-gray-600 focus:border-blue-500 focus:ring-blue-500 rounded-lg text-white"
                                     rows="4"
-                                    onChange={e => setData('description', e.target.value)}
+                                    onChange={handleChange}
                                 />
                                 <InputError message={errors.description} className="mt-2" />
                             </div>
@@ -241,7 +357,7 @@ const Create = () => {
                                     type="submit"
                                     className="px-6 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-[#1E1E2E] disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200"
                                 >
-                                    Create Event
+                                    {processing ? 'Creating...' : 'Create Event'}
                                 </motion.button>
                             </div>
                         </form>

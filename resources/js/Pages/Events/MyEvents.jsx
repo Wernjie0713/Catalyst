@@ -4,6 +4,7 @@ import { format } from 'date-fns';
 import { useState } from 'react';
 import EventModal from '@/Components/EventModal';
 import ParticipantsModal from '@/Components/ParticipantsModal';
+import ParticipantListModal from '@/Components/ParticipantListModal';
 
 const TabButton = ({ active, onClick, children }) => (
     <button
@@ -25,10 +26,11 @@ const TabButton = ({ active, onClick, children }) => (
 );
 
 const MyEvents = ({ organizedEvents, enrolledEvents }) => {
-    const { can } = usePage().props;
+    const { can, auth } = usePage().props;
     const [selectedEvent, setSelectedEvent] = useState(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [isParticipantsModalOpen, setIsParticipantsModalOpen] = useState(false);
+    const [isParticipantListModalOpen, setIsParticipantListModalOpen] = useState(false);
     const [activeTab, setActiveTab] = useState('organized');
     const [selectedParticipants, setSelectedParticipants] = useState([]);
     const [showCertificateOptions, setShowCertificateOptions] = useState(false);
@@ -52,115 +54,234 @@ const MyEvents = ({ organizedEvents, enrolledEvents }) => {
                     <p className="text-lg">No events found.</p>
                 </div>
             ) : (
-                <table className="min-w-full divide-y divide-gray-700/50">
-                    <thead className="bg-gray-900/50">
-                        <tr>
-                            <th className="px-6 py-4 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
-                                Event
-                            </th>
-                            <th className="px-6 py-4 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
-                                Date & Time
-                            </th>
-                            <th className="px-6 py-4 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
-                                Status
-                            </th>
-                            <th className="px-6 py-4 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
-                                {activeTab === 'organized' ? 'Participants' : 'Type'}
-                            </th>
-                            <th className="px-6 py-4 text-right text-xs font-medium text-gray-300 uppercase tracking-wider">
-                                Actions
-                            </th>
-                        </tr>
-                    </thead>
-                    <tbody className="divide-y divide-gray-800/50">
-                        {events.map((event) => (
-                            <tr key={event.event_id} className="hover:bg-gray-800/50 transition-colors">
-                                <td className="px-6 py-4 whitespace-nowrap">
-                                    <div className="flex items-center space-x-2">
-                                        <div>
-                                            <div className="text-sm font-medium text-gray-100">
-                                                {event.title}
+                <>
+                    {/* Desktop Table View */}
+                    <div className="hidden sm:block">
+                        <table className="min-w-full divide-y divide-gray-700/50">
+                            <thead className="bg-gray-900/50">
+                                <tr>
+                                    <th className="px-6 py-4 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
+                                        Event
+                                    </th>
+                                    <th className="px-6 py-4 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
+                                        Date & Time
+                                    </th>
+                                    <th className="px-6 py-4 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
+                                        Status
+                                    </th>
+                                    <th className="px-6 py-4 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
+                                        {activeTab === 'organized' ? 'Participants' : 'Type'}
+                                    </th>
+                                    <th className="px-6 py-4 text-right text-xs font-medium text-gray-300 uppercase tracking-wider">
+                                        Actions
+                                    </th>
+                                </tr>
+                            </thead>
+                            <tbody className="divide-y divide-gray-800/50">
+                                {events.map((event) => (
+                                    <tr key={event.event_id} className="hover:bg-gray-800/50 transition-colors">
+                                        <td className="px-6 py-4 whitespace-nowrap">
+                                            <div className="flex items-center space-x-2">
+                                                <div>
+                                                    <div className="text-sm font-medium text-gray-100">
+                                                        {event.title}
+                                                    </div>
+                                                    <div className="text-sm text-gray-400">
+                                                        {event.event_type}
+                                                        {event.is_external && (
+                                                            <span className="ml-2 px-2 py-0.5 text-xs rounded-full bg-purple-500/20 text-purple-400">
+                                                                External
+                                                            </span>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td className="px-6 py-4 whitespace-nowrap">
+                                            <div className="text-sm text-gray-100">
+                                                {format(new Date(event.date), 'MMM dd, yyyy')}
                                             </div>
                                             <div className="text-sm text-gray-400">
-                                                {event.event_type}
-                                                {event.is_external && (
-                                                    <span className="ml-2 px-2 py-0.5 text-xs rounded-full bg-purple-500/20 text-purple-400">
-                                                        External
-                                                    </span>
-                                                )}
+                                                {event.formatted_time}
                                             </div>
+                                        </td>
+                                        <td className="px-6 py-4 whitespace-nowrap">
+                                            <span className={`px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                                                event.status === 'Upcoming' ? 'bg-green-500/10 text-green-400' :
+                                                event.status === 'Ongoing' ? 'bg-blue-500/10 text-blue-400' :
+                                                'bg-gray-500/10 text-gray-400'
+                                            }`}>
+                                                {event.status}
+                                            </span>
+                                        </td>
+                                        <td className="px-6 py-4 whitespace-nowrap">
+                                            {activeTab === 'organized' ? (
+                                                <div className="flex items-center">
+                                                    {!event.is_external && (
+                                                        <>
+                                                            <button
+                                                                onClick={() => {
+                                                                    setSelectedEvent(event);
+                                                                    setIsParticipantListModalOpen(true);
+                                                                }}
+                                                                className="text-gray-400 hover:text-gray-300 transition-colors mr-2"
+                                                                title="View Participants"
+                                                            >
+                                                                <span className="material-symbols-outlined text-base">group</span>
+                                                            </button>
+                                                            {event.status === 'Completed' && (
+                                                                <button
+                                                                    onClick={() => {
+                                                                        setSelectedEvent(event);
+                                                                        setShowCertificateOptions(true);
+                                                                        setIsParticipantsModalOpen(true);
+                                                                    }}
+                                                                    className="text-yellow-400 hover:text-yellow-300 transition-colors mr-2"
+                                                                    title="Assign Certificates"
+                                                                >
+                                                                    <span className="material-symbols-outlined text-base">workspace_premium</span>
+                                                                </button>
+                                                            )}
+                                                        </>
+                                                    )}
+                                                    <span className="text-sm text-gray-400">
+                                                        {event.is_external 
+                                                            ? 'External Registration' 
+                                                            : event.is_team_event
+                                                                ? `${event.enrolled_teams_count || 0}/${event.max_participants} teams`
+                                                                : `${event.enrolled_count}/${event.max_participants} participants`
+                                                        }
+                                                    </span>
+                                                </div>
+                                            ) : (
+                                                <span className="text-sm text-gray-400">
+                                                    {event.is_external ? 'External Event' : 'Internal Event'}
+                                                </span>
+                                            )}
+                                        </td>
+                                        <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                            <button
+                                                onClick={() => handleViewEvent(event)}
+                                                className="text-blue-400 hover:text-blue-300 transition-colors mr-4"
+                                            >
+                                                View
+                                            </button>
+                                            {activeTab === 'enrolled' && event.status === 'Completed' && can.event_feedback && (
+                                                <a
+                                                    href={route('feedback.create', event.event_id)}
+                                                    className="text-yellow-400 hover:text-yellow-300 transition-colors mr-4"
+                                                >
+                                                    Feedback
+                                                </a>
+                                            )}
+                                            {activeTab === 'organized' && event.status === 'Completed' && can.event_feedbackview && (
+                                                <a
+                                                    href={route('feedback.index', event.event_id)}
+                                                    className="text-purple-400 hover:text-purple-300 transition-colors mr-4"
+                                                >
+                                                    View Feedback
+                                                </a>
+                                            )}
+                                            {showEditButton && can.event_edit && (
+                                                <a
+                                                    href={route('events.edit', event.event_id)}
+                                                    className="text-indigo-400 hover:text-indigo-300 transition-colors"
+                                                >
+                                                    Edit
+                                                </a>
+                                            )}
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+
+                    {/* Mobile Card View */}
+                    <div className="sm:hidden divide-y divide-gray-700/50">
+                        {events.map((event) => (
+                            <div key={event.event_id} className="p-4 space-y-4">
+                                {/* Event Title and Type */}
+                                <div className="flex justify-between items-start">
+                                    <div className="space-y-1">
+                                        <h3 className="text-gray-100 font-medium">{event.title}</h3>
+                                        <div className="flex items-center gap-2">
+                                            <span className="text-sm text-gray-400">{event.event_type}</span>
+                                            {event.is_external && (
+                                                <span className="px-2 py-0.5 text-xs rounded-full bg-purple-500/20 text-purple-400">
+                                                    External
+                                                </span>
+                                            )}
                                         </div>
                                     </div>
-                                </td>
-                                <td className="px-6 py-4 whitespace-nowrap">
-                                    <div className="text-sm text-gray-100">
-                                        {format(new Date(event.date), 'MMM dd, yyyy')}
-                                    </div>
-                                    <div className="text-sm text-gray-400">
-                                        {event.formatted_time}
-                                    </div>
-                                </td>
-                                <td className="px-6 py-4 whitespace-nowrap">
-                                    <span className={`px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                                    <span className={`px-3 py-1 text-xs font-semibold rounded-full ${
                                         event.status === 'Upcoming' ? 'bg-green-500/10 text-green-400' :
                                         event.status === 'Ongoing' ? 'bg-blue-500/10 text-blue-400' :
                                         'bg-gray-500/10 text-gray-400'
                                     }`}>
                                         {event.status}
                                     </span>
-                                </td>
-                                <td className="px-6 py-4 whitespace-nowrap">
-                                    {activeTab === 'organized' ? (
-                                        <div className="flex items-center">
-                                            {!event.is_external && (
-                                                <>
+                                </div>
+
+                                {/* Date and Time */}
+                                <div className="flex items-center gap-2 text-gray-400">
+                                    <span className="material-symbols-outlined text-sm">calendar_month</span>
+                                    <span className="text-sm">
+                                        {format(new Date(event.date), 'MMM dd, yyyy')} • {event.formatted_time}
+                                    </span>
+                                </div>
+
+                                {/* Participants Info */}
+                                {activeTab === 'organized' && (
+                                    <div className="flex items-center gap-3">
+                                        {!event.is_external && (
+                                            <div className="flex gap-2">
+                                                <button
+                                                    onClick={() => {
+                                                        setSelectedEvent(event);
+                                                        setIsParticipantListModalOpen(true);
+                                                    }}
+                                                    className="p-2 rounded-lg bg-gray-800/50 text-gray-400 hover:text-gray-300"
+                                                >
+                                                    <span className="material-symbols-outlined text-base">group</span>
+                                                </button>
+                                                {event.status === 'Completed' && (
                                                     <button
                                                         onClick={() => {
                                                             setSelectedEvent(event);
-                                                            setSelectedParticipants([]);
+                                                            setShowCertificateOptions(true);
                                                             setIsParticipantsModalOpen(true);
                                                         }}
-                                                        className="text-gray-400 hover:text-gray-300 transition-colors mr-2"
-                                                        title="View Participants"
+                                                        className="p-2 rounded-lg bg-gray-800/50 text-yellow-400 hover:text-yellow-300"
                                                     >
-                                                        <span className="material-symbols-outlined text-base">group</span>
+                                                        <span className="material-symbols-outlined text-base">workspace_premium</span>
                                                     </button>
-                                                    {event.status === 'Completed' && (
-                                                        <button
-                                                            onClick={() => {
-                                                                setSelectedEvent(event);
-                                                                setShowCertificateOptions(true);
-                                                                setIsParticipantsModalOpen(true);
-                                                            }}
-                                                            className="text-yellow-400 hover:text-yellow-300 transition-colors mr-2"
-                                                            title="Assign Certificates"
-                                                        >
-                                                            <span className="material-symbols-outlined text-base">workspace_premium</span>
-                                                        </button>
-                                                    )}
-                                                </>
-                                            )}
-                                            <span className="text-sm text-gray-400">
-                                                {event.is_external ? 'External Registration' : `${event.enrolled_count}/${event.max_participants}`}
-                                            </span>
-                                        </div>
-                                    ) : (
+                                                )}
+                                            </div>
+                                        )}
                                         <span className="text-sm text-gray-400">
-                                            {event.is_external ? 'External Event' : 'Internal Event'}
+                                            {event.is_external 
+                                                ? 'External Registration' 
+                                                : event.is_team_event
+                                                    ? `${event.enrolled_teams_count || 0}/${event.max_participants} teams`
+                                                    : `${event.enrolled_count}/${event.max_participants} participants`
+                                            }
                                         </span>
-                                    )}
-                                </td>
-                                <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                    </div>
+                                )}
+
+                                {/* Action Buttons */}
+                                <div className="flex items-center gap-3 pt-2">
                                     <button
                                         onClick={() => handleViewEvent(event)}
-                                        className="text-blue-400 hover:text-blue-300 transition-colors mr-4"
+                                        className="flex-1 py-2 px-4 rounded-lg bg-blue-500/10 text-blue-400 text-sm font-medium"
                                     >
-                                        View
+                                        View Details
                                     </button>
                                     {activeTab === 'enrolled' && event.status === 'Completed' && can.event_feedback && (
                                         <a
                                             href={route('feedback.create', event.event_id)}
-                                            className="text-yellow-400 hover:text-yellow-300 transition-colors mr-4"
+                                            className="flex-1 py-2 px-4 rounded-lg bg-yellow-500/10 text-yellow-400 text-sm font-medium text-center"
                                         >
                                             Feedback
                                         </a>
@@ -168,7 +289,7 @@ const MyEvents = ({ organizedEvents, enrolledEvents }) => {
                                     {activeTab === 'organized' && event.status === 'Completed' && can.event_feedbackview && (
                                         <a
                                             href={route('feedback.index', event.event_id)}
-                                            className="text-purple-400 hover:text-purple-300 transition-colors mr-4"
+                                            className="flex-1 py-2 px-4 rounded-lg bg-purple-500/10 text-purple-400 text-sm font-medium text-center"
                                         >
                                             View Feedback
                                         </a>
@@ -176,122 +297,66 @@ const MyEvents = ({ organizedEvents, enrolledEvents }) => {
                                     {showEditButton && can.event_edit && (
                                         <a
                                             href={route('events.edit', event.event_id)}
-                                            className="text-indigo-400 hover:text-indigo-300 transition-colors"
+                                            className="flex-1 py-2 px-4 rounded-lg bg-indigo-500/10 text-indigo-400 text-sm font-medium text-center"
                                         >
                                             Edit
                                         </a>
                                     )}
-                                </td>
-                            </tr>
+                                </div>
+                            </div>
                         ))}
-                    </tbody>
-                </table>
+                    </div>
+                </>
             )}
         </div>
-    );
-
-    const EnhancedParticipantsModal = ({ event, isOpen, onClose }) => (
-        <ParticipantsModal
-            event={event}
-            isOpen={isOpen}
-            onClose={onClose}
-        >
-            <div className="mt-4 border-t border-gray-700 pt-4">
-                <div className="flex items-center justify-between">
-                    <h3 className="text-lg font-medium text-gray-200">Certificate Assignment</h3>
-                    <button
-                        onClick={() => setShowCertificateOptions(!showCertificateOptions)}
-                        className="text-indigo-400 hover:text-indigo-300 transition-colors"
-                    >
-                        {showCertificateOptions ? 'Hide Options' : 'Show Options'}
-                    </button>
-                </div>
-
-                {showCertificateOptions && (
-                    <div className="mt-4 space-y-4">
-                        <div className="flex items-center justify-between">
-                            <span className="text-sm text-gray-400">
-                                Selected Participants: {selectedParticipants.length}
-                            </span>
-                            <div className="space-x-2">
-                                <button
-                                    onClick={() => setSelectedParticipants([])}
-                                    className="px-3 py-1 text-sm text-gray-400 hover:text-gray-300 transition-colors"
-                                >
-                                    Clear Selection
-                                </button>
-                                <button
-                                    onClick={() => handleAssignCertificates(event)}
-                                    disabled={selectedParticipants.length === 0}
-                                    className={`px-4 py-2 rounded-md text-sm font-medium transition-colors
-                                        ${selectedParticipants.length === 0
-                                            ? 'bg-gray-700 text-gray-400 cursor-not-allowed'
-                                            : 'bg-indigo-600 hover:bg-indigo-700 text-white'
-                                        }
-                                    `}
-                                >
-                                    Create Certificates
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                )}
-            </div>
-        </ParticipantsModal>
     );
 
     return (
         <AuthenticatedLayout>
             <Head title="My Events" />
 
-            <div className="py-12">
-                <div className="max-w-7xl mx-auto sm:px-6 lg:px-8">
+            <div className="py-6 sm:py-12">
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="flex flex-col space-y-6">
+                        {/* Header */}
                         <div className="flex justify-between items-center">
-                            <h2 className="text-3xl font-semibold text-white">My Events</h2>
+                            <h2 className="text-2xl sm:text-3xl font-semibold text-white">My Events</h2>
                         </div>
 
-                        {/* Tab Navigation */}
-                        <div className="bg-gray-800/50 rounded-lg p-1 inline-flex items-center justify-center space-x-1 mx-auto">
-                            <button
-                                onClick={() => setActiveTab('organized')}
-                                className={`
-                                    px-6 py-2.5 rounded-md text-sm font-medium transition-all duration-200
-                                    ${activeTab === 'organized'
-                                        ? 'bg-indigo-500 text-white shadow-lg shadow-indigo-500/25'
-                                        : 'text-gray-300 hover:text-white hover:bg-gray-700/50'
-                                    }
-                                `}
-                            >
-                                <div className="flex items-center space-x-2">
-                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                                        <path d="M8 2a1 1 0 000 2h2a1 1 0 100-2H8z" />
-                                        <path d="M3 5a2 2 0 012-2 3 3 0 003 3h2a3 3 0 003-3 2 2 0 012 2v6h-4.586l1.293-1.293a1 1 0 00-1.414-1.414l-3 3a1 1 0 000 1.414l3 3a1 1 0 001.414-1.414L10.414 13H15v3a2 2 0 01-2 2H5a2 2 0 01-2-2V5zM15 11h2a1 1 0 110 2h-2v-2z" />
-                                    </svg>
-                                    <span>Organized Events</span>
-                                </div>
-                            </button>
-                            <button
-                                onClick={() => setActiveTab('enrolled')}
-                                className={`
-                                    px-6 py-2.5 rounded-md text-sm font-medium transition-all duration-200
-                                    ${activeTab === 'enrolled'
-                                        ? 'bg-indigo-500 text-white shadow-lg shadow-indigo-500/25'
-                                        : 'text-gray-300 hover:text-white hover:bg-gray-700/50'
-                                    }
-                                `}
-                            >
-                                <div className="flex items-center space-x-2">
-                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                                    </svg>
-                                    <span>Enrolled Events</span>
-                                </div>
-                            </button>
+                        {/* Tab Navigation - Mobile Friendly */}
+                        <div className="flex overflow-x-auto scrollbar-hide -mx-4 sm:mx-0 px-4 sm:px-0">
+                            <div className="flex gap-2 mx-auto bg-gray-800/50 rounded-lg p-1">
+                                <button
+                                    onClick={() => setActiveTab('organized')}
+                                    className={`
+                                        px-4 sm:px-6 py-2.5 rounded-md text-sm font-medium transition-all duration-200 whitespace-nowrap flex items-center gap-2
+                                        ${activeTab === 'organized'
+                                            ? 'bg-indigo-500 text-white shadow-lg shadow-indigo-500/25'
+                                            : 'text-gray-300 hover:text-white hover:bg-gray-700/50'
+                                        }
+                                    `}
+                                >
+                                    <span className="material-symbols-outlined text-base">edit_calendar</span>
+                                    <span>Organized</span>
+                                </button>
+                                <button
+                                    onClick={() => setActiveTab('enrolled')}
+                                    className={`
+                                        px-4 sm:px-6 py-2.5 rounded-md text-sm font-medium transition-all duration-200 whitespace-nowrap flex items-center gap-2
+                                        ${activeTab === 'enrolled'
+                                            ? 'bg-indigo-500 text-white shadow-lg shadow-indigo-500/25'
+                                            : 'text-gray-300 hover:text-white hover:bg-gray-700/50'
+                                        }
+                                    `}
+                                >
+                                    <span className="material-symbols-outlined text-base">event_available</span>
+                                    <span>Enrolled</span>
+                                </button>
+                            </div>
                         </div>
 
-                        {/* Event Table */}
-                        <div className="mt-6">
+                        {/* Event Table/Cards */}
+                        <div className="mt-4 sm:mt-6">
                             {activeTab === 'organized' ? (
                                 <EventTable events={organizedEvents} showEditButton={true} />
                             ) : (
@@ -311,18 +376,32 @@ const MyEvents = ({ organizedEvents, enrolledEvents }) => {
                             setIsModalOpen(false);
                             setSelectedEvent(null);
                         }}
+                        auth={auth}
                     />
                     {!selectedEvent.is_external && (
-                        <EnhancedParticipantsModal
-                            event={selectedEvent}
-                            isOpen={isParticipantsModalOpen}
-                            onClose={() => {
-                                setIsParticipantsModalOpen(false);
-                                setSelectedEvent(null);
-                                setSelectedParticipants([]);
-                                setShowCertificateOptions(false);
-                            }}
-                        />
+                        <>
+                            {/* Certificate Assignment Modal */}
+                            <ParticipantsModal
+                                event={selectedEvent}
+                                isOpen={isParticipantsModalOpen}
+                                onClose={() => {
+                                    setIsParticipantsModalOpen(false);
+                                    setSelectedEvent(null);
+                                    setSelectedParticipants([]);
+                                    setShowCertificateOptions(false);
+                                }}
+                            />
+                            
+                            {/* Participant List Modal - New */}
+                            <ParticipantListModal
+                                event={selectedEvent}
+                                isOpen={isParticipantListModalOpen}
+                                onClose={() => {
+                                    setIsParticipantListModalOpen(false);
+                                    setSelectedEvent(null);
+                                }}
+                            />
+                        </>
                     )}
                 </>
             )}

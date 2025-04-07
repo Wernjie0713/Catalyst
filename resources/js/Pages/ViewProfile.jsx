@@ -6,14 +6,11 @@ import LecturerInformation from '@/Components/Profile/Lecturer/PersonalInformati
 import OrganizerInformation from '@/Components/Profile/Organizer/PersonalInformation';
 import UniversityInformation from '@/Components/Profile/University/PersonalInformation';
 import DepartmentStaffInformation from '@/Components/Profile/DepartmentStaff/PersonalInformation';
-import Events from '@/Components/Profile/Events';
 import Teams from '@/Components/Profile/Teams';
 import Certificates from '@/Components/Profile/Certificates';
 import Badges from '@/Components/Profile/Badges';
-import More from '@/Components/Profile/More';
 
 export default function ViewProfile({ auth, profileUser, roleType, roles, profilePhotoPath, friendStatus, friendRequestId }) {
-    console.log('Profile Photo Path:', profilePhotoPath);
 
     const getPersonalInformationComponent = () => {
         switch (roleType) {
@@ -76,11 +73,9 @@ export default function ViewProfile({ auth, profileUser, roleType, roles, profil
         PersonalInformation: () => getPersonalInformationComponent(),
         // Only include these components for student role
         ...(roleType === 'student' && {
-            Events: () => <Events user={profileUser} />,
             Teams: () => <Teams user={profileUser} />,
             Certificates: () => <Certificates user={profileUser} />,
-            Badges: () => <Badges user={profileUser} />,
-            More: () => <More user={profileUser} />
+            Badges: () => <Badges user={profileUser} />
         })
     };
 

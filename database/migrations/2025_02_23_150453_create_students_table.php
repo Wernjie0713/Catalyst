@@ -52,9 +52,26 @@ return new class extends Migration
                 'Faculty of Defence Studies & Management'
             ])->nullable();
             $table->enum('university', [
-                'UMP', 'UMS', 'UMT', 'UKM', 'UM', 'USM', 'UPM', 'UTM', 'UUM', 'UIAM',
-                'UPSI', 'USIM', 'UiTM', 'UNIMAS', 'UTeM', 'UniMAP', 'UTHM', 'UniSZA',
-                'UPNM', 'UMK'
+                'Universiti Malaysia Pahang',
+                'Universiti Malaysia Sabah',
+                'Universiti Malaysia Terengganu',
+                'Universiti Kebangsaan Malaysia',
+                'Universiti Malaya',
+                'Universiti Sains Malaysia',
+                'Universiti Putra Malaysia',
+                'Universiti Teknologi Malaysia',
+                'Universiti Utara Malaysia',
+                'Universiti Islam Antarabangsa Malaysia',
+                'Universiti Pendidikan Sultan Idris',
+                'Universiti Sains Islam Malaysia',
+                'Universiti Teknologi MARA',
+                'Universiti Malaysia Sarawak',
+                'Universiti Teknikal Malaysia Melaka',
+                'Universiti Malaysia Perlis',
+                'Universiti Tun Hussein Onn Malaysia',
+                'Universiti Sultan Zainal Abidin',
+                'Universiti Pertahanan Nasional Malaysia',
+                'Universiti Malaysia Kelantan'
             ])->nullable();
             $table->integer('expected_graduate')->nullable();
             $table->string('profile_photo_path')->nullable();

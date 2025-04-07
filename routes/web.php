@@ -18,6 +18,7 @@ use App\Http\Controllers\FeedbackController;
 use App\Http\Controllers\TeamController;
 use App\Http\Controllers\CertificateTemplateController;
 use App\Http\Controllers\CertificateController;
+use App\Http\Controllers\ReportController;
 
 
 Route::get('/', function () {
@@ -89,6 +90,11 @@ Route::middleware(['auth'])->group(function () {
     Route::delete('/friend/remove/{friend}', [FriendController::class, 'removeFriend'])
         ->name('friend.remove');
 
+    Route::middleware(['auth', 'can:report_view'])->group(function () {
+        // Reports route - make sure this is inside the auth middleware group
+        Route::get('/reports', [ReportController::class, 'index'])
+            ->name('reports.index');
+    });
 });
 
 Route::middleware(['can:team_grouping'])->group(function () {
@@ -136,6 +142,8 @@ Route::middleware(['auth'])->group(function () {
     Route::delete('/events/{event}/unenroll', [EnrollmentController::class, 'destroy'])->name('events.unenroll');
     Route::get('/events/{event}/enrolled-users', [EventController::class, 'getEnrolledUsers'])
         ->name('events.enrolled-users');
+    Route::get('/events/{event}/available-teams', [EnrollmentController::class, 'getAvailableTeams'])
+        ->name('events.available-teams');
 });
 
 Route::get('/view/{user}',[ViewProfileController::class,'show'])

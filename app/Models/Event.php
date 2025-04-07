@@ -31,9 +31,12 @@ class Event extends Model
         'registration_url',
         'organizer_name',
         'organizer_website',
+        'is_team_event',
+        'min_team_members',
+        'max_team_members',
     ];
 
-    protected $appends = ['enrolled_count', 'is_enrolled'];
+    protected $appends = ['enrolled_count', 'is_enrolled', 'enrolled_teams_count'];
 
     protected $casts = [
         'date' => 'date',
@@ -41,7 +44,10 @@ class Event extends Model
         'max_participants' => 'integer',
         'status' => 'string',
         'event_type' => 'string',
-        'is_external' => 'boolean'
+        'is_external' => 'boolean',
+        'is_team_event' => 'boolean',
+        'min_team_members' => 'integer',
+        'max_team_members' => 'integer',
     ];
 
     protected static function booted()
@@ -82,14 +88,72 @@ class Event extends Model
     // Add this method to get the enrollment count
     public function getEnrolledCountAttribute()
     {
-        return $this->is_external ? null : $this->enrollments()->count();
+        if ($this->is_external) return null;
+        
+        if ($this->is_team_event) {
+            // Count individual users enrolled via teams
+            return $this->enrollments()->whereNotNull('team_id')->count();
+        } else {
+            // Standard individual enrollment count
+            return $this->enrollments()->whereNull('team_id')->count();
+        }
+    }
+
+    // Get count of enrolled teams
+    public function getEnrolledTeamsCountAttribute()
+    {
+        if (!$this->is_team_event || $this->is_external) return null;
+        
+        return $this->enrollments()
+            ->whereNotNull('team_id')
+            ->distinct('team_id')
+            ->count('team_id');
     }
 
     // Check if current user is enrolled
     public function getIsEnrolledAttribute()
     {
         if (!auth()->check()) return false;
-        return $this->enrollments()->where('user_id', auth()->id())->exists();
+        
+        $userId = auth()->id();
+        
+        // Check for direct enrollment
+        $directEnrollment = $this->enrollments()
+            ->where('user_id', $userId)
+            ->whereNull('team_id')
+            ->exists();
+            
+        if ($directEnrollment) return true;
+        
+        // If it's a team event, check if user is part of an enrolled team
+        if ($this->is_team_event) {
+            return $this->enrollments()
+                ->whereNotNull('team_id')
+                ->whereHas('team.members', function($query) use ($userId) {
+                    $query->where('user_id', $userId)
+                          ->where('status', 'accepted');
+                })
+                ->exists();
+        }
+        
+        return false;
+    }
+
+    // Get the enrolled team of current user if any
+    public function userEnrolledTeam()
+    {
+        if (!auth()->check() || !$this->is_team_event) return null;
+        
+        $userId = auth()->id();
+        
+        return $this->enrollments()
+            ->whereNotNull('team_id')
+            ->whereHas('team.members', function($query) use ($userId) {
+                $query->where('user_id', $userId)
+                      ->where('status', 'accepted');
+            })
+            ->with('team')
+            ->first()?->team;
     }
 
     // Relationship with User (creator)
@@ -113,6 +177,16 @@ class Event extends Model
                     ->withTimestamps();
     }
 
+    // Relationship with Teams
+    public function enrolledTeams()
+    {
+        return $this->belongsToMany(Team::class, 'enrollments', 'event_id', 'team_id')
+                    ->using(Enrollment::class)
+                    ->withPivot('enrollment_id')
+                    ->distinct()
+                    ->withTimestamps();
+    }
+
     // Relationship with Certificates
     public function certificates()
     {
@@ -123,7 +197,7 @@ class Event extends Model
     {
         return $this->belongsToMany(User::class, 'enrollments', 'event_id', 'user_id')
                     ->using(Enrollment::class)
-                    ->withPivot('enrollment_id')
+                    ->withPivot('enrollment_id', 'team_id')
                     ->withTimestamps();
     }
 
@@ -131,6 +205,12 @@ class Event extends Model
     public function isExternal()
     {
         return $this->is_external;
+    }
+
+    // Add new method to check if event is team-based
+    public function isTeamEvent()
+    {
+        return $this->is_team_event;
     }
 
     // Add this method to the Event model

@@ -36,13 +36,11 @@ const roles = [
 
 export default function RoleSelection() {
     const handleRoleSelect = (selectedRole) => {
-        console.log('Selected role:', selectedRole);
         router.post(route('user.assign.role'), {
             role: selectedRole.toLowerCase().replace(' ', '_')
         }, {
             preserveState: false,
             onSuccess: (page) => {
-                console.log('Role assigned successfully');
                 window.location.href = route('dashboard');
             },
             onError: (errors) => {

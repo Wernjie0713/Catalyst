@@ -2,8 +2,8 @@ import Input from '../Input';
 import { useForm } from '@inertiajs/react';
 import UpdateProfilePhoto from '@/Components/Profile/Common/UpdateProfilePhoto';
 import DisplayProfilePhoto from '@/Components/Profile/Common/DisplayProfilePhoto';
-import { useState } from 'react';
 import FriendRequestButton from '@/Components/Profile/Common/FriendRequestButton';
+import { useState } from 'react';
 
 export default function LecturerPersonalInformation({ 
     user, 
@@ -13,8 +13,6 @@ export default function LecturerPersonalInformation({
     friendRequestId 
 }) {
     const [isEditing, setIsEditing] = useState(false);
-
-    console.log('Lecturer data:', user.lecturer);
 
     const { data, setData, patch, processing, errors } = useForm({    
         department: user?.lecturer?.department || '',
@@ -26,13 +24,11 @@ export default function LecturerPersonalInformation({
 
     const handleSubmit = (e) => {
         e.preventDefault();
-        console.log('Submitting lecturer data:', data);
-
+        
         patch(route('profile.update'), {
             preserveScroll: true,
             onSuccess: () => {
                 setIsEditing(false);
-                console.log('Lecturer profile updated successfully');
             },
             onError: (errors) => {
                 console.error('Submission errors:', errors);
@@ -41,32 +37,24 @@ export default function LecturerPersonalInformation({
     };
 
     return (
-        <div className="space-y-8">
-            <div className="relative rounded-[2.5rem] overflow-hidden">
-                <div className="relative px-8 py-12">
-                    <div className="flex flex-col items-center">
-                        {/* Profile Photo */}
-                        <div className="mb-6">
-                            {!viewOnly ? (
-                                <UpdateProfilePhoto user={user} />
-                            ) : (
-                                <DisplayProfilePhoto 
-                                    profilePhotoPath={user?.lecturer?.profile_photo_path}
-                                />
-                            )}
-                        </div>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6">
+            {/* Profile Header Section */}
+            <div className="bg-[#1e1b4b]/50 rounded-xl p-4 sm:p-6">
+                <div className="flex flex-col items-center md:flex-row md:items-start gap-6 md:gap-8">
+                    {/* Profile Picture and Friend Button Column */}
+                    <div className="flex flex-col items-center flex-shrink-0">
+                        {!viewOnly ? (
+                            <UpdateProfilePhoto user={user} />
+                        ) : (
+                            <DisplayProfilePhoto 
+                                profilePhotoPath={user?.lecturer?.profile_photo_path}
+                                className="w-full h-full object-cover"
+                            />
+                        )}
                         
-                        {/* User Info */}
-                        <h1 className="text-3xl font-bold text-white mb-2">
-                            {user.name}
-                        </h1>
-                        <p className="text-gray-300 mb-8">
-                            {user.email}
-                        </p>
-
-                        {/* Add Friend Request Button here */}
+                        {/* Add Friend Button */}
                         {showFriendButton && (
-                            <div className="mb-8">
+                            <div className="mt-4">
                                 <FriendRequestButton
                                     userId={user.id}
                                     friendStatus={friendStatus}
@@ -74,154 +62,200 @@ export default function LecturerPersonalInformation({
                                 />
                             </div>
                         )}
+                    </div>
 
-                        {/* Quick Stats */}
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 w-full max-w-3xl mb-12">
-                            <div className="bg-white/10 backdrop-blur-md rounded-xl p-4">
-                                <p className="text-gray-400 text-sm">Department</p>
-                                <p className="text-white font-medium">{data.department || ''}</p>
-                            </div>
-                            <div className="bg-white/10 backdrop-blur-md rounded-xl p-4">
-                                <p className="text-gray-400 text-sm">Specialization</p>
-                                <p className="text-white font-medium">{data.specialization || ''}</p>
-                            </div>
-                            <div className="bg-white/10 backdrop-blur-md rounded-xl p-4">
-                                <p className="text-gray-400 text-sm">Contact</p>
-                                <p className="text-white font-medium">{data.contact_number || ''}</p>
-                            </div>
+                    {/* User Info */}
+                    <div className="flex-1 text-center md:text-left">
+                        <div className="mb-4 md:mb-6">
+                            <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-white mb-2">{user?.name || 'User'}</h1>
+                            <p className="text-sm sm:text-base text-gray-400">{user?.email || 'No email provided'}</p>
+                            {user?.lecturer?.bio && (
+                                <p className="text-sm sm:text-base text-gray-300 mt-3">{user.lecturer.bio}</p>
+                            )}
                         </div>
 
-                        {/* Lecturer Information Section */}
-                        <div className="w-full max-w-4xl">
-                            <div className="bg-white/5 backdrop-blur-md rounded-2xl p-6 border border-white/10">
-                                <div className="flex justify-between items-center mb-6">
-                                    <h2 className="text-xl font-semibold text-white">
-                                        Lecturer Information
-                                    </h2>
-                                    {!viewOnly && (
-                                        <button
-                                            onClick={() => setIsEditing(!isEditing)}
-                                            className="text-white/70 hover:text-white transition-colors"
-                                        >
-                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
-                                            <path strokeLinecap="round" strokeLinejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" />
-                                            </svg>
-                                        </button>
-                                    )}
-                                </div>
-
-                                {(isEditing && !viewOnly) ? (
-                                    <form onSubmit={handleSubmit} className="space-y-6">
-                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                            <Input
-                                                label="Department"
-                                                value={data.department}
-                                                onChange={(e) => setData('department', e.target.value)}
-                                                error={errors.department}
-                                                className="bg-white/5 border-white/10 text-white"
-                                            />
-                                            <Input
-                                                label="Specialization"
-                                                value={data.specialization}
-                                                onChange={(e) => setData('specialization', e.target.value)}
-                                                error={errors.specialization}
-                                                className="bg-white/5 border-white/10 text-white"
-                                            />
-                                            <Input
-                                                label="Contact Number"
-                                                type="tel"
-                                                value={data.contact_number}
-                                                onChange={(e) => setData('contact_number', e.target.value)}
-                                                error={errors.contact_number}
-                                                className="bg-white/5 border-white/10 text-white"
-                                            />
-                                            <Input
-                                                label="LinkedIn"
-                                                type="url"
-                                                value={data.linkedin}
-                                                onChange={(e) => setData('linkedin', e.target.value)}
-                                                error={errors.linkedin}
-                                                className="bg-white/5 border-white/10 text-white"
-                                                placeholder="https://linkedin.com/in/username"
-                                            />
-                                        </div>
-
-                                        <div className="mt-6">
-                                            <label className="block text-sm font-medium text-gray-300 mb-2">
-                                                Bio
-                                            </label>
-                                            <textarea
-                                                rows={4}
-                                                value={data.bio}
-                                                onChange={(e) => setData('bio', e.target.value)}
-                                                className="w-full px-4 py-2.5 bg-white/5 border border-white/10 rounded-xl 
-                                                    text-white placeholder-gray-500 focus:border-[#635985] focus:ring-1 
-                                                    focus:ring-[#635985] transition-colors duration-200"
-                                            />
-                                            {errors.bio && (
-                                                <p className="mt-1 text-sm text-red-400">{errors.bio}</p>
-                                            )}
-                                        </div>
-
-                                        <div className="flex items-center justify-end gap-4 mt-6">
-                                            <button
-                                                type="button"
-                                                onClick={() => setIsEditing(false)}
-                                                className="px-6 py-2.5 text-white/70 hover:text-white"
-                                            >
-                                                Cancel
-                                            </button>
-                                            <button
-                                                type="submit"
-                                                disabled={processing}
-                                                className="px-6 py-2.5 bg-[#635985] text-white rounded-xl 
-                                                    hover:bg-[#635985]/80 transform transition-all duration-200 
-                                                    hover:scale-105 disabled:opacity-75 flex items-center gap-2"
-                                            >
-                                                {processing ? 'Saving...' : 'Save Changes'}
-                                            </button>
-                                        </div>
-                                    </form>
-                                ) : (
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                        <InfoItem label="Department" value={data.department} />
-                                        <InfoItem label="Specialization" value={data.specialization} />
-                                        <InfoItem label="Contact Number" value={data.contact_number} />
-                                        <InfoItem 
-                                            label="LinkedIn" 
-                                            value={data.linkedin}
-                                            isLink={true}
-                                        />
-                                        <div className="col-span-2">
-                                            <InfoItem label="Bio" value={data.bio} />
-                                        </div>
-                                    </div>
-                                )}
-                            </div>
+                        {/* Quick Info Grid */}
+                        <div className="grid grid-cols-2 gap-4 sm:gap-6 max-w-lg mx-auto md:mx-0">
+                            <QuickInfo icon="school" label="Department" value={user?.lecturer?.department} />
+                            <QuickInfo icon="psychology" label="Specialization" value={user?.lecturer?.specialization} />
+                            <QuickInfo icon="phone" label="Contact" value={user?.lecturer?.contact_number} />
+                            <QuickInfo icon="link" label="LinkedIn" value={user?.lecturer?.linkedin} isLink={true} />
                         </div>
                     </div>
                 </div>
+            </div>
+
+            {/* Detailed Information Section */}
+            <div className="mt-6 sm:mt-8">
+                <div className="flex items-center justify-between mb-4 sm:mb-6 px-1">
+                    <div className="flex items-center gap-2">
+                        <span className="material-symbols-outlined text-[#635985]">info</span>
+                        <h2 className="text-lg sm:text-xl font-semibold text-white">Detailed Information</h2>
+                    </div>
+                    {!viewOnly && (
+                        <button
+                            onClick={() => setIsEditing(!isEditing)}
+                            className="p-2 hover:bg-[#635985]/20 rounded-lg transition-colors"
+                        >
+                            <span className="material-symbols-outlined text-[#635985]">edit</span>
+                        </button>
+                    )}
+                </div>
+
+                {(isEditing && !viewOnly) ? (
+                    <form onSubmit={handleSubmit} className="space-y-6">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <Input
+                                label="Department"
+                                value={data.department}
+                                onChange={(e) => setData('department', e.target.value)}
+                                error={errors.department}
+                                className="bg-white/5 border-white/10 text-white"
+                            />
+                            <Input
+                                label="Specialization"
+                                value={data.specialization}
+                                onChange={(e) => setData('specialization', e.target.value)}
+                                error={errors.specialization}
+                                className="bg-white/5 border-white/10 text-white"
+                            />
+                            <Input
+                                label="Contact Number"
+                                type="tel"
+                                value={data.contact_number}
+                                onChange={(e) => setData('contact_number', e.target.value)}
+                                error={errors.contact_number}
+                                className="bg-white/5 border-white/10 text-white"
+                            />
+                            <Input
+                                label="LinkedIn"
+                                type="url"
+                                value={data.linkedin}
+                                onChange={(e) => setData('linkedin', e.target.value)}
+                                error={errors.linkedin}
+                                className="bg-white/5 border-white/10 text-white"
+                                placeholder="https://linkedin.com/in/username"
+                            />
+                        </div>
+
+                        <div className="mt-6">
+                            <label className="block text-sm font-medium text-gray-300 mb-2">
+                                Bio
+                            </label>
+                            <textarea
+                                rows={4}
+                                value={data.bio}
+                                onChange={(e) => setData('bio', e.target.value)}
+                                className="w-full px-4 py-2.5 bg-white/5 border border-white/10 rounded-xl 
+                                    text-white placeholder-gray-500 focus:border-[#635985] focus:ring-1 
+                                    focus:ring-[#635985] transition-colors duration-200"
+                            />
+                            {errors.bio && (
+                                <p className="mt-1 text-sm text-red-400">{errors.bio}</p>
+                            )}
+                        </div>
+
+                        <div className="flex items-center justify-end gap-4 mt-6">
+                            <button
+                                type="button"
+                                onClick={() => setIsEditing(false)}
+                                className="px-6 py-2.5 text-white/70 hover:text-white"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                type="submit"
+                                disabled={processing}
+                                className="px-6 py-2.5 bg-[#635985] text-white rounded-xl 
+                                    hover:bg-[#635985]/80 transform transition-all duration-200 
+                                    hover:scale-105 disabled:opacity-75 flex items-center gap-2"
+                            >
+                                {processing ? 'Saving...' : 'Save Changes'}
+                            </button>
+                        </div>
+                    </form>
+                ) : (
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <DetailCard
+                            icon="school"
+                            title="Academic Information"
+                            items={[
+                                { label: "Department", value: user?.lecturer?.department },
+                                { label: "Specialization", value: user?.lecturer?.specialization }
+                            ]}
+                        />
+                        <DetailCard
+                            icon="contact_page"
+                            title="Contact Information"
+                            items={[
+                                { label: "Email", value: user?.email },
+                                { label: "Phone", value: user?.lecturer?.contact_number }
+                            ]}
+                        />
+                        <DetailCard
+                            icon="person"
+                            title="Professional Details"
+                            items={[
+                                { label: "LinkedIn", value: user?.lecturer?.linkedin, isLink: true },
+                                { label: "Bio", value: user?.lecturer?.bio }
+                            ]}
+                        />
+                    </div>
+                )}
             </div>
         </div>
     );
 }
 
-function InfoItem({ label, value, isLink }) {
+function QuickInfo({ icon, label, value, isLink }) {
     return (
-        <div className="space-y-1">
-            <p className="text-sm text-gray-400">{label}</p>
+        <div className="text-center md:text-left">
+            <div className="flex items-center justify-center md:justify-start gap-2 mb-1">
+                <span className="material-symbols-outlined text-[#635985]">{icon}</span>
+                <span className="text-xs sm:text-sm text-gray-400">{label}</span>
+            </div>
             {isLink && value ? (
                 <a 
                     href={value}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-white hover:text-[#635985] transition-colors"
+                    className="text-sm sm:text-base text-[#635985] hover:text-[#635985]/80"
                 >
                     {value}
                 </a>
             ) : (
-                <p className="text-white">{value || ''}</p>
+                <p className="text-sm sm:text-base text-white">{value || 'Not set'}</p>
             )}
+        </div>
+    );
+}
+
+function DetailCard({ icon, title, items }) {
+    return (
+        <div className="bg-[#1e1b4b]/30 rounded-xl p-6">
+            <div className="flex items-center gap-2 mb-4">
+                <span className="material-symbols-outlined text-[#635985]">{icon}</span>
+                <h3 className="text-lg font-medium text-white">{title}</h3>
+            </div>
+            <div className="space-y-4">
+                {items.map((item, index) => (
+                    <div key={index}>
+                        <p className="text-sm text-gray-400 mb-1">{item.label}</p>
+                        {item.isLink && item.value ? (
+                            <a 
+                                href={item.value}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-[#635985] hover:text-[#635985]/80"
+                            >
+                                {item.value}
+                            </a>
+                        ) : (
+                            <p className="text-white">{item.value || 'Not set'}</p>
+                        )}
+                    </div>
+                ))}
+            </div>
         </div>
     );
 } 

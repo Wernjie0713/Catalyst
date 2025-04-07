@@ -95,10 +95,11 @@ const Index = ({ events: initialEvents }) => {
                                     whileHover={{ scale: 1.02 }}
                                     whileTap={{ scale: 0.98 }}
                                     href={route('events.create')}
-                                    className="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-6 rounded-lg transition-colors duration-300 flex items-center space-x-2"
+                                    className="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 sm:px-6 rounded-lg transition-colors duration-300 flex items-center space-x-2 text-sm sm:text-base fixed bottom-4 right-4 sm:relative sm:bottom-auto sm:right-auto shadow-lg sm:shadow-none z-50"
                                 >
                                     <span className="material-symbols-outlined text-sm">add</span>
-                                    <span>Create Event</span>
+                                    <span className="hidden sm:inline">Create Event</span>
+                                    <span className="sm:hidden">Create Event</span>
                                 </motion.a>
                             )}
                         </motion.div>

@@ -2,6 +2,7 @@ import { useRef, useState, useEffect } from "react";
 import { motion, useMotionValue, useSpring } from "framer-motion";
 import { format } from 'date-fns';
 import EventModal from './EventModal';
+import { usePage } from '@inertiajs/react';
 
 const springValues = {
   damping: 30,
@@ -11,6 +12,7 @@ const springValues = {
 
 const TiltedEventCard = ({ event: initialEvent, onEventUpdate }) => {
   const ref = useRef(null);
+  const { auth } = usePage().props;
   const x = useMotionValue(0);
   const y = useMotionValue(0);
   const rotateX = useSpring(useMotionValue(0), springValues);
@@ -97,7 +99,8 @@ const TiltedEventCard = ({ event: initialEvent, onEventUpdate }) => {
 
             {/* Event Information Overlay */}
             <motion.div
-              className="absolute bottom-0 left-0 w-full p-2.5 text-white [transform:translateZ(30px)]"
+              className="absolute bottom-0 left-0 w-full p-2.5 text-white"
+              style={{ transform: "translateZ(30px)" }}
             >
               <div className="space-y-0.5">
                 {/* Status Badge */}
@@ -128,8 +131,14 @@ const TiltedEventCard = ({ event: initialEvent, onEventUpdate }) => {
 
                 {/* Participants */}
                 <div className="flex items-center text-[10px]">
-                  <span className="material-symbols-outlined text-xs mr-1">group</span>
-                  <span>{event.enrolled_count}/{event.max_participants} participants</span>
+                  <span className="material-symbols-outlined text-xs mr-1">
+                    {event.is_team_event ? 'groups' : 'group'}
+                  </span>
+                  <span>
+                    {event.is_team_event 
+                      ? `${event.enrolled_teams_count || 0}/${event.max_participants} teams` 
+                      : `${event.enrolled_count}/${event.max_participants} participants`}
+                  </span>
                 </div>
               </div>
             </motion.div>
@@ -142,6 +151,7 @@ const TiltedEventCard = ({ event: initialEvent, onEventUpdate }) => {
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         onEventUpdate={handleEventUpdate}
+        auth={auth}
       />
     </>
   );

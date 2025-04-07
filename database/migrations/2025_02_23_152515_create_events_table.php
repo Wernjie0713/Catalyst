@@ -25,6 +25,9 @@ return new class extends Migration
             $table->string('registration_url')->nullable();
             $table->string('organizer_name')->nullable();
             $table->string('organizer_website')->nullable();
+            $table->boolean('is_team_event')->default(false);
+            $table->integer('min_team_members')->nullable();
+            $table->integer('max_team_members')->nullable();
             $table->timestamps();
 
             $table->foreign('creator_id')

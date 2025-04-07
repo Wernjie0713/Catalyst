@@ -1,7 +1,6 @@
 import { Head, Link, useForm } from '@inertiajs/react';
 import InputError from '@/Components/InputError';
 import AuthInput from '@/Components/Auth/AuthInput';
-import SocialButton from '@/Components/Auth/SocialButton';
 import SubmitButton from '@/Components/Auth/SubmitButton';
 import { FaApple, FaGoogle, FaEnvelope, FaLock } from 'react-icons/fa';
 import LoginAuroraLayout from '@/Layouts/LoginAuroraLayout';
@@ -107,28 +106,6 @@ export default function Login({ status, canResetPassword }) {
                 <SubmitButton processing={processing}>
                     Sign in
                 </SubmitButton>
-
-                <div className="relative flex items-center gap-3 my-8">
-                    <div className="h-[1px] flex-1 bg-gray-600/50"></div>
-                    <span className="text-gray-300 text-sm">or continue with</span>
-                    <div className="h-[1px] flex-1 bg-gray-600/50"></div>
-                </div>
-
-                {/* Social Login Buttons */}
-                <div className="grid grid-cols-2 gap-4">
-                    <SocialButton 
-                        icon={<FaApple className="w-5 h-5" />}
-                        className="bg-black/30 border-gray-700/50 hover:bg-black/40"
-                    >
-                        Apple
-                    </SocialButton>
-                    <SocialButton 
-                        icon={<FaGoogle className="w-5 h-5" />}
-                        className="bg-black/30 border-gray-700/50 hover:bg-black/40"
-                    >
-                        Google
-                    </SocialButton>
-                </div>
 
                 <div className="text-center text-sm text-gray-300">
                     Don't have an account?{' '}

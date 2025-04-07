@@ -70,7 +70,6 @@ export default function UpdateProfilePhoto({ user }) {
             forceFormData: true,
             preserveScroll: true,
             onSuccess: () => {
-                console.log('Photo uploaded successfully');
                 window.location.reload();
             },
             onError: (errors) => {

@@ -22,11 +22,6 @@ export default function NotificationDropdown() {
         };
     }, []);
 
-    // Debug - log notifications to console
-    useEffect(() => {
-        console.log('Notifications:', notifications);
-        console.log('Dropdown open:', isOpen);
-    }, [notifications, isOpen]);
 
     const markAsRead = (notificationId) => {
         router.post(`/notifications/${notificationId}/read`);

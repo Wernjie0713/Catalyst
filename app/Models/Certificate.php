@@ -23,7 +23,8 @@ class Certificate extends Model
         'status',
         'issue_date',
         'expiry_date',
-        'certificate_data'
+        'certificate_data',
+        'team_id'
     ];
 
     protected $casts = [
@@ -57,6 +58,11 @@ class Certificate extends Model
     public function template()
     {
         return $this->belongsTo(CertificateTemplate::class, 'template_id', 'id');
+    }
+
+    public function team()
+    {
+        return $this->belongsTo(Team::class, 'team_id', 'id');
     }
 
     public function isValid()

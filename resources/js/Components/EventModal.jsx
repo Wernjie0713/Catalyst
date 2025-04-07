@@ -2,13 +2,19 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { format } from 'date-fns';
 import { useForm } from '@inertiajs/react';
 import { useState, useEffect } from 'react';
+import axios from 'axios';
 
-export default function EventModal({ event: initialEvent, isOpen, onClose, onEventUpdate }) {
+export default function EventModal({ event: initialEvent, isOpen, onClose, onEventUpdate, auth }) {
     if (!isOpen) return null;
 
     const [isEnrolling, setIsEnrolling] = useState(false);
     const [event, setEvent] = useState(initialEvent);
-    const { post, delete: destroy } = useForm();
+    const [selectedTeam, setSelectedTeam] = useState(null);
+    const [availableTeams, setAvailableTeams] = useState([]);
+    const [isLoadingTeams, setIsLoadingTeams] = useState(false);
+    const { post, delete: destroy, data, setData, reset } = useForm({
+        team_id: '',
+    });
 
     // Update local event state when prop changes
     useEffect(() => {
@@ -18,10 +24,47 @@ export default function EventModal({ event: initialEvent, isOpen, onClose, onEve
         });
     }, [initialEvent]);
 
-    const enrollmentPercentage = (event.enrolled_count / event.max_participants) * 100;
+    // Fetch available teams for team events
+    useEffect(() => {
+        if (isOpen && event.is_team_event && !event.is_enrolled && !event.is_external) {
+            fetchAvailableTeams();
+        }
+    }, [isOpen, event.event_id, event.is_team_event]);
+
+    const fetchAvailableTeams = async () => {
+        setIsLoadingTeams(true);
+        try {
+            const response = await axios.get(route('events.available-teams', event.event_id));
+            setAvailableTeams(response.data);
+        } catch (error) {
+            console.error('Failed to load teams:', error);
+        } finally {
+            setIsLoadingTeams(false);
+        }
+    };
+
+    const enrollmentPercentage = event.is_team_event 
+        ? (event.enrolled_teams_count / event.max_participants) * 100
+        : (event.enrolled_count / event.max_participants) * 100;
+
+    const handleTeamChange = (e) => {
+        const teamId = e.target.value;
+        setData('team_id', teamId);
+        setSelectedTeam(availableTeams.find(team => team.id === teamId));
+    };
 
     const handleEnrollment = () => {
         setIsEnrolling(true);
+        
+        if (event.is_team_event && !event.is_external) {
+            // Validate team selection
+            if (!data.team_id) {
+                alert('Please select a team to enroll');
+                setIsEnrolling(false);
+                return;
+            }
+        }
+        
         post(route('events.enroll', event.event_id), {
             preserveScroll: true,
             onSuccess: () => {
@@ -30,16 +73,30 @@ export default function EventModal({ event: initialEvent, isOpen, onClose, onEve
                 setEvent(prev => ({
                     ...prev,
                     is_enrolled: true,
-                    enrolled_count: prev.enrolled_count + 1
+                    enrolled_count: prev.is_team_event 
+                        ? prev.enrolled_count + (selectedTeam?.members_count || 0)
+                        : prev.enrolled_count + 1,
+                    enrolled_teams_count: prev.is_team_event 
+                        ? (prev.enrolled_teams_count || 0) + 1 
+                        : prev.enrolled_teams_count
                 }));
+                
                 // Notify parent component about the update
                 if (onEventUpdate) {
                     onEventUpdate({
                         ...event,
                         is_enrolled: true,
-                        enrolled_count: event.enrolled_count + 1
+                        enrolled_count: event.is_team_event 
+                            ? event.enrolled_count + (selectedTeam?.members_count || 0)
+                            : event.enrolled_count + 1,
+                        enrolled_teams_count: event.is_team_event 
+                            ? (event.enrolled_teams_count || 0) + 1 
+                            : event.enrolled_teams_count,
+                        enrolled_team: selectedTeam
                     });
                 }
+                
+                reset();
             },
             onError: () => setIsEnrolling(false)
         });
@@ -52,17 +109,32 @@ export default function EventModal({ event: initialEvent, isOpen, onClose, onEve
             onSuccess: () => {
                 setIsEnrolling(false);
                 // Update local event state
+                const memberCount = event.enrolled_team?.member_count || 1;
+                
                 setEvent(prev => ({
                     ...prev,
                     is_enrolled: false,
-                    enrolled_count: prev.enrolled_count - 1
+                    enrolled_count: prev.is_team_event 
+                        ? prev.enrolled_count - memberCount
+                        : prev.enrolled_count - 1,
+                    enrolled_teams_count: prev.is_team_event 
+                        ? (prev.enrolled_teams_count || 0) - 1 
+                        : prev.enrolled_teams_count,
+                    enrolled_team: null
                 }));
+                
                 // Notify parent component about the update
                 if (onEventUpdate) {
                     onEventUpdate({
                         ...event,
                         is_enrolled: false,
-                        enrolled_count: event.enrolled_count - 1
+                        enrolled_count: event.is_team_event 
+                            ? event.enrolled_count - memberCount
+                            : event.enrolled_count - 1,
+                        enrolled_teams_count: event.is_team_event 
+                            ? (event.enrolled_teams_count || 0) - 1 
+                            : event.enrolled_teams_count,
+                        enrolled_team: null
                     });
                 }
             },
@@ -80,7 +152,7 @@ export default function EventModal({ event: initialEvent, isOpen, onClose, onEve
                 <div className="flex min-h-screen items-center justify-center p-4">
                     {/* Backdrop */}
                     <motion.div
-                        initial={{ opacity: 0 }}
+                        style={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
                         onClick={onClose}
@@ -89,7 +161,7 @@ export default function EventModal({ event: initialEvent, isOpen, onClose, onEve
 
                     {/* Modal */}
                     <motion.div
-                        initial={{ opacity: 0, scale: 0.95 }}
+                        style={{ opacity: 0, scale: 0.95 }}
                         animate={{ opacity: 1, scale: 1 }}
                         exit={{ opacity: 0, scale: 0.95 }}
                         className="relative w-full max-w-2xl rounded-2xl bg-[#1E1E2E] shadow-xl"
@@ -121,6 +193,11 @@ export default function EventModal({ event: initialEvent, isOpen, onClose, onEve
                                         {event.is_external && (
                                             <span className="px-3 py-1 rounded-full text-sm font-medium bg-purple-500/20 text-purple-400">
                                                 External Event
+                                            </span>
+                                        )}
+                                        {event.is_team_event && (
+                                            <span className="px-3 py-1 rounded-full text-sm font-medium bg-blue-500/20 text-blue-400">
+                                                Team Event
                                             </span>
                                         )}
                                         <span className={`px-3 py-1 rounded-full text-sm font-medium ${
@@ -163,28 +240,60 @@ export default function EventModal({ event: initialEvent, isOpen, onClose, onEve
                                     </div>
                                 </div>
 
+                                {event.is_team_event && !event.is_external && (
+                                    <div>
+                                        <h3 className="text-sm font-medium text-gray-400 mb-2">Team Requirements</h3>
+                                        <div className="flex items-center text-white">
+                                            <span className="material-symbols-outlined mr-2 text-amber-400">group</span>
+                                            <span>
+                                                {event.min_team_members === event.max_team_members 
+                                                    ? `Exactly ${event.min_team_members} members per team` 
+                                                    : `${event.min_team_members}-${event.max_team_members} members per team`}
+                                            </span>
+                                        </div>
+                                    </div>
+                                )}
+
                                 {!event.is_external && (
                                     <div>
-                                        <h3 className="text-sm font-medium text-gray-400 mb-2">Enrollment Status</h3>
+                                        <h3 className="text-sm font-medium text-gray-400 mb-2">
+                                            {event.is_team_event ? 'Team Enrollment Status' : 'Enrollment Status'}
+                                        </h3>
                                         <div className="space-y-2">
                                             <div className="flex justify-between text-sm">
                                                 <span className="text-white">
-                                                    {event.enrolled_count} enrolled of {event.max_participants} spots
+                                                    {event.is_team_event 
+                                                        ? `${event.enrolled_teams_count || 0} teams enrolled of ${event.max_participants} spots`
+                                                        : `${event.enrolled_count} enrolled of ${event.max_participants} spots`
+                                                    }
                                                 </span>
                                                 <span className="text-white">
-                                                    {((event.enrolled_count / event.max_participants) * 100).toFixed(0)}%
+                                                    {event.is_team_event
+                                                        ? `${((event.enrolled_teams_count || 0) / event.max_participants * 100).toFixed(0)}%`
+                                                        : `${((event.enrolled_count / event.max_participants) * 100).toFixed(0)}%`
+                                                    }
                                                 </span>
                                             </div>
                                             <div className="w-full bg-gray-700 rounded-full h-2">
                                                 <div
                                                     className={`h-2 rounded-full ${
-                                                        (event.enrolled_count / event.max_participants) >= 0.9 ? 'bg-red-500' :
-                                                        (event.enrolled_count / event.max_participants) >= 0.75 ? 'bg-yellow-500' :
+                                                        enrollmentPercentage >= 90 ? 'bg-red-500' :
+                                                        enrollmentPercentage >= 75 ? 'bg-yellow-500' :
                                                         'bg-green-500'
                                                     }`}
-                                                    style={{ width: `${(event.enrolled_count / event.max_participants) * 100}%` }}
+                                                    style={{ width: `${Math.min(enrollmentPercentage, 100)}%` }}
                                                 />
                                             </div>
+                                        </div>
+                                    </div>
+                                )}
+
+                                {event.is_enrolled && event.is_team_event && event.enrolled_team && (
+                                    <div>
+                                        <h3 className="text-sm font-medium text-gray-400 mb-2">Your Team</h3>
+                                        <div className="flex items-center text-white">
+                                            <span className="material-symbols-outlined mr-2 text-indigo-400">people</span>
+                                            <span>{event.enrolled_team.name} ({event.enrolled_team.member_count} members)</span>
                                         </div>
                                     </div>
                                 )}
@@ -213,6 +322,35 @@ export default function EventModal({ event: initialEvent, isOpen, onClose, onEve
                                 <p className="text-white whitespace-pre-line">{event.description}</p>
                             </div>
 
+                            {/* Team Selection (for team events) */}
+                            {event.is_team_event && !event.is_external && !event.is_enrolled && event.status === 'Upcoming' && (
+                                <div className="mt-6">
+                                    <h3 className="text-sm font-medium text-gray-400 mb-2">Select Your Team</h3>
+                                    
+                                    {isLoadingTeams ? (
+                                        <div className="text-gray-400">Loading available teams...</div>
+                                    ) : availableTeams.length === 0 ? (
+                                        <div className="text-amber-400">
+                                            You don't have any eligible teams that meet the size requirements.
+                                            Create a team or adjust your existing team before enrolling.
+                                        </div>
+                                    ) : (
+                                        <select
+                                            value={data.team_id}
+                                            onChange={handleTeamChange}
+                                            className="w-full bg-[#2A2A3A] border border-gray-700 rounded-lg px-4 py-2 text-white"
+                                        >
+                                            <option value="">Select a team</option>
+                                            {availableTeams.map(team => (
+                                                <option key={team.id} value={team.id}>
+                                                    {team.name} ({team.members_count} members)
+                                                </option>
+                                            ))}
+                                        </select>
+                                    )}
+                                </div>
+                            )}
+
                             {/* Action Buttons */}
                             <div className="mt-6 flex justify-end space-x-3">
                                 <button
@@ -231,22 +369,46 @@ export default function EventModal({ event: initialEvent, isOpen, onClose, onEve
                                     </button>
                                 ) : (
                                     event.is_enrolled ? (
-                                        <button
-                                            onClick={handleUnenroll}
-                                            disabled={isEnrolling || event.status !== 'Upcoming'}
-                                            className="px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                                        >
-                                            {isEnrolling ? 'Processing...' : 'Unenroll'}
-                                        </button>
+                                        // For team events, only show unenroll button if user is the team leader
+                                        (event.is_team_event && event.enrolled_team && event.enrolled_team.creator_id !== auth?.user?.id) ? (
+                                            <div className="flex flex-col items-end">
+                                                <button
+                                                    disabled={true}
+                                                    className="px-4 py-2 bg-gray-500 text-white rounded-lg transition-colors opacity-50 cursor-not-allowed"
+                                                >
+                                                    Team Leader Action Required
+                                                </button>
+                                                <span className="text-xs text-yellow-400 mt-1">
+                                                    Only {event.enrolled_team.creator?.name || "the team leader"} can unenroll the team
+                                                </span>
+                                            </div>
+                                        ) : (
+                                            <button
+                                                onClick={handleUnenroll}
+                                                disabled={isEnrolling || event.status !== 'Upcoming'}
+                                                className="px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                            >
+                                                {isEnrolling ? 'Processing...' : event.is_team_event ? 'Unenroll Team' : 'Unenroll'}
+                                            </button>
+                                        )
                                     ) : (
                                         <button
                                             onClick={handleEnrollment}
-                                            disabled={isEnrolling || event.enrolled_count >= event.max_participants || event.status !== 'Upcoming'}
+                                            disabled={
+                                                isEnrolling || 
+                                                event.status !== 'Upcoming' ||
+                                                (event.is_team_event ? 
+                                                    (event.enrolled_teams_count >= event.max_participants || !data.team_id || availableTeams.length === 0) : 
+                                                    event.enrolled_count >= event.max_participants)
+                                            }
                                             className="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                                         >
                                             {isEnrolling ? 'Processing...' : 
-                                             event.enrolled_count >= event.max_participants ? 'Event Full' : 
-                                             'Enroll Now'}
+                                                event.is_team_event ?
+                                                (event.enrolled_teams_count >= event.max_participants ? 'Event Full' :
+                                                availableTeams.length === 0 ? 'No Eligible Teams' : 'Enroll Team') :
+                                                (event.enrolled_count >= event.max_participants ? 'Event Full' : 'Enroll Now')
+                                            }
                                         </button>
                                     )
                                 )}

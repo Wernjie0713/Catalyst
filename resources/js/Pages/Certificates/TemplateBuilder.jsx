@@ -3,19 +3,33 @@ import { useForm } from '@inertiajs/react';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head } from '@inertiajs/react';
 
-export default function TemplateBuilder({ event, selectedUsers }) {
+// Add this at the top of your file to import the font
+const fontImportStyle = `
+    @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&display=swap');
+`;
+
+export default function TemplateBuilder({ event, selectedUsers = [], selectedTeams = [], isParticipationCertificate = true, isTeamEvent = false }) {
+    // Remove duplicate teams by team_id
+    const uniqueTeams = selectedTeams.reduce((unique, team) => {
+        const teamId = team.id || team.team_id;
+        const exists = unique.find(t => (t.id || t.team_id) === teamId);
+        if (!exists) {
+            unique.push(team);
+        }
+        return unique;
+    }, []);
+
     const { data, setData, post, processing, errors } = useForm({
         title: '',
         body_text: '',
-        background_image: null,
         signature_image: null,
-        is_participant_template: true, // New field to distinguish template type
+        is_participant_template: isParticipationCertificate, // Set based on incoming prop
         layout_settings: {
-            titlePosition: { x: 50, y: 30 },
-            namePosition: { x: 50, y: 40 }, // Position for student name
-            bodyPosition: { x: 50, y: 50 },
-            signaturePosition: { x: 80, y: 85 },
-            titleFontSize: 48,
+            titlePosition: { x: 50, y: 25 },
+            namePosition: { x: 50, y: 50 }, // Position for student name
+            bodyPosition: { x: 50, y: 60 },
+            signaturePosition: { x: 50, y: 85 },
+            titleFontSize: 40,
             nameFontSize: 32, // Font size for student name
             bodyFontSize: 18,
             signatureWidth: 150,
@@ -26,15 +40,18 @@ export default function TemplateBuilder({ event, selectedUsers }) {
             titleTextAlign: 'center',
             nameTextAlign: 'center',
             bodyTextAlign: 'center',
-        }
+            fontFamily: "'Playfair Display', serif",
+        },
+        selected_users: isParticipationCertificate || isTeamEvent ? [] : selectedUsers.map(user => user.id),
+        selected_teams: isParticipationCertificate ? [] : uniqueTeams.map(team => team.id || team.team_id),
     });
 
+
     const [previewUrls, setPreviewUrls] = useState({
-        background: null,
         signature: null
     });
 
-    // Handle file preview
+    // Handle file preview - only for signature now
     const handleFileChange = (field, file) => {
         setData(field, file);
         if (file) {
@@ -45,63 +62,60 @@ export default function TemplateBuilder({ event, selectedUsers }) {
 
     const handleSubmit = (e) => {
         e.preventDefault();
-        const formData = new FormData();
-        
-        Object.keys(data).forEach(key => {
-            if (key === 'layout_settings') {
-                formData.append(key, JSON.stringify(data[key]));
-            } else if (data[key] !== null) {
-                formData.append(key, data[key]);
+
+        post(route('certificates.store', event.event_id), {
+            onSuccess: () => {
+                console.log('Certificate template created successfully');
+            },
+            onError: (errors) => {
+                console.error('Error creating certificate template:', errors);
             }
         });
-
-        post(route('certificates.store', event.event_id));
     };
 
     return (
         <AuthenticatedLayout>
-            <Head title="Certificate Builder" />
+            <Head title="Certificate Builder">
+                <style>{fontImportStyle}</style>
+            </Head>
             
             <div className="py-12">
-                <div className="max-w-7xl mx-auto sm:px-6 lg:px-8">
+                <div className="max-w-7xl mx-auto sm:px-6 lg:px-8">       
                     <div className="bg-[#18122B] overflow-hidden shadow-sm sm:rounded-lg p-6">
-                        <form onSubmit={handleSubmit}>
-                            {/* Certificate Type Selection */}
-                            <div className="mb-6">
-                                <label className="block text-sm font-medium text-gray-300 mb-2">
-                                    Certificate Type
-                                </label>
-                                <div className="flex space-x-4">
-                                    <label className="inline-flex items-center">
-                                        <input
-                                            type="radio"
-                                            checked={data.is_participant_template}
-                                            onChange={() => setData('is_participant_template', true)}
-                                            className="form-radio text-[#635985]"
-                                        />
-                                        <span className="ml-2 text-gray-300">Participant Certificate</span>
-                                    </label>
-                                    <label className="inline-flex items-center">
-                                        <input
-                                            type="radio"
-                                            checked={!data.is_participant_template}
-                                            onChange={() => setData('is_participant_template', false)}
-                                            className="form-radio text-[#635985]"
-                                        />
-                                        <span className="ml-2 text-gray-300">Winner Certificate</span>
-                                    </label>
-                                </div>
+                        {/* Page Header with Certificate Type Indicator */}
+                        <div className="mb-6 flex justify-between items-center">
+                            <h1 className="text-xl font-semibold text-white">
+                                {isParticipationCertificate ? 'Create Participation Certificates' : 'Create Winner Certificates'}
+                                {isTeamEvent && !isParticipationCertificate && ' for Teams'}
+                            </h1>
+                            <div className="px-3 py-1 rounded-full text-sm font-medium bg-indigo-600/20 text-indigo-400">
+                                {isParticipationCertificate ? 'For All Participants' : 
+                                 isTeamEvent ? 'For Selected Teams' : 'For Selected Winners'}
                             </div>
+                        </div>
+
+                        <form onSubmit={handleSubmit}>
+                            {/* Hidden field to store certificate type - no need to show UI selection */}
+                            <input 
+                                type="hidden" 
+                                name="is_participant_template" 
+                                value={isParticipationCertificate} 
+                            />
 
                             {/* Certificate Preview */}
                             <div className="mb-8 relative w-full aspect-[1.414] bg-white rounded-lg overflow-hidden">
-                                {previewUrls.background && (
-                                    <img 
-                                        src={previewUrls.background}
-                                        className="absolute inset-0 w-full h-full object-cover"
-                                        alt="Background"
-                                    />
-                                )}
+                                {/* Use the correct path to the certificate background */}
+                                <img 
+                                    src="/images/Certificate.png" 
+                                    className="absolute inset-0 w-full h-full object-cover"
+                                    alt="Certificate Background"
+                                    onError={(e) => {
+                                        console.error("Failed to load certificate background");
+                                        // Fallback to a light background color
+                                        e.target.style.display = "none";
+                                        e.target.parentElement.style.backgroundColor = "#f8f8f8";
+                                    }}
+                                />
                                 
                                 {/* Title */}
                                 <div 
@@ -114,10 +128,13 @@ export default function TemplateBuilder({ event, selectedUsers }) {
                                         fontWeight: data.layout_settings.titleFontWeight,
                                         color: data.layout_settings.titleColor,
                                         width: '80%',
-                                        textAlign: data.layout_settings.titleTextAlign
+                                        textAlign: data.layout_settings.titleTextAlign,
+                                        fontFamily: "'Playfair Display', serif",
+                                        letterSpacing: '1px', 
+                                        textTransform: 'uppercase',
                                     }}
                                 >
-                                    {data.title || 'Certificate Title'}
+                                    {data.title || (isParticipationCertificate ? 'CERTIFICATE OF PARTICIPATION' : 'CERTIFICATE OF ACHIEVEMENT')}
                                 </div>
 
                                 {/* Example Student Name */}
@@ -133,8 +150,10 @@ export default function TemplateBuilder({ event, selectedUsers }) {
                                         textAlign: data.layout_settings.nameTextAlign
                                     }}
                                 >
-                                    {data.is_participant_template ? 
+                                    {isParticipationCertificate ? 
                                         '[Student Name]' : 
+                                        isTeamEvent ? 
+                                        (selectedTeams?.[0]?.name || selectedTeams?.[0]?.team_name || '[Team Name]') :
                                         (selectedUsers?.[0]?.name || '[Winner Name]')}
                                 </div>
 
@@ -151,7 +170,11 @@ export default function TemplateBuilder({ event, selectedUsers }) {
                                         textAlign: data.layout_settings.bodyTextAlign
                                     }}
                                 >
-                                    {data.body_text || 'Certificate Body Text'}
+                                    {data.body_text || (isParticipationCertificate ? 
+                                        'for participating in the event' : 
+                                        isTeamEvent ?
+                                        'for outstanding team achievement in the event' :
+                                        'for outstanding achievement in the event')}
                                 </div>
 
                                 {/* Signature */}
@@ -184,32 +207,8 @@ export default function TemplateBuilder({ event, selectedUsers }) {
                                         type="text"
                                         value={data.title}
                                         onChange={e => setData('title', e.target.value)}
+                                        placeholder={isParticipationCertificate ? "CERTIFICATE OF PARTICIPATION" : "CERTIFICATE OF ACHIEVEMENT"}
                                         className="mt-1 block w-full rounded-md bg-[#242031] border-gray-700 text-white"
-                                    />
-                                </div>
-
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-300">
-                                        Body Text
-                                    </label>
-                                    <textarea
-                                        value={data.body_text}
-                                        onChange={e => setData('body_text', e.target.value)}
-                                        rows={4}
-                                        className="mt-1 block w-full rounded-md bg-[#242031] border-gray-700 text-white"
-                                        placeholder="Enter certificate body text..."
-                                    />
-                                </div>
-
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-300">
-                                        Background Image
-                                    </label>
-                                    <input
-                                        type="file"
-                                        onChange={e => handleFileChange('background_image', e.target.files[0])}
-                                        className="mt-1 block w-full text-gray-300"
-                                        accept="image/*"
                                     />
                                 </div>
 
@@ -224,10 +223,58 @@ export default function TemplateBuilder({ event, selectedUsers }) {
                                         accept="image/*"
                                     />
                                 </div>
+                                
+                                <div className="md:col-span-2">
+                                    <label className="block text-sm font-medium text-gray-300">
+                                        Body Text
+                                    </label>
+                                    <textarea
+                                        value={data.body_text}
+                                        onChange={e => setData('body_text', e.target.value)}
+                                        rows={4}
+                                        className="mt-1 block w-full rounded-md bg-[#242031] border-gray-700 text-white"
+                                        placeholder={isParticipationCertificate ? 
+                                            "for participating in the event" : 
+                                            isTeamEvent ?
+                                            "for outstanding team achievement in the event" :
+                                            "for outstanding achievement in the event"}
+                                    />
+                                </div>
                             </div>
 
                             {/* Selected Winners (only show for winner certificates) */}
-                            {!data.is_participant_template && (
+                            {!isParticipationCertificate && isTeamEvent && (
+                                <div className="mt-6">
+                                    <h3 className="text-lg font-medium text-gray-300 mb-2">
+                                        Selected Teams
+                                    </h3>
+                                    <div className="bg-[#242031] rounded-lg p-4">
+                                        {uniqueTeams?.length > 0 ? (
+                                            <ul className="space-y-3">
+                                                {uniqueTeams.map(team => (
+                                                    <li key={team.id || team.team_id} className="text-gray-300">
+                                                        <span className="font-medium">{team.name || team.team_name}</span>
+                                                        <div className="mt-1 ml-4 text-sm text-gray-400">
+                                                            {team.members ? (
+                                                                <span>
+                                                                    {team.members.map(member => member.name).join(', ')}
+                                                                </span>
+                                                            ) : (
+                                                                <span>({team.member_count || 0} members)</span>
+                                                            )}
+                                                        </div>
+                                                    </li>
+                                                ))}
+                                            </ul>
+                                        ) : (
+                                            <p className="text-gray-400">No teams selected</p>
+                                        )}
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Selected Winners (only show for winner certificates) */}
+                            {!isParticipationCertificate && !isTeamEvent && (
                                 <div className="mt-6">
                                     <h3 className="text-lg font-medium text-gray-300 mb-2">
                                         Selected Winners
@@ -248,13 +295,37 @@ export default function TemplateBuilder({ event, selectedUsers }) {
                                 </div>
                             )}
 
-                            <div className="mt-6 flex justify-end">
+                            {/* If it's a winner certificate for individuals, add hidden field with selected users */}
+                            {!isParticipationCertificate && !isTeamEvent && (
+                                <input 
+                                    type="hidden" 
+                                    name="selected_users" 
+                                    value={JSON.stringify(selectedUsers.map(user => user.id))} 
+                                />
+                            )}
+
+                            {/* If it's a winner certificate for teams, add hidden field with selected teams */}
+                            {!isParticipationCertificate && isTeamEvent && (
+                                <input 
+                                    type="hidden" 
+                                    name="selected_teams" 
+                                    value={JSON.stringify(selectedTeams.map(team => team.id || team.team_id))} 
+                                />
+                            )}
+
+                            <div className="mt-6 flex justify-between">
+                                <a
+                                    href={route('events.my-events')}
+                                    className="px-4 py-2 bg-gray-700 text-gray-300 rounded-md hover:bg-gray-600 transition-colors"
+                                >
+                                    Cancel
+                                </a>
                                 <button
                                     type="submit"
                                     disabled={processing}
                                     className="px-4 py-2 bg-[#635985] text-white rounded-md hover:bg-[#443C68] transition-colors"
                                 >
-                                    {processing ? 'Creating...' : 'Create Certificate'}
+                                    {processing ? 'Creating...' : `Create ${isParticipationCertificate ? 'Participation' : isTeamEvent ? 'Team Winner' : 'Winner'} Certificates`}
                                 </button>
                             </div>
                         </form>

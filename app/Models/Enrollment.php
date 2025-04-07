@@ -17,6 +17,7 @@ class Enrollment extends Pivot
         'enrollment_id',
         'user_id',
         'event_id',
+        'team_id',
     ];
 
     protected static function boot()
@@ -40,5 +41,11 @@ class Enrollment extends Pivot
     public function event()
     {
         return $this->belongsTo(Event::class, 'event_id', 'event_id');
+    }
+
+    // Relationship with Team
+    public function team()
+    {
+        return $this->belongsTo(Team::class, 'team_id', 'id');
     }
 }

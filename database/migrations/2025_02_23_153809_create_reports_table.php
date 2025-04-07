@@ -10,10 +10,10 @@ return new class extends Migration
     {
         Schema::create('reports', function (Blueprint $table) {
             $table->uuid('report_id')->primary();
-            $table->uuid('generated_by')->nullable(); // User who generated the report
-            $table->enum('report_type', ['Participation', 'Achievement', 'Event']);
-            $table->uuid('event_id')->nullable();
-            $table->json('data'); // Flexible storage for report data
+            $table->uuid('generated_by')->nullable();
+            $table->uuid('staff_id')->nullable();
+            $table->uuid('university_id')->nullable();
+            $table->json('data');
             $table->timestamps();
 
             $table->foreign('generated_by')
@@ -21,9 +21,14 @@ return new class extends Migration
                   ->on('users')
                   ->onDelete('set null');
 
-            $table->foreign('event_id')
-                  ->references('event_id')
-                  ->on('events')
+            $table->foreign('staff_id')
+                  ->references('staff_id')
+                  ->on('department_staff')
+                  ->onDelete('set null');
+
+            $table->foreign('university_id')
+                  ->references('university_id')
+                  ->on('universities')
                   ->onDelete('set null');
         });
     }

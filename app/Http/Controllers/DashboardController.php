@@ -29,13 +29,20 @@ class DashboardController extends Controller
             ->take(3)
             ->get()
             ->map(function ($event) use ($user) {
-                return [
+                $data = [
                     ...$event->toArray(),
                     'formatted_time' => Carbon::parse($event->time)->format('g:i A'),
                     'is_enrolled' => $event->enrollments->contains('user_id', $user->id),
                     'creator' => $event->creator,
                     'enrollments' => $event->enrollments
                 ];
+                
+                // For team events, add the enrolled team information
+                if ($event->is_team_event) {
+                    $data['enrolled_team'] = $event->userEnrolledTeam();
+                }
+                
+                return $data;
             });
 
         // Get IDs of existing friends (where status is 'accepted')

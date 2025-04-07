@@ -18,10 +18,15 @@ return new class extends Migration
                   ->references('event_id')
                   ->on('events')
                   ->onDelete('cascade');
+            $table->foreignUuid('team_id')
+                  ->nullable()
+                  ->references('id')
+                  ->on('teams')
+                  ->onDelete('cascade');
             $table->timestamps();
 
-            // Prevent duplicate enrollments
-            $table->unique(['user_id', 'event_id']);
+            // Prevent duplicate enrollments, but allow team enrollment
+            $table->unique(['user_id', 'event_id', 'team_id']);
         });
     }
 

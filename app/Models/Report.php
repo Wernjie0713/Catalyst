@@ -3,44 +3,40 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
 
 class Report extends Model
 {
+    use HasUuids;
 
     protected $primaryKey = 'report_id';
-    public $incrementing = false;
     protected $keyType = 'string';
+    public $incrementing = false;
 
     protected $fillable = [
         'generated_by',
-        'report_type',
-        'event_id',
-        'data',
-        'reviewed_by',    // Admin who reviewed
-        'viewed_by'       // Lecturer/Staff who viewed
+        'staff_id',
+        'university_id',
+        'data'
     ];
 
     protected $casts = [
-        'data' => 'array',
-        'report_type' => 'string'
+        'data' => 'array'
     ];
 
-    // Relationship with Admin (reviewer)
-    public function reviewer()
+    // Relationships
+    public function generator()
     {
-        return $this->belongsTo(Admin::class, 'reviewed_by', 'admin_id');
+        return $this->belongsTo(User::class, 'generated_by');
     }
 
-    // Relationship with Lecturer (viewer)
-    public function lecturerViewer()
+    public function departmentStaff()
     {
-        return $this->belongsTo(Lecturer::class, 'viewed_by', 'lecturer_id');
+        return $this->belongsTo(DepartmentStaff::class, 'staff_id', 'staff_id');
     }
 
-    // Relationship with Department Staff (viewer)
-    public function staffViewer()
+    public function university()
     {
-        return $this->belongsTo(DepartmentStaff::class, 'viewed_by', 'staff_id');
+        return $this->belongsTo(University::class, 'university_id');
     }
-
 }

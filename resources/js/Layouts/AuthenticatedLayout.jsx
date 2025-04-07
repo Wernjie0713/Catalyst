@@ -5,7 +5,6 @@ import NotificationDropdown from '@/Components/NotificationDropdown';
 
 export default function AuthenticatedLayout({ header, children }) {
     const { auth } = usePage().props;
-    console.log("Notifications:", auth.user?.notifications);
     const user = usePage().props.auth.user;
     const [isMobile, setIsMobile] = useState(false);
 
@@ -22,8 +21,21 @@ export default function AuthenticatedLayout({ header, children }) {
     return (
         <div className="min-h-screen" style={{ backgroundColor: '#1E1B3A' }}>
             <Sidebar />
-            <main className={`${isMobile ? 'ml-[45px]' : 'ml-[84px]'}`}>
-                {children}
+            <main className={`
+                transition-all duration-300 ease-in-out
+                ${isMobile 
+                    ? 'flex flex-col items-center w-full' 
+                    : 'ml-[84px]'
+                }
+            `}>
+                <div className={`
+                    ${isMobile 
+                        ? 'w-[calc(100%-45px)] mx-auto flex justify-center' 
+                        : ''
+                    }
+                `}>
+                    {children}
+                </div>
             </main>
         </div>
     );

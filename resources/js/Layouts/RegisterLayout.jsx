@@ -1,35 +1,40 @@
 import Aurora from '@/Components/Aurora';
 
-export default function RegisterLayout({ children, image = '/images/register.jpg' }) {
+export default function RegisterLayout({ children, image = '/images/jellyfish.jpg' }) {
     return (
-        <div className="min-h-screen flex relative bg-[#18122B]">
+        <div className="min-h-screen relative overflow-hidden bg-[#1e1b4b]">
             {/* Full page Aurora Background */}
-            <div className="absolute inset-0 z-0 animate-fade-in">
+            <div className="absolute inset-0 z-0">
                 <Aurora 
-                    colorStops={["#635985", "#443C68", "#393053"]}
+                    colorStops={[
+                        "#000000",
+                        "#1E1B4B",
+                        "#000000",
+                        "#5E52F6"
+                    ]}
                     amplitude={1.2}
                     blend={0.7}
                 />
             </div>
 
             {/* Content Container */}
-            <div className="min-h-screen flex fixed w-full relative z-10">
+            <div className="min-h-screen flex relative z-10">
                 {/* Left Side - Form */}
-                <div className="w-1/2 p-8 flex flex-col justify-center">
+                <div className="w-full md:w-1/2 p-8 flex flex-col justify-center">
                     <div className="max-w-md mx-auto w-full">
                         {children}
                     </div>
                 </div>
 
-                {/* Right Side - Fixed Image Container */}
-                <div className="w-1/2 fixed right-0 top-0 bottom-0 flex items-center p-8">
+                {/* Right Side - Image Container (Hidden on mobile) */}
+                <div className="hidden md:flex w-1/2 p-8 items-center">
                     <div className="w-full h-[600px] rounded-2xl overflow-hidden 
-                        bg-black/40 backdrop-blur-md border border-gray-800/50
+                        bg-black/20 backdrop-blur-sm border border-white/10
                         animate-fade-in-up">
                         <img
                             src={image}
-                            alt="Team collaboration"
-                            className="w-full h-full object-cover opacity-90"
+                            alt="Background"
+                            className="w-full h-full object-cover"
                         />
                     </div>
                 </div>

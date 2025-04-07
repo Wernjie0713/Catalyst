@@ -2,11 +2,16 @@ import Aurora from '@/Components/Aurora';
 
 export default function LoginAuroraLayout({ children }) {
     return (
-        <div className="min-h-screen flex items-center justify-center relative bg-[#18122B]">
+        <div className="min-h-screen flex items-center justify-center relative bg-[#1e1b4b]">
             {/* Aurora Background */}
             <div className="absolute inset-0 z-0">
                 <Aurora 
-                    colorStops={["#635985", "#443C68", "#393053"]}
+                    colorStops={[
+                        "#000000",        // black
+                        "#1E1B4B",        // deep purple/blue
+                        "#000000",        // black
+                        "#5E52F6"         // subtle purple glow
+                    ]}
                     amplitude={1.2}
                     blend={0.7}
                 />

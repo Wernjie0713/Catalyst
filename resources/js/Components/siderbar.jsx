@@ -1,4 +1,4 @@
-import { usePage } from '@inertiajs/react';
+import { usePage, Link } from '@inertiajs/react';
 import { router } from '@inertiajs/react';
 import { useState, useEffect, useRef } from 'react';
 import { format, formatDistanceToNow } from 'date-fns';
@@ -12,12 +12,7 @@ export const Sidebar = () => {
   const notificationsRef = useRef(null);
   const notifications = auth.user?.notifications || [];
   
-  // Debug information
-  const currentPath = window.location.pathname;
-  console.log("Current page:", currentPath);
-  console.log("Auth user:", auth.user);
-  console.log("Total notifications:", notifications.length);
-  console.log("Unread notifications:", notifications.filter(n => !n.read_at).length);
+
   
   // Close notifications panel when clicking outside
   useEffect(() => {
@@ -59,7 +54,9 @@ export const Sidebar = () => {
   // Count unread notifications - using the actual count now
   const unreadCount = notifications.filter(n => !n.read_at).length;
 
-  // Add notifications to nav items
+  // Check if user has access to reports
+  const canAccessReports = ['admin', 'university', 'department_staff'].includes(auth?.user?.role);
+
   const navItems = [
     {
       name: "Profile",
@@ -84,6 +81,13 @@ export const Sidebar = () => {
       icon: "work_history",
       route: "events.my-events",
       path: "/my-events"
+    },
+    {
+      name: "Reports",
+      icon: "analytics",
+      route: "reports.index",
+      path: "/reports",
+      staffOnly: true
     },
     {
       name: "Team Grouping",
@@ -117,18 +121,18 @@ export const Sidebar = () => {
       route: "logout",
       path: "/logout"
     }
-  ];
+  ].filter(Boolean); // This removes any null items
 
-  // Debug nav items
-  console.log("Nav items:", navItems.map(item => ({
-    name: item.name,
-    badge: item.badge
-  })));
 
   const logo = "/images/Catalyst.png";
 
   const filteredNavItems = navItems.filter(item => {
     if (item.adminOnly && !auth?.user?.roles?.some(role => role.name === 'admin')) {
+      return false;
+    }
+    if (item.staffOnly && !auth?.user?.roles?.some(role => 
+        ['admin', 'university', 'department_staff'].includes(role.name)
+    )) {
       return false;
     }
     if (item.name === "Profile" && auth?.user?.roles?.some(role => role.name === 'admin')) {
@@ -137,11 +141,6 @@ export const Sidebar = () => {
     return true;
   });
 
-  // Debug filtered nav items
-  console.log("Filtered nav items:", filteredNavItems.map(item => ({
-    name: item.name,
-    badge: item.badge
-  })));
 
   // Get active index based on current URL
   const getActiveIndex = () => {
@@ -184,11 +183,10 @@ export const Sidebar = () => {
   };
 
   const activeIndex = getActiveIndex();
-  console.log("Active index:", activeIndex);
+
 
   // Mobile Menu Component
   const MobileMenu = () => {
-    console.log("Rendering mobile menu");
     return (
     <div className="md:hidden">
       <button
@@ -217,7 +215,6 @@ export const Sidebar = () => {
           <div className="fixed top-16 left-4 z-50 w-48 rounded-md shadow-lg bg-gray-800 ring-1 ring-black ring-opacity-5">
             <div className="py-1">
               {filteredNavItems.map((item, index) => {
-                console.log(`Mobile menu item: ${item.name}, badge: ${item.badge}`);
                 return (
                 <button
                   key={index}
@@ -248,7 +245,6 @@ export const Sidebar = () => {
 
   // Desktop Sidebar Component
   const DesktopSidebar = () => {
-    console.log("Rendering desktop sidebar");
     return (
     <section className="page sidebar-page hidden md:block">
       <aside className="sidebar">
@@ -262,7 +258,6 @@ export const Sidebar = () => {
             style={{ "--top": `${activeIndex === -1 ? 0 : activeIndex * 56}px` }}
           >
             {filteredNavItems.map((item, index) => {
-              console.log(`Desktop sidebar item: ${item.name}, badge: ${item.badge}`);
               return (
               <button
                 className={activeIndex === index ? "active" : ""}
@@ -353,7 +348,6 @@ export const Sidebar = () => {
     )
   );
 
-  console.log("Rendering sidebar component");
   return (
     <>
       <MobileMenu />

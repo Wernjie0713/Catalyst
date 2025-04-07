@@ -29,7 +29,7 @@ class EventController extends Controller
             abort(403);
         }
         
-        $validated = $request->validate([
+        $validationRules = [
             'title' => 'required|string|max:255',
             'date' => 'required|date',
             'time' => 'required',
@@ -38,12 +38,34 @@ class EventController extends Controller
             'event_type' => 'required|in:Workshop,Competition,Seminar',
             'cover_image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
             'is_external' => 'required|boolean',
-            // Conditional validation based on event type
-            'max_participants' => 'required_if:is_external,false|nullable|integer|min:1',
-            'registration_url' => 'required_if:is_external,true|nullable|url',
-            'organizer_name' => 'required_if:is_external,true|nullable|string|max:255',
-            'organizer_website' => 'nullable|url',
-        ]);
+            'is_team_event' => 'required|boolean',
+        ];
+
+        // Add validation rules based on event type (external or internal)
+        if ($request->boolean('is_external')) {
+            $validationRules = array_merge($validationRules, [
+                'registration_url' => 'required|url',
+                'organizer_name' => 'required|string|max:255',
+                'organizer_website' => 'nullable|url',
+            ]);
+        } else {
+            $validationRules = array_merge($validationRules, [
+                'max_participants' => 'required|integer|min:1',
+                'registration_url' => 'nullable',
+                'organizer_name' => 'nullable',
+                'organizer_website' => 'nullable',
+            ]);
+            
+            // Add team event specific validation if it's a team event
+            if ($request->boolean('is_team_event')) {
+                $validationRules = array_merge($validationRules, [
+                    'min_team_members' => 'required|integer|min:2',
+                    'max_team_members' => 'required|integer|min:2|gte:min_team_members',
+                ]);
+            }
+        }
+
+        $validated = $request->validate($validationRules);
 
         // Handle image upload
         $coverImagePath = null;
@@ -66,16 +88,15 @@ class EventController extends Controller
             $status = 'Completed';
         }
 
-        $event = Event::create([
+        // Prepare event data
+        $eventData = [
             'event_id' => Str::uuid()->toString(),
             'title' => $validated['title'],
             'date' => $validated['date'],
             'time' => Carbon::parse($validated['time'])->format('H:i:s'),
             'location' => $validated['location'],
             'description' => $validated['description'],
-            'max_participants' => $validated['is_external'] ? null : $validated['max_participants'],
-            'enrolled_count' => $validated['is_external'] ? null : 0,
-            'status' => $status, // Set the calculated status
+            'status' => $status,
             'event_type' => $validated['event_type'],
             'creator_id' => auth()->id(),
             'cover_image' => $coverImagePath,
@@ -83,7 +104,22 @@ class EventController extends Controller
             'registration_url' => $validated['registration_url'] ?? null,
             'organizer_name' => $validated['organizer_name'] ?? null,
             'organizer_website' => $validated['organizer_website'] ?? null,
-        ]);
+            'is_team_event' => $validated['is_team_event'],
+        ];
+
+        // Add non-external event specific fields
+        if (!$validated['is_external']) {
+            $eventData['max_participants'] = $validated['max_participants'];
+            $eventData['enrolled_count'] = 0;
+            
+            // Add team event specific fields
+            if ($validated['is_team_event']) {
+                $eventData['min_team_members'] = $validated['min_team_members'];
+                $eventData['max_team_members'] = $validated['max_team_members'];
+            }
+        }
+
+        $event = Event::create($eventData);
 
         return redirect()->route('events.index')
             ->with('message', 'Event created successfully');
@@ -102,6 +138,10 @@ class EventController extends Controller
                     ->exists();
                 // Format the time
                 $event->formatted_time = Carbon::parse($event->time)->format('g:i A');
+                // For team events, get enrolled team if any
+                if ($event->is_team_event) {
+                    $event->enrolled_team = $event->userEnrolledTeam();
+                }
                 return $event;
             });
 
@@ -110,6 +150,7 @@ class EventController extends Controller
             'can' => [
                 'event_upload' => Gate::allows('event_upload'),
                 'event_enroll' => Gate::allows('event_enroll'),
+                'team_grouping' => Gate::allows('team_grouping'),
             ],
         ]);
     }
@@ -125,7 +166,11 @@ class EventController extends Controller
             ->map(function ($event) {
                 // Calculate and add status to each event
                 $event->status = $this->calculateEventStatus($event);
-                $event->enrolled_count = $event->enrolledUsers()->count();
+                if ($event->is_team_event) {
+                    $event->enrolled_count = $event->enrolledTeams()->count();
+                } else {
+                    $event->enrolled_count = $event->enrolledUsers()->count();
+                }
                 return $event;
             });
         
@@ -133,9 +178,13 @@ class EventController extends Controller
         $enrolledEvents = $user->enrolledEvents()
             ->with('creator')
             ->get()
-            ->map(function ($event) {
+            ->map(function ($event) use ($user) {
                 // Calculate and add status to each event
                 $event->status = $this->calculateEventStatus($event);
+                // For team events, add the enrolled team
+                if ($event->is_team_event) {
+                    $event->enrolled_team = $event->userEnrolledTeam();
+                }
                 return $event;
             });
         
@@ -146,6 +195,7 @@ class EventController extends Controller
                 'event_edit' => Gate::allows('event_edit'),
                 'event_feedback' => Gate::allows('event_feedback'),
                 'event_feedbackview' => Gate::allows('event_feedbackview'),
+                'team_grouping' => Gate::allows('team_grouping'),
             ]
         ]);
     }
@@ -178,7 +228,7 @@ class EventController extends Controller
             abort(403);
         }
 
-        // Separate validation rules for external and internal events
+        // Basic validation rules
         $commonRules = [
             'title' => 'required|string|max:255',
             'date' => 'required|date',
@@ -189,6 +239,7 @@ class EventController extends Controller
             'status' => 'required|in:Upcoming,Ongoing,Completed',
             'cover_image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
             'is_external' => 'required|boolean',
+            'is_team_event' => 'required|boolean',
         ];
 
         // Add specific rules based on event type
@@ -205,6 +256,14 @@ class EventController extends Controller
                 'organizer_name' => 'nullable',
                 'organizer_website' => 'nullable',
             ];
+            
+            // Add team event specific validation
+            if ($request->boolean('is_team_event')) {
+                $specificRules = array_merge($specificRules, [
+                    'min_team_members' => 'required|integer|min:2',
+                    'max_team_members' => 'required|integer|min:2|gte:min_team_members',
+                ]);
+            }
         }
 
         $validated = $request->validate(array_merge($commonRules, $specificRules));
@@ -231,6 +290,13 @@ class EventController extends Controller
         // Format time
         $dataToUpdate['time'] = Carbon::parse($validated['time'])->format('H:i:s');
 
+        // Check if changing from team to individual or vice versa with existing enrollments
+        if ($event->is_team_event != $dataToUpdate['is_team_event'] && $event->enrollments()->count() > 0) {
+            return back()->withErrors([
+                'is_team_event' => 'Cannot change team event setting after enrollments have been made.'
+            ]);
+        }
+
         // Update the event
         $event->update($dataToUpdate);
 
@@ -256,6 +322,9 @@ class EventController extends Controller
             ->map(function ($event) use ($user) {
                 $event->formatted_time = Carbon::parse($event->time)->format('g:i A');
                 $event->is_enrolled = $event->enrollments->contains('user_id', $user->id);
+                if ($event->is_team_event) {
+                    $event->enrolled_team = $event->userEnrolledTeam();
+                }
                 return $event;
             });
 
@@ -291,11 +360,44 @@ class EventController extends Controller
 
     public function getEnrolledUsers(Event $event)
     {
-        // Eager load the enrolledUsers with their basic information
+        // If event is team-based, include team information
+        if ($event->is_team_event) {
+            $enrolledTeams = $event->enrolledTeams()
+                ->with(['members.user'])
+                ->distinct() // Ensure distinct teams
+                ->get()
+                ->map(function ($team) {
+                    return [
+                        'team_id' => $team->id,
+                        'team_name' => $team->name,
+                        'leader' => $team->creator->name,
+                        'members' => $team->members->map(function ($member) {
+                            return [
+                                'id' => $member->user->id,
+                                'name' => $member->user->name,
+                                'email' => $member->user->email,
+                            ];
+                        }),
+                    ];
+                });
+                
+            // Remove duplicates by team_id
+            $uniqueTeams = collect($enrolledTeams)->unique('team_id')->values();
+                
+            return response()->json([
+                'is_team_event' => true,
+                'teams' => $uniqueTeams
+            ]);
+        }
+        
+        // Regular individual enrollments
         $enrolledUsers = $event->enrolledUsers()
             ->select('users.id', 'users.name', 'users.email')
             ->get();
 
-        return response()->json($enrolledUsers);
+        return response()->json([
+            'is_team_event' => false,
+            'users' => $enrolledUsers
+        ]);
     }
 } 

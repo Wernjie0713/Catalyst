@@ -1,13 +1,19 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
+import { router } from '@inertiajs/react';
 import DisplayProfilePhoto from '@/Components/Profile/Common/DisplayProfilePhoto';
 
 export default function FriendCard({ friend, otherUser, photoPath, isRequestReceiver, onAccept, onReject, compact = false }) {
+    const handleProfileClick = () => {
+        router.visit(route('profile.view', { user: otherUser.id }));
+    };
+
     return (
         <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className={`relative group ${compact ? 'p-3' : 'p-6'} bg-gradient-to-br from-gray-800/50 via-gray-900/50 to-gray-950/50 rounded-xl backdrop-blur-sm border border-white/5 hover:border-white/10 transition-all duration-300`}
+            onClick={handleProfileClick}
+            className={`relative group ${compact ? 'p-3' : 'p-6'} bg-gradient-to-br from-gray-800/50 via-gray-900/50 to-gray-950/50 rounded-xl backdrop-blur-sm border border-white/5 hover:border-white/10 transition-all duration-300 cursor-pointer`}
         >
             <div className={`absolute inset-0 bg-grid-white/[0.02] bg-[size:20px_20px] rounded-2xl ${compact ? '' : ''}`} />
             <div className={`absolute inset-0 bg-gradient-to-br from-purple-500/10 via-transparent to-blue-500/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500 rounded-2xl ${compact ? '' : ''}`} />
@@ -36,7 +42,7 @@ export default function FriendCard({ friend, otherUser, photoPath, isRequestRece
 
                 {/* Action Buttons - Only show Accept/Reject for pending requests */}
                 {friend.status === 'pending' && isRequestReceiver && (
-                    <div className="flex justify-center space-x-2">
+                    <div className="flex justify-center space-x-2" onClick={e => e.stopPropagation()}>
                         <motion.button
                             whileHover={{ scale: 1.05 }}
                             whileTap={{ scale: 0.95 }}

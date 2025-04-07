@@ -5,6 +5,29 @@ import DisplayProfilePhoto from '@/Components/Profile/Common/DisplayProfilePhoto
 import { useState } from 'react';
 import FriendRequestButton from '@/Components/Profile/Common/FriendRequestButton';
 
+const UNIVERSITIES = [
+    'Universiti Malaysia Pahang',
+    'Universiti Malaysia Sabah',
+    'Universiti Malaysia Terengganu',
+    'Universiti Kebangsaan Malaysia',
+    'Universiti Malaya',
+    'Universiti Sains Malaysia',
+    'Universiti Putra Malaysia',
+    'Universiti Teknologi Malaysia',
+    'Universiti Utara Malaysia',
+    'Universiti Islam Antarabangsa Malaysia',
+    'Universiti Pendidikan Sultan Idris',
+    'Universiti Sains Islam Malaysia',
+    'Universiti Teknologi MARA',
+    'Universiti Malaysia Sarawak',
+    'Universiti Teknikal Malaysia Melaka',
+    'Universiti Malaysia Perlis',
+    'Universiti Tun Hussein Onn Malaysia',
+    'Universiti Sultan Zainal Abidin',
+    'Universiti Pertahanan Nasional Malaysia',
+    'Universiti Malaysia Kelantan'
+];
+
 export default function UniversityPersonalInformation({ 
     user, 
     viewOnly = false,
@@ -13,8 +36,7 @@ export default function UniversityPersonalInformation({
     friendRequestId 
 }) {
     const [isEditing, setIsEditing] = useState(false);
-    
-    console.log('University data:', user.university);
+
 
     const { data, setData, patch, processing, errors } = useForm({
         name: user?.university?.name || '',
@@ -27,13 +49,11 @@ export default function UniversityPersonalInformation({
 
     const handleSubmit = (e) => {
         e.preventDefault();
-        console.log('Submitting university data:', data);
 
         patch(route('profile.update'), {
             preserveScroll: true,
             onSuccess: () => {
                 setIsEditing(false);
-                console.log('University profile updated successfully');
             },
             onError: (errors) => {
                 console.error('Update failed:', errors);
@@ -116,9 +136,11 @@ export default function UniversityPersonalInformation({
                                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                             <Input
                                                 label="Name"
+                                                type="select"
                                                 value={data.name}
                                                 onChange={(e) => setData('name', e.target.value)}
                                                 error={errors.name}
+                                                options={UNIVERSITIES}
                                                 className="bg-white/5 border-white/10 text-white"
                                             />
                                             <Input
