@@ -4,11 +4,20 @@
     "src": "resources/css/app.css",
     "isEntry": true
   },
+  "resources/js/Pages/Welcome.jsx": {
+    "file": "assets/Welcome-pIhPbRsp.js",
+    "name": "Welcome",
+    "src": "resources/js/Pages/Welcome.jsx",
+    "isEntry": true
+  },
   "resources/js/app.jsx": {
-    "file": "assets/app-BTCs5OrP.js",
+    "file": "assets/app-jD2qdSTM.js",
     "name": "app",
     "src": "resources/js/app.jsx",
     "isEntry": true,
+    "imports": [
+      "resources/js/Pages/Welcome.jsx"
+    ],
     "css": [
       "assets/app-DxwayGoo.css"
     ]
