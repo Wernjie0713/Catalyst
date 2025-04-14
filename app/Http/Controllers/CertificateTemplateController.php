@@ -16,6 +16,8 @@ class CertificateTemplateController extends Controller
         $selectedUserIds = $request->query('users', []);
         // Get selected teams from the query parameters for team winner certificates
         $selectedTeamIds = $request->query('teams', []);
+        // Get award levels from query parameters
+        $awardLevels = $request->query('awardLevels', []);
         
         // Fix for the JSON string issue
         if (is_string($selectedUserIds) && !is_numeric($selectedUserIds) && !empty($selectedUserIds)) {
@@ -36,6 +38,14 @@ class CertificateTemplateController extends Controller
             }
         }
         
+        // Parse award levels
+        if (is_string($awardLevels) && !empty($awardLevels)) {
+            $awardLevels = json_decode($awardLevels, true);
+            if (!is_array($awardLevels)) {
+                $awardLevels = [];
+            }
+        }
+        
         // Now use the properly formatted arrays with whereIn
         $selectedUsers = collect([]);
         $selectedTeams = collect([]);
@@ -44,7 +54,12 @@ class CertificateTemplateController extends Controller
         if (!$event->is_team_event && !empty($selectedUserIds)) {
             $selectedUsers = $event->enrolledUsers()
                 ->whereIn('users.id', $selectedUserIds)
-                ->get();
+                ->get()
+                ->map(function ($user) use ($awardLevels) {
+                    // Add award level to user data
+                    $user->award_level = $awardLevels[$user->id] ?? null;
+                    return $user;
+                });
         }
         
         // For team events, get teams data
@@ -53,11 +68,12 @@ class CertificateTemplateController extends Controller
                 ->whereIn('teams.id', $selectedTeamIds)
                 ->with(['members.user'])
                 ->get()
-                ->map(function ($team) {
+                ->map(function ($team) use ($awardLevels) {
                     return [
                         'id' => $team->id,
                         'name' => $team->name,
                         'member_count' => $team->members->count(),
+                        'award_level' => $awardLevels[$team->id] ?? null,
                         'members' => $team->members->map(function ($member) {
                             return [
                                 'id' => $member->user->id,
@@ -75,6 +91,7 @@ class CertificateTemplateController extends Controller
             'event' => $event,
             'selectedUsers' => $selectedUsers,
             'selectedTeams' => $selectedTeams,
+            'awardLevels' => $awardLevels,
             'isParticipationCertificate' => $isParticipationCertificate,
             'isTeamEvent' => $event->is_team_event
         ]);
@@ -96,9 +113,11 @@ class CertificateTemplateController extends Controller
             if ($event->is_team_event) {
                 // For team events, require selected_teams
                 $validationRules['selected_teams'] = 'required|array';
+                $validationRules['award_levels'] = 'nullable|array';
             } else {
                 // For individual events, require selected_users
                 $validationRules['selected_users'] = 'required|array';
+                $validationRules['award_levels'] = 'nullable|array';
             }
         }
 
@@ -115,38 +134,74 @@ class CertificateTemplateController extends Controller
             $validated['signature_image'] = 'images/certificate/' . $signatureFileName;
         }
 
-        // Create certificate template
-        $template = $event->certificateTemplates()->create([
-            'title' => $validated['title'],
-            'body_text' => $validated['body_text'],
-            'background_image' => $backgroundImagePath,
-            'signature_image' => $validated['signature_image'] ?? null,
-            'is_participant_template' => $validated['is_participant_template'],
-            'layout_settings' => $validated['layout_settings'],
-        ]);
+        try {
+            // Create certificate template
+            $template = $event->certificateTemplates()->create([
+                'title' => $validated['title'],
+                'body_text' => $validated['body_text'],
+                'background_image' => $backgroundImagePath,
+                'signature_image' => $validated['signature_image'] ?? null,
+                'is_participant_template' => $validated['is_participant_template'],
+                'layout_settings' => $validated['layout_settings'],
+            ]);
 
-        // If it's a team event for winner certificates, pass teams instead of users
-        $selectedUserIds = [];
-        $selectedTeamIds = [];
-        
-        if (!$validated['is_participant_template']) {
-            if ($event->is_team_event && isset($validated['selected_teams'])) {
-                $selectedTeamIds = $validated['selected_teams'];
-            } else if (!$event->is_team_event && isset($validated['selected_users'])) {
-                $selectedUserIds = $validated['selected_users'];
+            // If it's a team event for winner certificates, pass teams instead of users
+            $selectedUserIds = [];
+            $selectedTeamIds = [];
+            $awardLevels = [];
+            
+            // Process award levels
+            if ($request->has('award_levels')) {
+                $awardLevelsInput = $request->input('award_levels');
+                
+                // Handle JSON string or array format
+                if (is_string($awardLevelsInput)) {
+                    try {
+                        $awardLevels = json_decode($awardLevelsInput, true);
+                        if (!is_array($awardLevels)) {
+                            $awardLevels = [];
+                        }
+                    } catch (\Exception $e) {
+                        $awardLevels = [];
+                    }
+                } else if (is_array($awardLevelsInput)) {
+                    $awardLevels = $awardLevelsInput;
+                }
+
             }
+            
+            if (!$validated['is_participant_template']) {
+                if ($event->is_team_event && isset($validated['selected_teams'])) {
+                    $selectedTeamIds = $validated['selected_teams'];
+                } else if (!$event->is_team_event && isset($validated['selected_users'])) {
+                    $selectedUserIds = $validated['selected_users'];
+                }
+            }
+
+            // Generate certificates
+            app(CertificateController::class)->generateCertificates(
+                $event, 
+                $template, 
+                $selectedUserIds,
+                $selectedTeamIds,
+                $awardLevels
+            );
+
+            // Create detailed success message
+            $certificateType = $validated['is_participant_template'] ? 'participation' : 'winner';
+            $recipientType = $event->is_team_event ? 'teams' : 'participants';
+            $recipientCount = $validated['is_participant_template'] 
+                ? $event->enrollments()->count() 
+                : ($event->is_team_event ? count($selectedTeamIds) : count($selectedUserIds));
+            
+            $successMessage = "Successfully created {$certificateType} certificates for {$recipientCount} {$recipientType}!";
+
+            return redirect()->route('events.my-events')
+                ->with('success', $successMessage);
+        } catch (\Exception $e) {
+            return redirect()->back()
+                ->with('error', 'Failed to create certificates. Please try again.');
         }
-
-        // Generate certificates
-        app(CertificateController::class)->generateCertificates(
-            $event, 
-            $template, 
-            $selectedUserIds,
-            $selectedTeamIds
-        );
-
-        return redirect()->route('events.my-events')
-            ->with('success', 'Certificates created successfully');
     }
 
     public function preview(Event $event, CertificateTemplate $template)

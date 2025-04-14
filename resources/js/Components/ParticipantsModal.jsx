@@ -12,6 +12,7 @@ const ParticipantsModal = ({ event, isOpen, onClose }) => {
     const [selectedTeams, setSelectedTeams] = useState([]);
     const [searchTerm, setSearchTerm] = useState('');
     const [activeTab, setActiveTab] = useState('users'); // 'users' or 'teams'
+    const [awardLevels, setAwardLevels] = useState({}); // Store award levels by user/team ID
 
     useEffect(() => {
         if (isOpen && event) {
@@ -43,6 +44,16 @@ const ParticipantsModal = ({ event, isOpen, onClose }) => {
             const newSelection = prev.includes(userId)
                 ? prev.filter(id => id !== userId)
                 : [...prev, userId]; 
+            
+            // If user is deselected, remove their award level
+            if (!newSelection.includes(userId)) {
+                setAwardLevels(prev => {
+                    const newLevels = {...prev};
+                    delete newLevels[userId];
+                    return newLevels;
+                });
+            }
+            
             return newSelection;
         });
     };
@@ -52,8 +63,25 @@ const ParticipantsModal = ({ event, isOpen, onClose }) => {
             const newSelection = prev.includes(teamId)
                 ? prev.filter(id => id !== teamId)
                 : [...prev, teamId]; 
+            
+            // If team is deselected, remove their award level
+            if (!newSelection.includes(teamId)) {
+                setAwardLevels(prev => {
+                    const newLevels = {...prev};
+                    delete newLevels[teamId];
+                    return newLevels;
+                });
+            }
+            
             return newSelection;
         });
+    };
+    
+    const handleAwardLevelChange = (id, level) => {
+        setAwardLevels(prev => ({
+            ...prev,
+            [id]: level
+        }));
     };
 
     // Function to create participation certificates
@@ -64,19 +92,21 @@ const ParticipantsModal = ({ event, isOpen, onClose }) => {
         }));
     };
 
-    // Function to create winner certificates
+    // Function to create winner certificates with award levels
     const handleCreateWinnerCertificates = () => {
         // Determine if we're dealing with teams or individual users
         if (event.is_team_event && activeTab === 'teams') {
             router.get(route('certificates.create', {
                 event: event.event_id,
-                teams: JSON.stringify(selectedTeams)
+                teams: JSON.stringify(selectedTeams),
+                awardLevels: JSON.stringify(awardLevels)
             }));
         } else {
             // Handle individual users
             router.get(route('certificates.create', {
                 event: event.event_id,
-                users: JSON.stringify(selectedUsers)
+                users: JSON.stringify(selectedUsers),
+                awardLevels: JSON.stringify(awardLevels)
             }));
         }
     };
@@ -248,6 +278,9 @@ const ParticipantsModal = ({ event, isOpen, onClose }) => {
 
                 {/* Participants List with Tailwind scrollbar classes */}
                 <div className="mb-6">
+                    <div className="flex items-center mb-2">
+                        <span className="text-white font-medium">Select Winners:</span>
+                    </div>
                     <div className="h-[180px] overflow-y-auto pr-2 rounded-xl border border-white/10 bg-white/5
                          [&::-webkit-scrollbar]:w-[6px]
                          [&::-webkit-scrollbar-track]:bg-white/5
@@ -301,16 +334,30 @@ const ParticipantsModal = ({ event, isOpen, onClose }) => {
                                             </div>
                                         </div>
                                                 
-                                        <button
-                                            onClick={() => handleTeamSelection(team.team_id || team.id)}
-                                            className={`px-4 py-1.5 rounded-lg text-xs font-medium transition-all duration-200 ${
-                                                selectedTeams.includes(team.team_id || team.id)
-                                                    ? 'bg-[#8B5CF6] text-white hover:bg-[#7C3AED]'
-                                                    : 'bg-white/10 text-gray-300 hover:bg-white/20 hover:text-white'
-                                            }`}
-                                        >
-                                            {selectedTeams.includes(team.team_id || team.id) ? 'Selected' : 'Select'}
-                                        </button>
+                                        <div className="flex items-center space-x-2">
+                                            {selectedTeams.includes(team.team_id || team.id) && (
+                                                <select 
+                                                    value={awardLevels[team.team_id || team.id] || ''}
+                                                    onChange={(e) => handleAwardLevelChange(team.team_id || team.id, e.target.value)}
+                                                    className="bg-white/25 border border-[#8B5CF6] rounded-lg text-white text-xs font-medium py-1.5 px-3"
+                                                >
+                                                    <option value="" className="bg-[#242031] text-white">Select Medal</option>
+                                                    <option value="gold" className="bg-[#242031] text-yellow-300">🥇 Gold Medal</option>
+                                                    <option value="silver" className="bg-[#242031] text-gray-300">🥈 Silver Medal</option>
+                                                    <option value="bronze" className="bg-[#242031] text-amber-600">🥉 Bronze Medal</option>
+                                                </select>
+                                            )}
+                                            <button
+                                                onClick={() => handleTeamSelection(team.team_id || team.id)}
+                                                className={`px-4 py-1.5 rounded-lg text-xs font-medium transition-all duration-200 ${
+                                                    selectedTeams.includes(team.team_id || team.id)
+                                                        ? 'bg-[#8B5CF6] text-white hover:bg-[#7C3AED]'
+                                                        : 'bg-white/10 text-gray-300 hover:bg-white/20 hover:text-white'
+                                                }`}
+                                            >
+                                                {selectedTeams.includes(team.team_id || team.id) ? 'Selected' : 'Select'}
+                                            </button>
+                                        </div>
                                     </div>
                                 ))}
                             </div>
@@ -362,16 +409,30 @@ const ParticipantsModal = ({ event, isOpen, onClose }) => {
                                             </div>
                                         </div>
                                                 
-                                        <button
-                                            onClick={() => handleUserSelection(user.id)}
-                                            className={`px-4 py-1.5 rounded-lg text-xs font-medium transition-all duration-200 ${
-                                                selectedUsers.includes(user.id)
-                                                    ? 'bg-[#8B5CF6] text-white hover:bg-[#7C3AED]'
-                                                    : 'bg-white/10 text-gray-300 hover:bg-white/20 hover:text-white'
-                                            }`}
-                                        >
-                                            {selectedUsers.includes(user.id) ? 'Selected' : 'Select'}
-                                        </button>
+                                        <div className="flex items-center space-x-2">
+                                            {selectedUsers.includes(user.id) && (
+                                                <select 
+                                                    value={awardLevels[user.id] || ''}
+                                                    onChange={(e) => handleAwardLevelChange(user.id, e.target.value)}
+                                                    className="bg-white/25 border border-[#8B5CF6] rounded-lg text-white text-xs font-medium py-1.5 px-3"
+                                                >
+                                                    <option value="" className="bg-[#242031] text-white">Select Medal</option>
+                                                    <option value="gold" className="bg-[#242031] text-yellow-300">🥇 Gold Medal</option>
+                                                    <option value="silver" className="bg-[#242031] text-gray-300">🥈 Silver Medal</option>
+                                                    <option value="bronze" className="bg-[#242031] text-amber-600">🥉 Bronze Medal</option>
+                                                </select>
+                                            )}
+                                            <button
+                                                onClick={() => handleUserSelection(user.id)}
+                                                className={`px-4 py-1.5 rounded-lg text-xs font-medium transition-all duration-200 ${
+                                                    selectedUsers.includes(user.id)
+                                                        ? 'bg-[#8B5CF6] text-white hover:bg-[#7C3AED]'
+                                                        : 'bg-white/10 text-gray-300 hover:bg-white/20 hover:text-white'
+                                                }`}
+                                            >
+                                                {selectedUsers.includes(user.id) ? 'Selected' : 'Select'}
+                                            </button>
+                                        </div>
                                     </div>
                                 ))}
                             </div>

@@ -12,7 +12,19 @@ export const Sidebar = () => {
   const notificationsRef = useRef(null);
   const notifications = auth.user?.notifications || [];
   
-
+  // Function to check if user has a specific role
+  const hasRole = (role) => {
+    return auth?.user?.roles?.some(r => r.name === role);
+  };
+  
+  // Check if user is admin
+  const isAdmin = hasRole('admin');
+  
+  // Check if user is lecturer
+  const isLecturer = hasRole('lecturer');
+  
+  // Check if user is a staff (admin, university, or department_staff)
+  const isStaff = hasRole('admin') || hasRole('university') || hasRole('department_staff');
   
   // Close notifications panel when clicking outside
   useEffect(() => {
@@ -54,93 +66,99 @@ export const Sidebar = () => {
   // Count unread notifications - using the actual count now
   const unreadCount = notifications.filter(n => !n.read_at).length;
 
-  // Check if user has access to reports
-  const canAccessReports = ['admin', 'university', 'department_staff'].includes(auth?.user?.role);
-
+  // Define nav items with visibility conditions
   const navItems = [
     {
       name: "Profile",
       icon: "person",
       route: "profile.show",
-      path: "/profile"
+      path: "/profile",
+      visible: !isAdmin
     },
     {
       name: "Dashboard",
       icon: "dashboard",
       route: "dashboard",
-      path: "/dashboard"
+      path: "/dashboard",
+      visible: true
     },
     {
       name: "Event",
       icon: "celebration",
       route: "events.index",
-      path: "/events"
+      path: "/events",
+      visible: true
     },
     {
       name: "MyEvents",
       icon: "work_history",
       route: "events.my-events",
-      path: "/my-events"
+      path: "/my-events",
+      visible: true
+    },
+    {
+      name: "Projects",
+      icon: "folder_supervised",
+      route: "projects.index",
+      path: "/projects",
+      visible: isAdmin || hasRole('lecturer') || hasRole('student')
+    },
+    {
+      name: "Lecturer Dashboard",
+      icon: "school",
+      route: "lecturer.dashboard",
+      path: "/lecturer/dashboard",
+      visible: isLecturer
     },
     {
       name: "Reports",
       icon: "analytics",
       route: "reports.index",
       path: "/reports",
-      staffOnly: true
+      visible: isStaff
     },
     {
-      name: "Team Grouping",
+      name: "Friend/Team",
       icon: "group",
       route: "friends.list",
-      path: "/friends"
+      path: "/friends",
+      visible: hasRole('student') || isAdmin
     },
     {
       name: "Notifications",
       icon: "notifications",
       badge: unreadCount > 0 ? unreadCount : null,
-      action: () => setIsNotificationsOpen(!isNotificationsOpen)
+      action: () => setIsNotificationsOpen(!isNotificationsOpen),
+      visible: true
     },
     {
       name: "Roles Management",
       icon: "admin_panel_settings",
       route: "admin.roles.index",
       path: "/admin/roles",
-      adminOnly: true
+      visible: isAdmin
     },
     {
       name: "Settings",
       icon: "settings",
       route: "settings.edit",
-      path: "/Setting/edit"
+      path: "/Setting/edit",
+      visible: true
     },
     {
       name: "Logout",
       icon: "logout",
       method: "post",
       route: "logout",
-      path: "/logout"
+      path: "/logout",
+      visible: true
     }
-  ].filter(Boolean); // This removes any null items
-
+  ];
 
   const logo = "/images/Catalyst.png";
 
-  const filteredNavItems = navItems.filter(item => {
-    if (item.adminOnly && !auth?.user?.roles?.some(role => role.name === 'admin')) {
-      return false;
-    }
-    if (item.staffOnly && !auth?.user?.roles?.some(role => 
-        ['admin', 'university', 'department_staff'].includes(role.name)
-    )) {
-      return false;
-    }
-    if (item.name === "Profile" && auth?.user?.roles?.some(role => role.name === 'admin')) {
-      return false;
-    }
-    return true;
-  });
-
+  // Filter nav items based on visibility
+  const filteredNavItems = navItems.filter(item => item.visible);
 
   // Get active index based on current URL
   const getActiveIndex = () => {

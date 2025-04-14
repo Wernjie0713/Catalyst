@@ -7,10 +7,11 @@ use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class Student extends Model
 {
-    use HasUuids;
+    use HasUuids, HasFactory;
 
     protected $primaryKey = 'student_id';
     public $incrementing = false;
@@ -168,5 +169,16 @@ class Student extends Model
             return route('profile.photo', ['path' => $this->profile_photo_path]);
         }
         return null;
+    }
+
+    public function teams()
+    {
+        return $this->belongsToMany(Team::class, 'team_members', 'user_id', 'team_id', 'student_id')
+                    ->where('status', 'accepted');
+    }
+
+    public function projects()
+    {
+        return $this->hasMany(Project::class, 'student_id', 'student_id');
     }
 }

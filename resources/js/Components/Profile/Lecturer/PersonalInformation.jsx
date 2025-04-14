@@ -5,6 +5,63 @@ import DisplayProfilePhoto from '@/Components/Profile/Common/DisplayProfilePhoto
 import FriendRequestButton from '@/Components/Profile/Common/FriendRequestButton';
 import { useState } from 'react';
 
+const FACULTIES = [
+    'Faculty of Computing',
+    'Faculty of Civil Engineering',
+    'Faculty of Electrical Engineering',
+    'Faculty of Chemical Engineering',
+    'Faculty of Mechanical Engineering',
+    'Faculty of Industrial Sciences & Technology',
+    'Faculty of Manufacturing Engineering',
+    'Faculty of Technology Engineering',
+    'Faculty of Business & Communication',
+    'Faculty of Industrial Management',
+    'Faculty of Applied Sciences',
+    'Faculty of Science & Technology',
+    'Faculty of Medicine',
+    'Faculty of Pharmacy',
+    'Faculty of Dentistry',
+    'Faculty of Arts & Social Sciences',
+    'Faculty of Education',
+    'Faculty of Economics & Administration',
+    'Faculty of Law',
+    'Faculty of Built Environment',
+    'Faculty of Agriculture',
+    'Faculty of Forestry',
+    'Faculty of Veterinary Medicine',
+    'Faculty of Islamic Studies',
+    'Faculty of Sports Science',
+    'Faculty of Creative Technology',
+    'Faculty of Music',
+    'Faculty of Architecture & Design',
+    'Faculty of Hotel & Tourism Management',
+    'Faculty of Health Sciences',
+    'Faculty of Defence Studies & Management'
+];
+
+const UNIVERSITIES = [
+    'Universiti Malaysia Pahang',
+    'Universiti Malaysia Sabah',
+    'Universiti Malaysia Terengganu',
+    'Universiti Kebangsaan Malaysia',
+    'Universiti Malaya',
+    'Universiti Sains Malaysia',
+    'Universiti Putra Malaysia',
+    'Universiti Teknologi Malaysia',
+    'Universiti Utara Malaysia',
+    'Universiti Islam Antarabangsa Malaysia',
+    'Universiti Pendidikan Sultan Idris',
+    'Universiti Sains Islam Malaysia',
+    'Universiti Teknologi MARA',
+    'Universiti Malaysia Sarawak',
+    'Universiti Teknikal Malaysia Melaka',
+    'Universiti Malaysia Perlis',
+    'Universiti Tun Hussein Onn Malaysia',
+    'Universiti Sultan Zainal Abidin',
+    'Universiti Pertahanan Nasional Malaysia',
+    'Universiti Malaysia Kelantan'
+];
+
 export default function LecturerPersonalInformation({ 
     user, 
     viewOnly = false,
@@ -15,7 +72,8 @@ export default function LecturerPersonalInformation({
     const [isEditing, setIsEditing] = useState(false);
 
     const { data, setData, patch, processing, errors } = useForm({    
-        department: user?.lecturer?.department || '',
+        faculty: user?.lecturer?.faculty || '',
+        university: user?.lecturer?.university || '',
         specialization: user?.lecturer?.specialization || '',
         contact_number: user?.lecturer?.contact_number || '',
         bio: user?.lecturer?.bio || '',
@@ -76,7 +134,8 @@ export default function LecturerPersonalInformation({
 
                         {/* Quick Info Grid */}
                         <div className="grid grid-cols-2 gap-4 sm:gap-6 max-w-lg mx-auto md:mx-0">
-                            <QuickInfo icon="school" label="Department" value={user?.lecturer?.department} />
+                            <QuickInfo icon="school" label="Faculty" value={user?.lecturer?.faculty} />
+                            <QuickInfo icon="domain" label="University" value={user?.lecturer?.university} />
                             <QuickInfo icon="psychology" label="Specialization" value={user?.lecturer?.specialization} />
                             <QuickInfo icon="phone" label="Contact" value={user?.lecturer?.contact_number} />
                             <QuickInfo icon="link" label="LinkedIn" value={user?.lecturer?.linkedin} isLink={true} />
@@ -106,10 +165,21 @@ export default function LecturerPersonalInformation({
                     <form onSubmit={handleSubmit} className="space-y-6">
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <Input
-                                label="Department"
-                                value={data.department}
-                                onChange={(e) => setData('department', e.target.value)}
-                                error={errors.department}
+                                label="University"
+                                type="select"
+                                value={data.university}
+                                onChange={(e) => setData('university', e.target.value)}
+                                error={errors.university}
+                                options={UNIVERSITIES}
+                                className="bg-white/5 border-white/10 text-white"
+                            />
+                            <Input
+                                label="Faculty"
+                                type="select"
+                                value={data.faculty}
+                                onChange={(e) => setData('faculty', e.target.value)}
+                                error={errors.faculty}
+                                options={FACULTIES}
                                 className="bg-white/5 border-white/10 text-white"
                             />
                             <Input
@@ -180,7 +250,8 @@ export default function LecturerPersonalInformation({
                             icon="school"
                             title="Academic Information"
                             items={[
-                                { label: "Department", value: user?.lecturer?.department },
+                                { label: "University", value: user?.lecturer?.university },
+                                { label: "Faculty", value: user?.lecturer?.faculty },
                                 { label: "Specialization", value: user?.lecturer?.specialization }
                             ]}
                         />

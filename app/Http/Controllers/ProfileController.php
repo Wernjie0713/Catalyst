@@ -117,10 +117,6 @@ class ProfileController extends Controller
                     break;
             }
 
-            Log::info('Profile updated successfully', [
-                'user_id' => $user->id,
-                'role' => $role
-            ]);
 
             return back()->with('success', 'Profile updated successfully.');
         } catch (\Exception $e) {
@@ -256,12 +252,12 @@ class ProfileController extends Controller
     private function updateLecturerProfile($user, $request): void
     {
         $request->validate([
-            'department' => 'required|string',
             'specialization' => 'required|string',
+            'faculty' => 'required|string',
         ]);
 
         $user->lecturer()->update($request->only([
-            'department', 'specialization', 'contact_number', 'bio', 'linkedin'
+            'department', 'specialization', 'contact_number', 'bio', 'linkedin', 'faculty','university'
         ]));
     }
 
@@ -325,7 +321,7 @@ class ProfileController extends Controller
 
             // Validate the incoming data
             $validated = $request->validate([
-                'name' => 'required|string|max:255',
+                'name' => 'nullable|string|max:255',
                 'location' => 'nullable|string|max:255',
                 'contact_email' => 'nullable|email|max:255',
                 'website' => 'nullable|url|max:255',

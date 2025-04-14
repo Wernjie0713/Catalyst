@@ -15,7 +15,7 @@ export default function Edit({ event, auth }) {
     
     const { data, setData, post, errors, processing } = useForm({
         title: event.title || '',
-        date: event.date || '',
+        date: new Date(event.date).toISOString().split('T')[0] || '',
         time: new Date(event.time).toTimeString().slice(0, 5) || '',
         location: event.location || '',
         description: event.description || '',
@@ -220,7 +220,7 @@ export default function Edit({ event, auth }) {
                                         type="date"
                                         name="date"
                                         value={data.date}
-                                        className="mt-1 block w-full bg-[#2A2A3A] border-gray-600 focus:border-blue-500 focus:ring-blue-500 rounded-lg text-white"
+                                        className="mt-1 block w-full bg-[#2A2A3A] border-gray-600 focus:border-blue-500 focus:ring-blue-500 rounded-lg text-white [&::-webkit-calendar-picker-indicator]:filter [&::-webkit-calendar-picker-indicator]:invert"
                                         onChange={handleChange}
                                         required
                                     />
@@ -234,7 +234,7 @@ export default function Edit({ event, auth }) {
                                         type="time"
                                         name="time"
                                         value={data.time}
-                                        className="mt-1 block w-full bg-[#2A2A3A] border-gray-600 focus:border-blue-500 focus:ring-blue-500 rounded-lg text-white"
+                                        className="mt-1 block w-full bg-[#2A2A3A] border-gray-600 focus:border-blue-500 focus:ring-blue-500 rounded-lg text-white [&::-webkit-calendar-picker-indicator]:filter [&::-webkit-calendar-picker-indicator]:invert"
                                         onChange={handleChange}
                                         required
                                     />
@@ -386,7 +386,10 @@ export default function Edit({ event, auth }) {
                             )}
 
                             {/* Submit Button */}
-                            <div className="flex items-center justify-end mt-6 pt-4 border-t border-gray-700">
+                            <div className="flex items-center justify-end mt-6 pt-4 border-t border-gray-700 space-x-4">
+                                <BackButton href={route('events.my-events')}>
+                                    Cancel
+                                </BackButton>
                                 <motion.button
                                     whileHover={{ scale: 1.02 }}
                                     whileTap={{ scale: 0.98 }}

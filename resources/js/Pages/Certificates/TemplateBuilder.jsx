@@ -8,7 +8,7 @@ const fontImportStyle = `
     @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&display=swap');
 `;
 
-export default function TemplateBuilder({ event, selectedUsers = [], selectedTeams = [], isParticipationCertificate = true, isTeamEvent = false }) {
+export default function TemplateBuilder({ event, selectedUsers = [], selectedTeams = [], awardLevels = {}, isParticipationCertificate = true, isTeamEvent = false }) {
     // Remove duplicate teams by team_id
     const uniqueTeams = selectedTeams.reduce((unique, team) => {
         const teamId = team.id || team.team_id;
@@ -44,6 +44,7 @@ export default function TemplateBuilder({ event, selectedUsers = [], selectedTea
         },
         selected_users: isParticipationCertificate || isTeamEvent ? [] : selectedUsers.map(user => user.id),
         selected_teams: isParticipationCertificate ? [] : uniqueTeams.map(team => team.id || team.team_id),
+        award_levels: awardLevels,
     });
 
 
@@ -64,10 +65,42 @@ export default function TemplateBuilder({ event, selectedUsers = [], selectedTea
         e.preventDefault();
 
         post(route('certificates.store', event.event_id), {
-            onSuccess: () => {
-                console.log('Certificate template created successfully');
+            onSuccess: () => {                
+                // Create a toast notification for success
+                const toast = document.createElement('div');
+                toast.className = 'fixed top-4 right-4 bg-green-500 text-white p-4 rounded-lg shadow-lg z-50 animate-bounce';
+                toast.innerHTML = `
+                    <div class="flex items-center">
+                        <span class="material-symbols-outlined mr-2">check_circle</span>
+                        <p>Certificates created and assigned successfully!</p>
+                    </div>
+                `;
+                document.body.appendChild(toast);
+                
+                // Remove notification after 5 seconds
+                setTimeout(() => {
+                    toast.classList.add('opacity-0', 'transition-opacity', 'duration-500');
+                    setTimeout(() => toast.remove(), 500);
+                }, 5000);
             },
-            onError: (errors) => {
+            onError: (errors) => {                
+                // Create a toast notification for error
+                const toast = document.createElement('div');
+                toast.className = 'fixed top-4 right-4 bg-red-500 text-white p-4 rounded-lg shadow-lg z-50 animate-bounce';
+                toast.innerHTML = `
+                    <div class="flex items-center">
+                        <span class="material-symbols-outlined mr-2">error</span>
+                        <p>Failed to create certificates. Please try again.</p>
+                    </div>
+                `;
+                document.body.appendChild(toast);
+                
+                // Remove notification after 5 seconds
+                setTimeout(() => {
+                    toast.classList.add('opacity-0', 'transition-opacity', 'duration-500');
+                    setTimeout(() => toast.remove(), 500);
+                }, 5000);
+                
                 console.error('Error creating certificate template:', errors);
             }
         });
@@ -253,7 +286,20 @@ export default function TemplateBuilder({ event, selectedUsers = [], selectedTea
                                             <ul className="space-y-3">
                                                 {uniqueTeams.map(team => (
                                                     <li key={team.id || team.team_id} className="text-gray-300">
-                                                        <span className="font-medium">{team.name || team.team_name}</span>
+                                                        <div className="flex justify-between">
+                                                            <span className="font-medium">{team.name || team.team_name}</span>
+                                                            {data.award_levels[team.id || team.team_id] && (
+                                                                <span className={`text-xs px-2 py-1 rounded-full ${
+                                                                    data.award_levels[team.id || team.team_id] === 'gold' ? 
+                                                                        'bg-yellow-500/30 text-yellow-200' : 
+                                                                    data.award_levels[team.id || team.team_id] === 'silver' ? 
+                                                                        'bg-gray-400/30 text-gray-200' : 
+                                                                        'bg-amber-700/30 text-amber-200'
+                                                                }`}>
+                                                                    {data.award_levels[team.id || team.team_id].charAt(0).toUpperCase() + data.award_levels[team.id || team.team_id].slice(1)}
+                                                                </span>
+                                                            )}
+                                                        </div>
                                                         <div className="mt-1 ml-4 text-sm text-gray-400">
                                                             {team.members ? (
                                                                 <span>
@@ -284,7 +330,20 @@ export default function TemplateBuilder({ event, selectedUsers = [], selectedTea
                                             <ul className="space-y-2">
                                                 {selectedUsers.map(user => (
                                                     <li key={user.id} className="text-gray-300">
-                                                        {user.name}
+                                                        <div className="flex justify-between">
+                                                            <span>{user.name}</span>
+                                                            {data.award_levels[user.id] && (
+                                                                <span className={`text-xs px-2 py-1 rounded-full ${
+                                                                    data.award_levels[user.id] === 'gold' ? 
+                                                                        'bg-yellow-500/30 text-yellow-200' : 
+                                                                    data.award_levels[user.id] === 'silver' ? 
+                                                                        'bg-gray-400/30 text-gray-200' : 
+                                                                        'bg-amber-700/30 text-amber-200'
+                                                                }`}>
+                                                                    {data.award_levels[user.id].charAt(0).toUpperCase() + data.award_levels[user.id].slice(1)}
+                                                                </span>
+                                                            )}
+                                                        </div>
                                                     </li>
                                                 ))}
                                             </ul>
@@ -310,6 +369,15 @@ export default function TemplateBuilder({ event, selectedUsers = [], selectedTea
                                     type="hidden" 
                                     name="selected_teams" 
                                     value={JSON.stringify(selectedTeams.map(team => team.id || team.team_id))} 
+                                />
+                            )}
+
+                            {/* Add hidden field for award levels */}
+                            {!isParticipationCertificate && (
+                                <input 
+                                    type="hidden" 
+                                    name="award_levels" 
+                                    value={JSON.stringify(data.award_levels)} 
                                 />
                             )}
 

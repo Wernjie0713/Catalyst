@@ -18,6 +18,7 @@ return new class extends Migration
             $table->string('status')->default('issued');
             $table->timestamp('issue_date');
             $table->timestamp('expiry_date')->nullable();
+            $table->enum('award_level', ['gold', 'silver', 'bronze'])->nullable();
             $table->json('certificate_data')->nullable();
             $table->timestamps();
             $table->softDeletes();

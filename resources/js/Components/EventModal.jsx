@@ -330,9 +330,16 @@ export default function EventModal({ event: initialEvent, isOpen, onClose, onEve
                                     {isLoadingTeams ? (
                                         <div className="text-gray-400">Loading available teams...</div>
                                     ) : availableTeams.length === 0 ? (
-                                        <div className="text-amber-400">
-                                            You don't have any eligible teams that meet the size requirements.
-                                            Create a team or adjust your existing team before enrolling.
+                                        <div>
+                                            <div className="text-amber-400">
+                                                You don't have any eligible teams that meet the size requirements.
+                                                Create a team or adjust your existing team before enrolling.
+                                            </div>
+                                        <div>
+                                            <span className="text-xs text-red-400 mt-1">
+                                                *Only Team Leaders can unenroll their teams.
+                                            </span>
+                                            </div>
                                         </div>
                                     ) : (
                                         <select

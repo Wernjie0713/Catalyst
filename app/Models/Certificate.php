@@ -24,13 +24,15 @@ class Certificate extends Model
         'issue_date',
         'expiry_date',
         'certificate_data',
-        'team_id'
+        'team_id',
+        'award_level'
     ];
 
     protected $casts = [
         'certificate_data' => 'array',
         'issue_date' => 'datetime',
         'expiry_date' => 'datetime',
+        'award_level' => 'string'
     ];
 
     protected static function boot()

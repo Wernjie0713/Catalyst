@@ -2,6 +2,7 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, usePage, Link } from '@inertiajs/react';
 import { motion } from 'framer-motion';
 import TiltedEventCard from '@/Components/TiltedEventCard';
+import FriendSuggestionCard from '@/Components/FriendSuggestionCard';
 import DisplayProfilePhoto from '@/Components/Profile/Common/DisplayProfilePhoto';
 
 export default function Dashboard() {
@@ -117,7 +118,7 @@ export default function Dashboard() {
                         </div>
 
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                            {recentEvents?.map((event) => (
+                            {recentEvents?.filter(event => event.status !== 'Completed').map((event) => (
                                 <motion.div 
                                     key={event.event_id}
                                     style={{ opacity: 0 }}
@@ -139,6 +140,7 @@ export default function Dashboard() {
                         style={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         transition={{ delay: 0.3, duration: 0.7 }}
+                        className="mt-12"
                     >
                         <div className="flex items-center justify-between mb-6">
                             <h2 className="text-xl font-semibold text-white">Friend Suggestions</h2>
@@ -146,57 +148,11 @@ export default function Dashboard() {
 
                         <div className="friend-suggestions grid grid-cols-1 md:grid-cols-3 gap-4">
                             {friendSuggestions.map((user, index) => (
-                                <motion.div
+                                <FriendSuggestionCard 
                                     key={user.id}
-                                    style={{ opacity: 0, y: 20 }}
-                                    animate={{ opacity: 1, y: 0 }}
-                                    transition={{
-                                        duration: 0.5,
-                                        delay: 0.2 + index * 0.1, // Stagger the animations
-                                    }}
-                                >
-                                    <Link
-                                        href={route('profile.view', user.id)}
-                                        className="group relative overflow-hidden block"
-                                    >
-                                        <div className="friend-card relative p-6 bg-gradient-to-br from-gray-800/80 via-gray-900/90 to-gray-950/95 rounded-2xl backdrop-blur-md border border-white/5 hover:border-white/10 transition-all duration-300">
-                                            {/* Background Pattern Effect */}
-                                            <div className="absolute inset-0 bg-grid-white/[0.02] bg-[size:20px_20px]" />
-                                            <div className="absolute inset-0 bg-gradient-to-br from-purple-500/10 via-transparent to-blue-500/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-                                            
-                                            {/* Content */}
-                                            <div className="relative flex items-center space-x-4">
-                                                {/* Profile Photo */}
-                                                <div className="relative">
-                                                    <div className="absolute -inset-1 bg-gradient-to-br from-purple-500/20 to-blue-500/20 rounded-full blur-sm opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                                                    <div className="relative">
-                                                        <DisplayProfilePhoto profilePhotoPath={user.profile_picture} />
-                                                    </div>
-                                                </div>
-
-                                                {/* User Info */}
-                                                <div className="flex-1">
-                                                    <h3 className="text-lg font-medium text-white group-hover:text-purple-200 transition-colors duration-300">
-                                                        {user.name}
-                                                    </h3>
-                                                    <p className="text-sm text-gray-400 group-hover:text-gray-300 transition-colors duration-300 flex items-center mt-1">
-                                                        <span className="material-symbols-outlined text-base mr-1">
-                                                            person
-                                                        </span>
-                                                        View Profile
-                                                    </p>
-                                                </div>
-
-                                                {/* Subtle Arrow */}
-                                                <div className="opacity-0 group-hover:opacity-100 transition-all duration-300 transform group-hover:translate-x-1">
-                                                    <span className="material-symbols-outlined text-purple-400">
-                                                        arrow_forward
-                                                    </span>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </Link>
-                                </motion.div>
+                                    user={user}
+                                    index={index}
+                                />
                             ))}
                         </div>
                     </motion.div>

@@ -1,0 +1,1 @@
+import{j as r,$ as a}from"./index.esm-DYHbi2wE.js";const n=({href:t,children:e})=>r.jsx(a,{href:t,className:"inline-flex items-center justify-center px-6 py-3 bg-gray-700 text-white rounded-lg hover:bg-gray-800 font-medium shadow-lg shadow-gray-500/20 transition-all duration-200",children:e});export{n as B};

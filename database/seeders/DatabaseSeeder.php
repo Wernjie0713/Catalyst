@@ -37,6 +37,15 @@ class DatabaseSeeder extends Seeder
             'cert_generate',
             'cert_view',
             
+            // Project abilities
+            'project_create',
+            'project_view',
+            'project_edit',
+            'project_update',
+            'project_delete',
+            'view-lecturer-dashboard',
+            'view-project-analytics',
+            
             // Other abilities
             'view_otherprofile',
             'report_view',
@@ -106,13 +115,26 @@ class DatabaseSeeder extends Seeder
 
         // Assign admin role to first user
         Bouncer::assign('admin')->to($adminUser);
-        
-        // Give admin ability to admin role
-        Bouncer::allow('admin')->to('admin');
-        
+    
         // Give all abilities to admin
         foreach ($abilities as $ability) {
             Bouncer::allow('admin')->to($ability);
         }
+
+        // After creating roles, assign project abilities
+        Bouncer::allow('student')->to([
+            'project_create',
+            'project_view',
+            'project_update'
+        ]);
+
+        Bouncer::allow('lecturer')->to([
+            'project_view',
+            'project_edit',
+            'project_update',
+            'view-lecturer-dashboard',
+            'view-project-analytics'
+        ]);
+
     }
 }

@@ -17,12 +17,13 @@ class Lecturer extends Model
     protected $fillable = [
         'lecturer_id',
         'user_id',
-        'department',
         'specialization',
         'contact_number',
         'linkedin',
         'bio',
-        'profile_photo_path'
+        'profile_photo_path',
+        'faculty',
+        'university'
     ];
 
     public function user()

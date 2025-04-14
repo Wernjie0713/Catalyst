@@ -99,7 +99,7 @@ const TiltedEventCard = ({ event: initialEvent, onEventUpdate }) => {
 
             {/* Event Information Overlay */}
             <motion.div
-              className="absolute bottom-0 left-0 w-full p-2.5 text-white"
+              className="absolute bottom-0 left-0 w-full p-2.5 pl-4 text-white"
               style={{ transform: "translateZ(30px)" }}
             >
               <div className="space-y-0.5">

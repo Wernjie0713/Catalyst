@@ -1,0 +1,1 @@
+import{j as o}from"./index.esm-DYHbi2wE.js";import{P as r}from"./ProjectAnalytics-Bni6uxRp.js";import"./AuthenticatedLayout-C7BwTL0r.js";import"./proxy-oAEZJcFV.js";import"./DocumentTextIcon-Db6R066H.js";function e(t){return o.jsx(r,{...t})}const p=Object.freeze(Object.defineProperty({__proto__:null,default:e},Symbol.toStringTag,{value:"Module"}));export{p as _};

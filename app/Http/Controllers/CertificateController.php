@@ -24,7 +24,7 @@ class CertificateController extends Controller
         return response()->json($certificates);
     }
 
-    public function generateCertificates(Event $event, CertificateTemplate $template, array $selectedUserIds = [], array $selectedTeamIds = [])
+    public function generateCertificates(Event $event, CertificateTemplate $template, array $selectedUserIds = [], array $selectedTeamIds = [], array $awardLevels = [])
     {
         try {
             // Handle participation certificates
@@ -42,15 +42,25 @@ class CertificateController extends Controller
                 if ($event->is_team_event && !empty($selectedTeamIds)) {
                     // For team events, get all members of the selected teams
                     $users = collect();
+                    $teamAwardLevels = []; // Store team award levels to assign to users
+                    
                     foreach ($selectedTeamIds as $teamId) {
                         $team = Team::find($teamId);
                         if ($team) {
+                            // Get award level for the team
+                            $awardLevel = $awardLevels[$teamId] ?? null;
+                            
                             // Get accepted team members
                             $teamMembers = $team->members()
                                 ->where('status', 'accepted')
                                 ->with('user.student')
                                 ->get()
                                 ->pluck('user');
+                            
+                            // Store award level for each team member
+                            foreach ($teamMembers as $member) {
+                                $teamAwardLevels[$member->id] = $awardLevel;
+                            }
                             
                             $users = $users->merge($teamMembers);
                         }
@@ -79,6 +89,7 @@ class CertificateController extends Controller
                     // Get team information if applicable
                     $teamInfo = null;
                     $teamId = null;
+                    $awardLevel = null;
                     
                     if ($event->is_team_event) {
                         // For team-based events, find the user's team
@@ -92,6 +103,10 @@ class CertificateController extends Controller
                                         'team_name' => $team->name
                                     ];
                                     $teamId = $team->id;
+                                    // Get award level from stored team award levels
+                                    $awardLevel = isset($teamAwardLevels) ? $teamAwardLevels[$user->id] : ($awardLevels[$team->id] ?? null);
+                                    
+                                    
                                     break;
                                 }
                             }
@@ -111,8 +126,11 @@ class CertificateController extends Controller
                                 $teamId = $teamData->team->id;
                             }
                         }
-                    }
-
+                    } else if (!$template->is_participant_template) {
+                        // For individual winner certificates, get award level from input
+                        $awardLevel = $awardLevels[$user->id] ?? null;
+                        
+                    
                     // Create certificate record
                     Certificate::create([
                         'certificate_id' => Str::uuid(),
@@ -123,13 +141,15 @@ class CertificateController extends Controller
                         'status' => 'issued',
                         'issue_date' => now(),
                         'team_id' => $teamId,
+                        'award_level' => $awardLevel,
                         'certificate_data' => [
                             'student_name' => $user->name,
                             'event_name' => $event->title,
                             'body_text' => $template->body_text,
                             'is_winner' => !$template->is_participant_template,
                             'is_team_event' => $event->is_team_event,
-                            'team_info' => $teamInfo
+                            'team_info' => $teamInfo,
+                            'award_level' => $awardLevel,
                         ],
                     ]);
                 }
@@ -137,7 +157,6 @@ class CertificateController extends Controller
 
             return true;
         } catch (\Exception $e) {
-            \Log::error('Certificate generation failed: ' . $e->getMessage());
             throw $e;
         }
     }
@@ -167,7 +186,6 @@ class CertificateController extends Controller
                 ['Content-Type' => 'application/pdf']
             )->deleteFileAfterSend(true); // This will clean up the temporary file
         } catch (\Exception $e) {
-            \Log::error('Certificate download failed: ' . $e->getMessage());
             return back()->with('error', 'Failed to generate certificate. Please try again.');
         }
     }

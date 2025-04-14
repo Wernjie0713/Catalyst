@@ -138,39 +138,16 @@ class EnrollmentController extends Controller
             return back()->with('success', 'Successfully enrolled your team in the event.');
         } catch (\Exception $e) {
             DB::rollBack();
-            Log::error('Team enrollment failed', [
-                'error' => $e->getMessage(),
-                'user_id' => $user->id,
-                'team_id' => $teamId,
-                'event_id' => $event->event_id
-            ]);
             return back()->with('error', 'Failed to enroll team. Please try again.');
         }
     }
 
     private function sendEnrollmentNotification($user, $event, $team = null)
     {
-        try {
-            Log::info('Attempting to send notification', [
-                'user_id' => $user->id,
-                'event_id' => $event->event_id,
-                'team_id' => $team?->id,
-                'user_type' => get_class($user)
-            ]);
-            
+        try {  
             $notification = new EventReminderNotification($event, $team);
             $user->notify($notification);
-            
-            Log::info('Notification sent successfully');
         } catch (\Exception $e) {
-            Log::error('Notification failed', [
-                'error' => $e->getMessage(),
-                'file' => $e->getFile(),
-                'line' => $e->getLine(),
-                'user_id' => $user->id,
-                'event_id' => $event->event_id,
-                'team_id' => $team?->id
-            ]);
             report($e);
         }
     }

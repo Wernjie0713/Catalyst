@@ -3,6 +3,7 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Line, Pie } from 'react-chartjs-2';
 import { Chart as ChartJS, registerables } from 'chart.js';
 import { useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 
 ChartJS.register(...registerables);
 
@@ -15,6 +16,66 @@ export default function Index({ auth }) {
     // Keep only the activeMetric state
     const [activeMetric, setActiveMetric] = useState(null);
 
+    // Animation variants
+    const pageVariants = {
+        initial: { opacity: 0 },
+        animate: { 
+            opacity: 1,
+            transition: { 
+                duration: 0.5,
+                when: "beforeChildren",
+                staggerChildren: 0.1
+            }
+        }
+    };
+
+    const headerVariants = {
+        initial: { opacity: 0, y: -20 },
+        animate: { 
+            opacity: 1, 
+            y: 0,
+            transition: { duration: 0.5 }
+        }
+    };
+
+    const cardVariants = {
+        initial: { opacity: 0, y: 20 },
+        animate: i => ({
+            opacity: 1,
+            y: 0,
+            transition: {
+                delay: i * 0.1,
+                duration: 0.5
+            }
+        }),
+        hover: {
+            scale: 1.05,
+            boxShadow: "0 10px 25px -5px rgba(76, 29, 149, 0.2)",
+            transition: { duration: 0.2 }
+        },
+        tap: {
+            scale: 0.98,
+            transition: { duration: 0.1 }
+        }
+    };
+
+    const chartVariants = {
+        initial: { opacity: 0, y: 30 },
+        animate: i => ({
+            opacity: 1, 
+            y: 0,
+            transition: { 
+                delay: 0.2 + (i * 0.2),
+                duration: 0.6,
+                ease: "easeOut"
+            }
+        }),
+        hover: {
+            y: -5,
+            transition: { duration: 0.3 }
+        }
+    };
+
     // Function to handle metric card click
     const handleMetricClick = (metricType) => {
         setActiveMetric(activeMetric === metricType ? null : metricType);
@@ -22,55 +83,76 @@ export default function Index({ auth }) {
 
     return (
         <AuthenticatedLayout user={auth.user}>
-            <div className="p-6 bg-[#1e1b4b] text-white min-h-screen">
+            <motion.div 
+                className="p-6 bg-[#1e1b4b] text-white min-h-screen"
+                initial="initial"
+                animate="animate"
+                variants={pageVariants}
+            >
                 {/* Header without Time Range Selector */}
-                <div className="mb-8">
+                <motion.div 
+                    className="mb-8"
+                    variants={headerVariants}
+                >
                     <h1 className="text-3xl font-bold mb-2">{report?.data?.name}</h1>
                     <p className="text-gray-400">
                         Generated on {report?.data?.generatedDate}
                     </p>
-                </div>
+                </motion.div>
 
                 {/* Metrics Grid */}
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-                    <MetricCard 
+                    <AnimatedMetricCard 
                         label="Total Users" 
                         value={metrics.total_users}
                         icon="people"
                         description="All system users"
                         isActive={activeMetric === 'users'}
                         onClick={() => handleMetricClick('users')}
+                        index={0}
+                        variants={cardVariants}
                     />
-                    <MetricCard 
+                    <AnimatedMetricCard 
                         label="Total Students" 
                         value={metrics.total_students}
                         icon="school"
                         description="Registered students"
                         isActive={activeMetric === 'students'}
                         onClick={() => handleMetricClick('students')}
+                        index={1}
+                        variants={cardVariants}
                     />
-                    <MetricCard 
+                    <AnimatedMetricCard 
                         label="Total Events" 
                         value={metrics.total_events}
                         icon="calendar_today"
                         description="Active events"
                         isActive={activeMetric === 'events'}
                         onClick={() => handleMetricClick('events')}
+                        index={2}
+                        variants={cardVariants}
                     />
-                    <MetricCard 
+                    <AnimatedMetricCard 
                         label="Universities" 
                         value={metrics.total_universities}
                         icon="account_balance"
                         description="Registered institutions"
                         isActive={activeMetric === 'universities'}
                         onClick={() => handleMetricClick('universities')}
+                        index={3}
+                        variants={cardVariants}
                     />
                 </div>
 
                 {/* Charts Grid */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     {/* Monthly Events Chart */}
-                    <div className="bg-[#24225a] rounded-lg shadow-lg overflow-hidden hover:shadow-xl transition-all duration-300">
+                    <motion.div 
+                        className="bg-[#24225a] rounded-lg shadow-lg overflow-hidden hover:shadow-xl transition-all duration-300"
+                        variants={chartVariants}
+                        custom={0}
+                        whileHover="hover"
+                    >
                         <div className="p-6 border-b border-white/10">
                             <h3 className="text-xl font-semibold">Monthly Events</h3>
                             <p className="text-gray-400 text-sm mt-1">
@@ -127,15 +209,24 @@ export default function Index({ auth }) {
                                                     font: { size: 12 }
                                                 }
                                             }
+                                        },
+                                        animation: {
+                                            duration: 2000,
+                                            easing: 'easeOutQuart'
                                         }
                                     }}
                                 />
                             </div>
                         </div>
-                    </div>
+                    </motion.div>
 
                     {/* University Distribution Chart */}
-                    <div className="bg-[#24225a] rounded-lg shadow-lg overflow-hidden hover:shadow-xl transition-all duration-300">
+                    <motion.div 
+                        className="bg-[#24225a] rounded-lg shadow-lg overflow-hidden hover:shadow-xl transition-all duration-300"
+                        variants={chartVariants}
+                        custom={1}
+                        whileHover="hover"
+                    >
                         <div className="p-6 border-b border-white/10">
                             <h3 className="text-xl font-semibold">University Distribution</h3>
                             <p className="text-gray-400 text-sm mt-1">
@@ -178,15 +269,62 @@ export default function Index({ auth }) {
                                                     }
                                                 }
                                             }
+                                        },
+                                        animation: {
+                                            duration: 1500,
+                                            animateRotate: true,
+                                            animateScale: true
                                         }
                                     }}
                                 />
                             </div>
                         </div>
-                    </div>
+                    </motion.div>
+                </div>
+            </motion.div>
+        </AuthenticatedLayout>
+    );
+}
+
+function AnimatedMetricCard({ label, value, icon, description, isActive, onClick, index, variants }) {
+    return (
+        <motion.div 
+            className={`bg-[#24225a] p-6 rounded-lg shadow-lg cursor-pointer
+                transition-all duration-300
+                ${isActive ? 'ring-2 ring-purple-500 shadow-purple-500/20' : ''}
+            `}
+            onClick={onClick}
+            variants={variants}
+            custom={index}
+            whileHover="hover"
+            whileTap="tap"
+        >
+            <div className="flex items-center justify-between mb-4">
+                <div className={`p-3 bg-purple-900/50 rounded-lg transition-all duration-300
+                    ${isActive ? 'bg-purple-600/50' : 'bg-purple-900/50'}
+                `}>
+                    <span className="material-symbols-outlined text-purple-400 text-2xl">{icon}</span>
                 </div>
             </div>
-        </AuthenticatedLayout>
+            <motion.p 
+                className="text-3xl font-bold mb-2"
+                initial={{ opacity: 0, scale: 0.8 }}
+                animate={{ 
+                    opacity: 1, 
+                    scale: 1,
+                    transition: {
+                        delay: 0.1 + (index * 0.1),
+                        duration: 0.4,
+                        type: "spring",
+                        stiffness: 100
+                    }
+                }}
+            >
+                {value || 0}
+            </motion.p>
+            <p className="text-gray-400 text-sm mb-1">{label}</p>
+            <p className="text-xs text-gray-500">{description}</p>
+        </motion.div>
     );
 }
 

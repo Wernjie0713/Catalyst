@@ -5,9 +5,10 @@ import { useState } from 'react';
 import EventModal from '@/Components/EventModal';
 import ParticipantsModal from '@/Components/ParticipantsModal';
 import ParticipantListModal from '@/Components/ParticipantListModal';
+import { motion, AnimatePresence } from 'framer-motion';
 
 const TabButton = ({ active, onClick, children }) => (
-    <button
+    <motion.button
         onClick={onClick}
         className={`
             relative px-6 py-3 text-sm font-medium transition-all duration-200 ease-in-out
@@ -17,12 +18,19 @@ const TabButton = ({ active, onClick, children }) => (
             }
             focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:ring-offset-gray-900 rounded-md
         `}
+        whileTap={{ scale: 0.95 }}
     >
         {children}
         {active && (
-            <span className="absolute bottom-0 left-0 w-full h-0.5 bg-indigo-500 rounded-full" />
+            <motion.span 
+                className="absolute bottom-0 left-0 w-full h-0.5 bg-indigo-500 rounded-full" 
+                layoutId="tabIndicator"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ duration: 0.3 }}
+            />
         )}
-    </button>
+    </motion.button>
 );
 
 const MyEvents = ({ organizedEvents, enrolledEvents }) => {
@@ -34,6 +42,62 @@ const MyEvents = ({ organizedEvents, enrolledEvents }) => {
     const [activeTab, setActiveTab] = useState('organized');
     const [selectedParticipants, setSelectedParticipants] = useState([]);
     const [showCertificateOptions, setShowCertificateOptions] = useState(false);
+
+    // Animation variants
+    const containerVariants = {
+        hidden: { opacity: 0 },
+        visible: {
+            opacity: 1,
+            transition: {
+                when: "beforeChildren",
+                staggerChildren: 0.1
+            }
+        }
+    };
+
+    const itemVariants = {
+        hidden: { y: 20, opacity: 0 },
+        visible: {
+            y: 0,
+            opacity: 1,
+            transition: {
+                type: "spring",
+                stiffness: 100
+            }
+        }
+    };
+
+    const cardVariants = {
+        hidden: { opacity: 0, y: 20 },
+        visible: i => ({
+            opacity: 1,
+            y: 0,
+            transition: {
+                delay: i * 0.05,
+                duration: 0.5,
+                ease: "easeOut"
+            }
+        }),
+        hover: {
+            y: -5,
+            transition: {
+                duration: 0.2,
+                ease: "easeOut"
+            }
+        }
+    };
+
+    const fadeVariants = {
+        hidden: { opacity: 0 },
+        visible: {
+            opacity: 1,
+            transition: { duration: 0.4 }
+        },
+        exit: {
+            opacity: 0,
+            transition: { duration: 0.2 }
+        }
+    };
 
     const handleViewEvent = (event) => {
         setSelectedEvent(event);
@@ -48,11 +112,19 @@ const MyEvents = ({ organizedEvents, enrolledEvents }) => {
     };
 
     const EventTable = ({ events, showEditButton = false }) => (
-        <div className="bg-white/5 backdrop-blur-sm border border-gray-800 shadow-xl rounded-xl overflow-hidden">
+        <motion.div 
+            className="bg-white/5 backdrop-blur-sm border border-gray-800 shadow-xl rounded-xl overflow-hidden"
+            variants={containerVariants}
+            initial="hidden"
+            animate="visible"
+        >
             {events.length === 0 ? (
-                <div className="p-8 text-gray-400 text-center">
+                <motion.div 
+                    className="p-8 text-gray-400 text-center"
+                    variants={itemVariants}
+                >
                     <p className="text-lg">No events found.</p>
-                </div>
+                </motion.div>
             ) : (
                 <>
                     {/* Desktop Table View */}
@@ -78,8 +150,14 @@ const MyEvents = ({ organizedEvents, enrolledEvents }) => {
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-gray-800/50">
-                                {events.map((event) => (
-                                    <tr key={event.event_id} className="hover:bg-gray-800/50 transition-colors">
+                                {events.map((event, index) => (
+                                    <motion.tr 
+                                        key={event.event_id} 
+                                        className="hover:bg-gray-800/50 transition-colors"
+                                        custom={index}
+                                        variants={cardVariants}
+                                        whileHover="hover"
+                                    >
                                         <td className="px-6 py-4 whitespace-nowrap">
                                             <div className="flex items-center space-x-2">
                                                 <div>
@@ -119,7 +197,9 @@ const MyEvents = ({ organizedEvents, enrolledEvents }) => {
                                                 <div className="flex items-center">
                                                     {!event.is_external && (
                                                         <>
-                                                            <button
+                                                            <motion.button
+                                                                whileHover={{ scale: 1.1 }}
+                                                                whileTap={{ scale: 0.95 }}
                                                                 onClick={() => {
                                                                     setSelectedEvent(event);
                                                                     setIsParticipantListModalOpen(true);
@@ -128,20 +208,7 @@ const MyEvents = ({ organizedEvents, enrolledEvents }) => {
                                                                 title="View Participants"
                                                             >
                                                                 <span className="material-symbols-outlined text-base">group</span>
-                                                            </button>
-                                                            {event.status === 'Completed' && (
-                                                                <button
-                                                                    onClick={() => {
-                                                                        setSelectedEvent(event);
-                                                                        setShowCertificateOptions(true);
-                                                                        setIsParticipantsModalOpen(true);
-                                                                    }}
-                                                                    className="text-yellow-400 hover:text-yellow-300 transition-colors mr-2"
-                                                                    title="Assign Certificates"
-                                                                >
-                                                                    <span className="material-symbols-outlined text-base">workspace_premium</span>
-                                                                </button>
-                                                            )}
+                                                            </motion.button>
                                                         </>
                                                     )}
                                                     <span className="text-sm text-gray-400">
@@ -160,38 +227,61 @@ const MyEvents = ({ organizedEvents, enrolledEvents }) => {
                                             )}
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                            <button
+                                        {activeTab === 'organized' && event.status === 'Completed' && !event.is_external && (
+                                                <motion.button
+                                                    whileHover={{ scale: 1.1 }}
+                                                    whileTap={{ scale: 0.95 }}
+                                                    onClick={() => {
+                                                        setSelectedEvent(event);
+                                                        setShowCertificateOptions(true);
+                                                        setIsParticipantsModalOpen(true);
+                                                    }}
+                                                    className="text-yellow-400 hover:text-yellow-300 transition-colors mr-4"
+                                                    title="Assign Certificates"
+                                                >
+                                                    <span className="material-symbols-outlined text-base">workspace_premium</span>
+                                                </motion.button>
+                                            )}
+                                            <motion.button
+                                                whileHover={{ scale: 1.05 }}
+                                                whileTap={{ scale: 0.95 }}
                                                 onClick={() => handleViewEvent(event)}
                                                 className="text-blue-400 hover:text-blue-300 transition-colors mr-4"
                                             >
                                                 View
-                                            </button>
+                                            </motion.button>
                                             {activeTab === 'enrolled' && event.status === 'Completed' && can.event_feedback && (
-                                                <a
+                                                <motion.a
+                                                    whileHover={{ scale: 1.05 }}
+                                                    whileTap={{ scale: 0.95 }}
                                                     href={route('feedback.create', event.event_id)}
                                                     className="text-yellow-400 hover:text-yellow-300 transition-colors mr-4"
                                                 >
                                                     Feedback
-                                                </a>
+                                                </motion.a>
                                             )}
                                             {activeTab === 'organized' && event.status === 'Completed' && can.event_feedbackview && (
-                                                <a
+                                                <motion.a
+                                                    whileHover={{ scale: 1.05 }}
+                                                    whileTap={{ scale: 0.95 }}
                                                     href={route('feedback.index', event.event_id)}
                                                     className="text-purple-400 hover:text-purple-300 transition-colors mr-4"
                                                 >
                                                     View Feedback
-                                                </a>
+                                                </motion.a>
                                             )}
                                             {showEditButton && can.event_edit && (
-                                                <a
+                                                <motion.a
+                                                    whileHover={{ scale: 1.05 }}
+                                                    whileTap={{ scale: 0.95 }}
                                                     href={route('events.edit', event.event_id)}
                                                     className="text-indigo-400 hover:text-indigo-300 transition-colors"
                                                 >
                                                     Edit
-                                                </a>
+                                                </motion.a>
                                             )}
                                         </td>
-                                    </tr>
+                                    </motion.tr>
                                 ))}
                             </tbody>
                         </table>
@@ -199,8 +289,14 @@ const MyEvents = ({ organizedEvents, enrolledEvents }) => {
 
                     {/* Mobile Card View */}
                     <div className="sm:hidden divide-y divide-gray-700/50">
-                        {events.map((event) => (
-                            <div key={event.event_id} className="p-4 space-y-4">
+                        {events.map((event, index) => (
+                            <motion.div 
+                                key={event.event_id} 
+                                className="p-4 space-y-4"
+                                custom={index}
+                                variants={cardVariants}
+                                whileHover="hover"
+                            >
                                 {/* Event Title and Type */}
                                 <div className="flex justify-between items-start">
                                     <div className="space-y-1">
@@ -236,7 +332,9 @@ const MyEvents = ({ organizedEvents, enrolledEvents }) => {
                                     <div className="flex items-center gap-3">
                                         {!event.is_external && (
                                             <div className="flex gap-2">
-                                                <button
+                                                <motion.button
+                                                    whileHover={{ scale: 1.1 }}
+                                                    whileTap={{ scale: 0.95 }}
                                                     onClick={() => {
                                                         setSelectedEvent(event);
                                                         setIsParticipantListModalOpen(true);
@@ -244,9 +342,11 @@ const MyEvents = ({ organizedEvents, enrolledEvents }) => {
                                                     className="p-2 rounded-lg bg-gray-800/50 text-gray-400 hover:text-gray-300"
                                                 >
                                                     <span className="material-symbols-outlined text-base">group</span>
-                                                </button>
+                                                </motion.button>
                                                 {event.status === 'Completed' && (
-                                                    <button
+                                                    <motion.button
+                                                        whileHover={{ scale: 1.1 }}
+                                                        whileTap={{ scale: 0.95 }}
                                                         onClick={() => {
                                                             setSelectedEvent(event);
                                                             setShowCertificateOptions(true);
@@ -255,7 +355,7 @@ const MyEvents = ({ organizedEvents, enrolledEvents }) => {
                                                         className="p-2 rounded-lg bg-gray-800/50 text-yellow-400 hover:text-yellow-300"
                                                     >
                                                         <span className="material-symbols-outlined text-base">workspace_premium</span>
-                                                    </button>
+                                                    </motion.button>
                                                 )}
                                             </div>
                                         )}
@@ -272,43 +372,51 @@ const MyEvents = ({ organizedEvents, enrolledEvents }) => {
 
                                 {/* Action Buttons */}
                                 <div className="flex items-center gap-3 pt-2">
-                                    <button
+                                    <motion.button
+                                        whileHover={{ scale: 1.03 }}
+                                        whileTap={{ scale: 0.97 }}
                                         onClick={() => handleViewEvent(event)}
                                         className="flex-1 py-2 px-4 rounded-lg bg-blue-500/10 text-blue-400 text-sm font-medium"
                                     >
                                         View Details
-                                    </button>
+                                    </motion.button>
                                     {activeTab === 'enrolled' && event.status === 'Completed' && can.event_feedback && (
-                                        <a
+                                        <motion.a
+                                            whileHover={{ scale: 1.03 }}
+                                            whileTap={{ scale: 0.97 }}
                                             href={route('feedback.create', event.event_id)}
                                             className="flex-1 py-2 px-4 rounded-lg bg-yellow-500/10 text-yellow-400 text-sm font-medium text-center"
                                         >
                                             Feedback
-                                        </a>
+                                        </motion.a>
                                     )}
                                     {activeTab === 'organized' && event.status === 'Completed' && can.event_feedbackview && (
-                                        <a
+                                        <motion.a
+                                            whileHover={{ scale: 1.03 }}
+                                            whileTap={{ scale: 0.97 }}
                                             href={route('feedback.index', event.event_id)}
                                             className="flex-1 py-2 px-4 rounded-lg bg-purple-500/10 text-purple-400 text-sm font-medium text-center"
                                         >
                                             View Feedback
-                                        </a>
+                                        </motion.a>
                                     )}
                                     {showEditButton && can.event_edit && (
-                                        <a
+                                        <motion.a
+                                            whileHover={{ scale: 1.03 }}
+                                            whileTap={{ scale: 0.97 }}
                                             href={route('events.edit', event.event_id)}
                                             className="flex-1 py-2 px-4 rounded-lg bg-indigo-500/10 text-indigo-400 text-sm font-medium text-center"
                                         >
                                             Edit
-                                        </a>
+                                        </motion.a>
                                     )}
                                 </div>
-                            </div>
+                            </motion.div>
                         ))}
                     </div>
                 </>
             )}
-        </div>
+        </motion.div>
     );
 
     return (
@@ -317,16 +425,34 @@ const MyEvents = ({ organizedEvents, enrolledEvents }) => {
 
             <div className="py-6 sm:py-12">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                    <div className="flex flex-col space-y-6">
+                    <motion.div 
+                        className="flex flex-col space-y-6"
+                        initial={{ opacity: 0, y: -20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.5 }}
+                    >
                         {/* Header */}
                         <div className="flex justify-between items-center">
-                            <h2 className="text-2xl sm:text-3xl font-semibold text-white">My Events</h2>
+                            <motion.h2 
+                                className="text-2xl sm:text-3xl font-semibold text-white"
+                                initial={{ opacity: 0, x: -20 }}
+                                animate={{ opacity: 1, x: 0 }}
+                                transition={{ delay: 0.2, duration: 0.5 }}
+                            >
+                                My Events
+                            </motion.h2>
                         </div>
 
                         {/* Tab Navigation - Mobile Friendly */}
-                        <div className="flex overflow-x-auto scrollbar-hide -mx-4 sm:mx-0 px-4 sm:px-0">
+                        <motion.div 
+                            className="flex overflow-x-auto scrollbar-hide -mx-4 sm:mx-0 px-4 sm:px-0"
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: 0.3, duration: 0.5 }}
+                        >
                             <div className="flex gap-2 mx-auto bg-gray-800/50 rounded-lg p-1">
-                                <button
+                                <motion.button
+                                    whileTap={{ scale: 0.95 }}
                                     onClick={() => setActiveTab('organized')}
                                     className={`
                                         px-4 sm:px-6 py-2.5 rounded-md text-sm font-medium transition-all duration-200 whitespace-nowrap flex items-center gap-2
@@ -338,8 +464,9 @@ const MyEvents = ({ organizedEvents, enrolledEvents }) => {
                                 >
                                     <span className="material-symbols-outlined text-base">edit_calendar</span>
                                     <span>Organized</span>
-                                </button>
-                                <button
+                                </motion.button>
+                                <motion.button
+                                    whileTap={{ scale: 0.95 }}
                                     onClick={() => setActiveTab('enrolled')}
                                     className={`
                                         px-4 sm:px-6 py-2.5 rounded-md text-sm font-medium transition-all duration-200 whitespace-nowrap flex items-center gap-2
@@ -351,19 +478,29 @@ const MyEvents = ({ organizedEvents, enrolledEvents }) => {
                                 >
                                     <span className="material-symbols-outlined text-base">event_available</span>
                                     <span>Enrolled</span>
-                                </button>
+                                </motion.button>
                             </div>
-                        </div>
+                        </motion.div>
 
                         {/* Event Table/Cards */}
                         <div className="mt-4 sm:mt-6">
-                            {activeTab === 'organized' ? (
-                                <EventTable events={organizedEvents} showEditButton={true} />
-                            ) : (
-                                <EventTable events={enrolledEvents} />
-                            )}
+                            <AnimatePresence mode="wait">
+                                <motion.div
+                                    key={activeTab}
+                                    initial="hidden"
+                                    animate="visible"
+                                    exit="exit"
+                                    variants={fadeVariants}
+                                >
+                                    {activeTab === 'organized' ? (
+                                        <EventTable events={organizedEvents} showEditButton={true} />
+                                    ) : (
+                                        <EventTable events={enrolledEvents} />
+                                    )}
+                                </motion.div>
+                            </AnimatePresence>
                         </div>
-                    </div>
+                    </motion.div>
                 </div>
             </div>
 

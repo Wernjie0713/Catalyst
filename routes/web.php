@@ -19,6 +19,7 @@ use App\Http\Controllers\TeamController;
 use App\Http\Controllers\CertificateTemplateController;
 use App\Http\Controllers\CertificateController;
 use App\Http\Controllers\ReportController;
+use App\Http\Controllers\ProjectController;
 
 
 Route::get('/', function () {
@@ -189,6 +190,44 @@ Route::middleware(['auth'])->group(function () {
         ->name('student.certificates');
     Route::get('/certificates/{certificate}/download', [CertificateController::class, 'download'])
         ->name('certificates.download');
+});
+
+// Project Tracking Routes
+Route::middleware(['auth'])->group(function () {
+    Route::get('/projects', [ProjectController::class, 'index'])
+        ->middleware('can:project_view')
+        ->name('projects.index');
+    
+    Route::post('/projects', [ProjectController::class, 'store'])
+        ->middleware('can:project_create')
+        ->name('projects.store');
+        
+    Route::get('/projects/create', [ProjectController::class, 'create'])
+        ->middleware('can:project_create')
+        ->name('projects.create');
+        
+    Route::get('/projects/{project}', [ProjectController::class, 'show'])
+        ->middleware('can:project_view')
+        ->name('projects.show');
+        
+    Route::put('/projects/{project}', [ProjectController::class, 'update'])
+        ->middleware('can:project_update')
+        ->name('projects.update');
+        
+    Route::post('/projects/{project}/updates', [ProjectController::class, 'addUpdate'])
+        ->middleware('can:project_update')
+        ->name('projects.updates.store');
+});
+
+Route::middleware(['auth', 'verified'])->group(function () {
+    // Lecturer tracking routes
+    Route::get('/lecturer/dashboard', [ProjectController::class, 'lecturerDashboard'])
+        ->name('lecturer.dashboard')
+        ->middleware('can:view-lecturer-dashboard');
+        
+    Route::get('/projects/{project}/analytics', [ProjectController::class, 'projectAnalytics'])
+        ->name('projects.analytics')
+        ->middleware('can:view-project-analytics');
 });
 
 require __DIR__.'/auth.php';
