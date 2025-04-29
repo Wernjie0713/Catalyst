@@ -201,9 +201,6 @@ const Create = ({ auth }) => {
                                                     <li>Maximum number of members allowed per team</li>
                                                     <li>Maximum number of teams that can participate</li>
                                                 </ul>
-                                                <p className="text-sm text-gray-400">
-                                                    Team leaders can create and manage their teams, while members can request to join existing teams.
-                                                </p>
                                             </div>
                                         </div>
                                     )}

@@ -9,6 +9,35 @@ import { Menu } from '@headlessui/react'
 // Register ChartJS components
 ChartJS.register(...registerables)
 
+// Dummy data for prototyping
+const dummyMetrics = {
+    total_students: 1200,
+    active_students: 800, // This will be removed
+    total_certificates: 300, // This will be removed
+    events_participated: 50, // This will be removed
+    student_success_startup: 150,
+    startup_plans_ongoing: 30,
+    high_potential_students: 75
+};
+
+const dummyEventParticipation = [
+    { month: 'January', count: 5 },
+    { month: 'February', count: 10 },
+    { month: 'March', count: 15 },
+    { month: 'April', count: 20 },
+    { month: 'May', count: 25 },
+    { month: 'June', count: 30 },
+    { month: 'July', count: 35 },
+    { month: 'August', count: 40 },
+    { month: 'September', count: 45 },
+    { month: 'October', count: 50 },
+    { month: 'November', count: 55 },
+    { month: 'December', count: 60 }
+];
+
+// Enhanced styles and animations
+const carouselItems = [1, 2, 3, 4, 5];
+
 export default function Index({ auth }) {
     const { report } = usePage().props;
     const metrics = report?.data?.metrics || {};
@@ -30,50 +59,35 @@ export default function Index({ auth }) {
                     </p>
                 </div>
 
-                {/* Metrics Grid */}
+                {/* Updated Metrics Grid with smaller graph */}
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
                     <MetricCard 
-                        label="Total Students" 
-                        value={metrics.total_students}
-                        icon="people"
-                        description="Total registered students"
+                        label="Student Success Startups" 
+                        value={dummyMetrics.student_success_startup}
+                        icon="trending_up"
+                        description="Number of successful startups this year"
                     />
                     <MetricCard 
-                        label="Active Students" 
-                        value={metrics.active_students}
-                        icon="people"
-                        description="Currently active students"
+                        label="Ongoing Startup Plans" 
+                        value={dummyMetrics.startup_plans_ongoing}
+                        icon="lightbulb"
+                        description="Current startup plans in progress"
                     />
                     <MetricCard 
-                        label="Total Certificates" 
-                        value={metrics.total_certificates}
-                        icon="school"
-                        description="Certificates awarded"
+                        label="High Potential Students" 
+                        value={dummyMetrics.high_potential_students}
+                        icon="star"
+                        description="Students with success rate >= 75%"
                     />
-                    <MetricCard 
-                        label="Events Participated" 
-                        value={metrics.events_participated}
-                        icon="calendar_today"
-                        description="Total events participated"
-                    />
-                </div>
-
-                {/* Monthly Events Chart */}
-                <div className="bg-[#24225a] rounded-lg shadow-lg overflow-hidden hover:shadow-xl transition-all duration-300">
-                    <div className="p-6 border-b border-white/10">
-                        <h3 className="text-xl font-semibold">Monthly Events</h3>
-                        <p className="text-gray-400 text-sm mt-1">
-                            Event distribution across months
-                        </p>
-                    </div>
-                    <div className="p-6">
-                        <div className="h-[400px]">
+                    <div className="bg-[#24225a] p-4 rounded-lg shadow-lg hover:shadow-xl transition-all duration-300">
+                        <h3 className="text-lg font-semibold mb-2">Monthly Events</h3>
+                        <div className="h-[150px]">
                             <Line 
                                 data={{
-                                    labels: eventParticipation.map(item => item.month),
+                                    labels: dummyEventParticipation.map(item => item.month),
                                     datasets: [{
                                         label: 'Events',
-                                        data: eventParticipation.map(item => item.count),
+                                        data: dummyEventParticipation.map(item => item.count),
                                         borderColor: '#8b5cf6',
                                         backgroundColor: 'rgba(139, 92, 246, 0.1)',
                                         borderWidth: 2,
@@ -102,14 +116,14 @@ export default function Index({ auth }) {
                                             },
                                             ticks: {
                                                 color: '#9ca3af',
-                                                font: { size: 12 }
+                                                font: { size: 10 }
                                             }
                                         },
                                         x: {
                                             grid: { display: false },
                                             ticks: {
                                                 color: '#9ca3af',
-                                                font: { size: 12 }
+                                                font: { size: 10 }
                                             }
                                         }
                                     }
@@ -118,14 +132,115 @@ export default function Index({ auth }) {
                         </div>
                     </div>
                 </div>
+
+                {/* Student Carousel */}
+                <div className="carousel mt-8 mb-8">
+                    <h3 className="text-xl font-semibold mb-4">Student Success Rates</h3>
+                    <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+                        {carouselItems.map((student, index) => (
+                            <div key={index} className="bg-[#24225a] p-4 rounded-lg shadow-lg transform transition-transform duration-300 hover:scale-105">
+                                <h4 className="text-lg font-bold">Student {index + 1}</h4>
+                                <p className="text-gray-400">Success Rate: {Math.floor(Math.random() * 100)}%</p>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+
+                {/* Add Bookmarked Projects and Students Section */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
+                    <div className="bg-[#1e1b4b] p-6 rounded-lg shadow-lg">
+                        <h2 className="text-2xl font-bold mb-4 text-white flex items-center">
+                            <span className="material-icons text-purple-400 mr-2">bookmark</span>
+                            Bookmarked Projects
+                        </h2>
+                        <ul className="list-disc list-inside text-gray-300">
+                            <li className="flex items-center">
+                                <span className="material-icons text-green-400 mr-2">lightbulb</span>
+                                Project A - Innovative AI Solutions
+                            </li>
+                            <li className="flex items-center">
+                                <span className="material-icons text-blue-400 mr-2">eco</span>
+                                Project B - Sustainable Energy
+                            </li>
+                            <li className="flex items-center">
+                                <span className="material-icons text-red-400 mr-2">android</span>
+                                Project C - Advanced Robotics
+                            </li>
+                        </ul>
+                    </div>
+
+                    <div className="bg-[#1e1b4b] p-6 rounded-lg shadow-lg">
+                        <h2 className="text-2xl font-bold mb-4 text-white flex items-center">
+                            <span className="material-icons text-purple-400 mr-2">bookmark</span>
+                            Bookmarked Students
+                        </h2>
+                        <ul className="list-disc list-inside text-gray-300">
+                            <li className="flex items-center">
+                                <span className="material-icons text-yellow-400 mr-2">person</span>
+                                Student 1 - AI Researcher
+                            </li>
+                            <li className="flex items-center">
+                                <span className="material-icons text-green-400 mr-2">person</span>
+                                Student 2 - Renewable Energy Advocate
+                            </li>
+                            <li className="flex items-center">
+                                <span className="material-icons text-blue-400 mr-2">person</span>
+                                Student 3 - Robotics Engineer
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+
+                {/* Add Key Insights Table */}
+                <div className="bg-[#24225a] p-6 rounded-lg shadow-lg mb-8">
+                    <h2 className="text-2xl font-bold mb-4 text-white">Key Insights</h2>
+                    <table className="min-w-full text-gray-300">
+                        <thead>
+                            <tr className="border-b border-gray-600">
+                                <th className="px-4 py-2 text-left">Metric</th>
+                                <th className="px-4 py-2 text-left">Value</th>
+                                <th className="px-4 py-2 text-left">Change</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr className="hover:bg-[#1e1b4b]">
+                                <td className="border-t border-gray-600 px-4 py-2">Total Students</td>
+                                <td className="border-t border-gray-600 px-4 py-2">1200</td>
+                                <td className="border-t border-gray-600 px-4 py-2">+5%</td>
+                            </tr>
+                            <tr className="hover:bg-[#1e1b4b]">
+                                <td className="border-t border-gray-600 px-4 py-2">Successful Startups</td>
+                                <td className="border-t border-gray-600 px-4 py-2">150</td>
+                                <td className="border-t border-gray-600 px-4 py-2">+10%</td>
+                            </tr>
+                            <tr className="hover:bg-[#1e1b4b]">
+                                <td className="border-t border-gray-600 px-4 py-2">Ongoing Plans</td>
+                                <td className="border-t border-gray-600 px-4 py-2">30</td>
+                                <td className="border-t border-gray-600 px-4 py-2">+20%</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
             </div>
+
+            {/* Remove animation styles for static carousel */}
+            <style jsx>{`
+                .no-scrollbar::-webkit-scrollbar {
+                    display: none;
+                }
+                .no-scrollbar {
+                    -ms-overflow-style: none;  /* IE and Edge */
+                    scrollbar-width: none;  /* Firefox */
+                }
+            `}</style>
         </AuthenticatedLayout>
     );
 }
 
+// Updated Student Carousel with auto sliding and motion
 function MetricCard({ label, value, icon, description }) {
     return (
-        <div className="bg-[#24225a] p-6 rounded-lg shadow-lg hover:shadow-xl transition-all duration-300">
+        <div className="bg-[#24225a] p-6 rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105">
             <div className="flex items-center justify-between mb-4">
                 <div className="p-2 bg-purple-900/50 rounded-lg">
                     <span className="material-icons !text-2xl text-purple-400" 
@@ -244,4 +359,10 @@ function FacultyMetrics({ data }) {
             </CardContent>
         </Card>
     )
+}
+
+// Function to export report
+function exportReport() {
+    // Placeholder for export functionality
+    alert('Report exported successfully!');
 } 

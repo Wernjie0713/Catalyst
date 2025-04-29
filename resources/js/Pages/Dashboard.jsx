@@ -4,6 +4,7 @@ import { motion } from 'framer-motion';
 import TiltedEventCard from '@/Components/TiltedEventCard';
 import FriendSuggestionCard from '@/Components/FriendSuggestionCard';
 import DisplayProfilePhoto from '@/Components/Profile/Common/DisplayProfilePhoto';
+import SearchBar from '@/Components/SearchBar';
 
 export default function Dashboard() {
     const { auth, stats, recentEvents, friendSuggestions } = usePage().props;
@@ -34,12 +35,21 @@ export default function Dashboard() {
                         animate={{ opacity: 1 }}
                         transition={{ duration: 0.7, ease: "easeOut" }}
                     >
-                        <h2 className="text-3xl font-bold text-white mb-2">
-                            {getWelcomeMessage()}, {auth.user.name}
-                        </h2>
-                        <p className="text-gray-400">
-                            Welcome to your {auth.user.roles[0]?.title || 'dashboard'}
-                        </p>
+                        <div className="flex items-center justify-between">
+                            <div>
+                                <h2 className="text-3xl font-bold text-white mb-2">
+                                    {getWelcomeMessage()}, {auth.user.name}
+                                </h2>
+                                <p className="text-gray-400">
+                                    Welcome to your {auth.user.roles[0]?.title || 'dashboard'}
+                                </p>
+                            </div>
+                            
+                            {/* Search Bar in right corner */}
+                            <div className="w-72">
+                                <SearchBar />
+                            </div>
+                        </div>
                     </motion.div>
 
                     {/* Stats Grid */}

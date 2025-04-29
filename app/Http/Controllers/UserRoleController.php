@@ -72,8 +72,7 @@ class UserRoleController extends Controller
                 case 'lecturer':
                     \App\Models\Lecturer::create([
                         'lecturer_id' => Str::uuid(),
-                        'user_id' => $user->id,
-                        'department' => 'Not Set'  // Add this default value
+                        'user_id' => $user->id
                     ]);
                     break;
                 
@@ -99,7 +98,11 @@ class UserRoleController extends Controller
             
             \Log::info('Role assignment completed successfully');
             
-            return redirect()->route('dashboard');
+            // Set a session flag to indicate role was just selected
+            session()->put('role_selected', true);
+            
+            // Redirect to profile completion instead of dashboard
+            return redirect()->route('profile.completion');
         } catch (\Exception $e) {
             DB::rollBack();
             
@@ -111,6 +114,130 @@ class UserRoleController extends Controller
             ]);
             
             return back()->with('error', 'Failed to assign role: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Show the profile completion form based on the user's role
+     */
+    public function showProfileCompletion()
+    {
+        $user = Auth::user();
+        $role = $user->roles()->first()?->name;
+        
+        if (!$role) {
+            return redirect()->route('role.selection');
+        }
+
+        return inertia('Auth/ProfileCompletion', [
+            'auth' => [
+                'user' => $user
+            ],
+            'role' => $role
+        ]);
+    }
+
+    /**
+     * Save the profile completion data
+     */
+    public function saveProfileCompletion(Request $request)
+    {
+        try {
+            DB::beginTransaction();
+            
+            $user = Auth::user();
+            $role = $user->roles()->first()?->name;
+            
+            if (!$role) {
+                return redirect()->route('role.selection');
+            }
+
+            \Log::info('Saving profile completion data', [
+                'user_id' => $user->id,
+                'role' => $role,
+                'data' => $request->all()
+            ]);
+
+            // Update the corresponding model based on role
+            switch ($role) {
+                case 'student':
+                    $user->student()->update($request->only([
+                        'matric_no', 'year', 'level', 'contact_number', 
+                        'bio', 'faculty', 'university', 'expected_graduate'
+                    ]));
+                    break;
+                    
+                case 'lecturer':
+                    $lecturer = \App\Models\Lecturer::where('user_id', $user->id)->first();
+                    if ($lecturer) {
+                        $lecturer->update($request->only([
+                            'specialization', 'faculty', 'university',
+                            'contact_number', 'bio', 'linkedin'
+                        ]));
+                    }
+                    break;
+                    
+                case 'department_staff':
+                    $user->department_staff()->update($request->only([
+                        'department', 'position', 'faculty',
+                        'contact_number', 'bio', 'linkedin'
+                    ]));
+                    break;
+                    
+                case 'organizer':
+                    $user->organizer()->update($request->only([
+                        'organization_name', 'official_email', 'website',
+                        'contact_number', 'bio', 'linkedin'
+                    ]));
+                    break;
+                    
+                case 'university':
+                    try {
+                        // Get the university instance
+                        $university = \App\Models\University::where('user_id', $user->id)->first();
+                        
+                        if (!$university) {
+                            \Log::error('University record not found for user', ['user_id' => $user->id]);
+                            throw new \Exception('University record not found');
+                        }
+                        
+                        // Update using query builder to bypass any model issues
+                        $updated = DB::table('universities')
+                            ->where('university_id', $university->university_id)
+                            ->update([
+                                'name' => $request->name,
+                                'location' => $request->location,
+                                'contact_email' => $request->contact_email,
+                                'website' => $request->website,
+                                'contact_number' => $request->contact_number,
+                                'bio' => $request->bio,
+                                'updated_at' => now()
+                            ]);
+                    } catch (\Exception $e) {
+                        \Log::error('Error updating university profile', [
+                            'error' => $e->getMessage(),
+                            'trace' => $e->getTraceAsString()
+                        ]);
+                        throw $e;
+                    }
+                    break;
+            }
+
+            DB::commit();
+            
+            \Log::info('Profile completion saved successfully');
+            
+            return redirect()->route('dashboard');
+        } catch (\Exception $e) {
+            DB::rollBack();
+            
+            \Log::error('Profile completion failed', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+                'user_id' => Auth::id()
+            ]);
+            
+            return back()->with('error', 'Failed to save profile: ' . $e->getMessage());
         }
     }
 }

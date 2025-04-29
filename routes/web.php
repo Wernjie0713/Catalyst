@@ -43,6 +43,14 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/user/assign-role', [UserRoleController::class, 'assignRole'])
         ->name('user.assign.role')
         ->middleware(['auth', 'web']);
+        
+    // Profile completion routes
+    Route::get('/profile-completion', [UserRoleController::class, 'showProfileCompletion'])
+        ->name('profile.completion')
+        ->middleware(['auth', 'web']);
+    Route::post('/profile-completion', [UserRoleController::class, 'saveProfileCompletion'])
+        ->name('profile.completion.save')
+        ->middleware(['auth', 'web']);
 
     // Profile routes
     Route::middleware(['auth', 'verified'])->group(function () {
@@ -96,6 +104,11 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/reports', [ReportController::class, 'index'])
             ->name('reports.index');
     });
+
+    // Add this route inside the auth middleware group
+    Route::get('/search-users', [DashboardController::class, 'searchUsers'])
+        ->name('search.users')
+        ->middleware('auth');
 });
 
 Route::middleware(['can:team_grouping'])->group(function () {

@@ -129,6 +129,7 @@ class CertificateController extends Controller
                     } else if (!$template->is_participant_template) {
                         // For individual winner certificates, get award level from input
                         $awardLevel = $awardLevels[$user->id] ?? null;
+                    }
                         
                     
                     // Create certificate record
