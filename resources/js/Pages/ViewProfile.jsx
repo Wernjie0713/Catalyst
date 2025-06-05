@@ -10,16 +10,30 @@ import Teams from '@/Components/Profile/Teams';
 import Certificates from '@/Components/Profile/Certificates';
 import Badges from '@/Components/Profile/Badges';
 
-export default function ViewProfile({ auth, profileUser, roleType, roles, profilePhotoPath, friendStatus, friendRequestId }) {
+export default function ViewProfile({ auth, profileUser, roleType, roles, profilePhotoPath, friendStatus, friendRequestId, mentorStatus, mentorRequestId }) {
 
     const getPersonalInformationComponent = () => {
+        // Check if current user is a student
+        const isCurrentUserStudent = auth.user.student !== null;
+        // Check if viewing a lecturer's profile
+        const isViewingLecturer = roleType === 'lecturer';
+        // Check if viewing own profile
+        const isViewingOwnProfile = auth.user.id === profileUser.id;
+        
+        // Show mentor button only if: student viewing lecturer's profile (not their own)
+        const shouldShowMentorButton = isCurrentUserStudent && isViewingLecturer && !isViewingOwnProfile;
+        
+        // Show friend button logic: show if not viewing own profile AND either not a student OR not viewing a lecturer
+        // This means: students can't send friend requests to lecturers (they should use mentor requests instead)
+        const shouldShowFriendButton = !isViewingOwnProfile && (!isCurrentUserStudent || roleType !== 'lecturer');
+
         switch (roleType) {
             case 'student':
                 return (
                     <StudentInformation 
                         user={profileUser} 
                         viewOnly={true}
-                        showFriendButton={auth.user.id !== profileUser.id}
+                        showFriendButton={shouldShowFriendButton}
                         friendStatus={friendStatus}
                         friendRequestId={friendRequestId}
                     />
@@ -29,9 +43,13 @@ export default function ViewProfile({ auth, profileUser, roleType, roles, profil
                     <LecturerInformation 
                         user={profileUser} 
                         viewOnly={true}
-                        showFriendButton={auth.user.id !== profileUser.id}
+                        showFriendButton={shouldShowFriendButton}
                         friendStatus={friendStatus}
                         friendRequestId={friendRequestId}
+                        showMentorButton={shouldShowMentorButton}
+                        mentorStatus={mentorStatus}
+                        mentorRequestId={mentorRequestId}
+                        auth={auth}
                     />
                 );
             case 'organizer':
@@ -39,7 +57,7 @@ export default function ViewProfile({ auth, profileUser, roleType, roles, profil
                     <OrganizerInformation
                         user={profileUser}
                         viewOnly={true}
-                        showFriendButton={auth.user.id !== profileUser.id}
+                        showFriendButton={shouldShowFriendButton}
                         friendStatus={friendStatus}
                         friendRequestId={friendRequestId}
                     />
@@ -49,7 +67,7 @@ export default function ViewProfile({ auth, profileUser, roleType, roles, profil
                     <UniversityInformation
                         user={profileUser}
                         viewOnly={true}
-                        showFriendButton={auth.user.id !== profileUser.id}
+                        showFriendButton={shouldShowFriendButton}
                         friendStatus={friendStatus}
                         friendRequestId={friendRequestId}
                     />
@@ -59,7 +77,7 @@ export default function ViewProfile({ auth, profileUser, roleType, roles, profil
                     <DepartmentStaffInformation
                         user={profileUser}
                         viewOnly={true}
-                        showFriendButton={auth.user.id !== profileUser.id}
+                        showFriendButton={shouldShowFriendButton}
                         friendStatus={friendStatus}
                         friendRequestId={friendRequestId}
                     />

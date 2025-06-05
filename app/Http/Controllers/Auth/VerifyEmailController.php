@@ -15,6 +15,10 @@ class VerifyEmailController extends Controller
     public function __invoke(EmailVerificationRequest $request): RedirectResponse
     {
         if ($request->user()->hasVerifiedEmail()) {
+            // If already verified, check if user has role, otherwise go to role selection
+            if (!$request->user()->roles()->exists()) {
+                return redirect()->route('role.selection');
+            }
             return redirect()->intended(route('dashboard', absolute: false).'?verified=1');
         }
 
@@ -22,6 +26,7 @@ class VerifyEmailController extends Controller
             event(new Verified($request->user()));
         }
 
-        return redirect()->intended(route('dashboard', absolute: false).'?verified=1');
+        // After verification, redirect to role selection
+        return redirect()->route('role.selection');
     }
 }

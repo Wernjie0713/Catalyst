@@ -27,7 +27,8 @@ class Project extends Model
         'team_id',
         'student_id',
         'supervisor_id',
-        'progress_percentage'
+        'progress_percentage',
+        'supervisor_request_status'
     ];
 
     protected $casts = [
@@ -59,5 +60,36 @@ class Project extends Model
     public function getLatestUpdate()
     {
         return $this->updates()->latest()->first();
+    }
+
+    // Helper methods for supervisor request handling
+    public function acceptSupervisorRequest()
+    {
+        $this->update([
+            'supervisor_request_status' => 'accepted'
+        ]);
+    }
+
+    public function rejectSupervisorRequest()
+    {
+        $this->update([
+            'supervisor_request_status' => 'rejected',
+            'supervisor_id' => null
+        ]);
+    }
+
+    public function isSupervisorRequestPending()
+    {
+        return $this->supervisor_request_status === 'pending';
+    }
+
+    public function isSupervisorRequestAccepted()
+    {
+        return $this->supervisor_request_status === 'accepted';
+    }
+
+    public function isSupervisorRequestRejected()
+    {
+        return $this->supervisor_request_status === 'rejected';
     }
 } 

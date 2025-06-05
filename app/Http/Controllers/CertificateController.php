@@ -9,19 +9,107 @@ use App\Models\Event;
 use App\Models\CertificateTemplate;
 use App\Models\User;
 use App\Models\Team;
+use App\Models\ExternalCertificate;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Log;
 
 class CertificateController extends Controller
 {
-    public function studentCertificates(Request $request)
+    public function studentCertificates(Request $request, User $user)
     {
-        $certificates = Certificate::with(['template', 'event'])
-            ->where('student_id', $request->user()->student->student_id)
+        // Get regular certificates if user has student profile
+        $certificates = collect();
+        if ($user->student) {
+            $certificates = Certificate::with(['template', 'event'])
+                ->where('student_id', $user->student->student_id)
+                ->orderBy('created_at', 'desc')
+                ->get();
+        }
+
+        // Get external certificates
+        $externalCertificates = ExternalCertificate::where('user_id', $user->id)
             ->orderBy('created_at', 'desc')
             ->get();
 
-        return response()->json($certificates);
+        // Transform external certificates to match the structure
+        $transformedExternals = $externalCertificates->map(function ($cert) {
+            return [
+                'certificate_id' => 'ext_' . $cert->id,
+                'type' => 'external',
+                'title' => $cert->title,
+                'certificate_type' => $cert->type,
+                'issue_date' => $cert->issue_date,
+                'certificate_image' => $cert->certificate_image,
+                'description' => $cert->description,
+                'created_at' => $cert->created_at,
+            ];
+        });
+
+        // Merge and sort by date
+        $allCertificates = $certificates->concat($transformedExternals)
+            ->sortByDesc('created_at')
+            ->values();
+
+        return response()->json($allCertificates);
+    }
+
+    public function storeExternal(Request $request)
+    {
+        $request->validate([
+            'type' => 'required|in:Participant,Winner',
+            'title' => 'required|string|max:255',
+            'issue_date' => 'required|date',
+            'certificate_image' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048',
+            'description' => 'nullable|string|max:1000',
+        ]);
+
+        if (!$request->hasFile('certificate_image')) {
+            return response()->json(['success' => false, 'message' => 'No file uploaded.'], 400);
+        }
+
+        $image = $request->file('certificate_image');
+        if (!$image->isValid()) {
+            return response()->json(['success' => false, 'message' => 'Uploaded file is not valid.'], 400);
+        }
+
+        try {
+            // Handle file upload
+            $imagePath = null;
+            if ($request->hasFile('certificate_image')) {
+                $image = $request->file('certificate_image');
+                $imageName = time() . '_' . $image->getClientOriginalName();
+                $destination = public_path('images/external_certificates');
+                if (!file_exists($destination)) {
+                    mkdir($destination, 0777, true);
+                }
+                $image->move($destination, $imageName);
+                $imagePath = 'images/external_certificates/' . $imageName;
+            }
+
+            // Create external certificate
+            $externalCertificate = ExternalCertificate::create([
+                'user_id' => $request->user()->id,
+                'type' => $request->type,
+                'title' => $request->title,
+                'issue_date' => $request->issue_date,
+                'certificate_image' => $imagePath,
+                'description' => $request->description,
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'External certificate added successfully!',
+                'certificate' => $externalCertificate
+            ]);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to add external certificate. Please try again.',
+                'error' => $e->getMessage()
+            ], 500);
+        }
     }
 
     public function generateCertificates(Event $event, CertificateTemplate $template, array $selectedUserIds = [], array $selectedTeamIds = [], array $awardLevels = [])

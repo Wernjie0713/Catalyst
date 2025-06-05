@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Models\Friend;
 use App\Models\User;
+use App\Notifications\FriendRequestSentNotification;
+use App\Notifications\FriendRequestAcceptedNotification;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Illuminate\Support\Facades\Gate;
@@ -24,6 +26,13 @@ class FriendController extends Controller
                 if ($existingRequest->status === 'rejected') {
                     // If rejected, allow new request
                     $existingRequest->update(['status' => 'pending']);
+                    
+                    // Send notification to the friend
+                    $friend = User::find($userId);
+                    if ($friend) {
+                        $friend->notify(new FriendRequestSentNotification(auth()->user()));
+                    }
+                    
                     return back()->with('success', 'Friend request sent!');
                 } elseif ($existingRequest->status === 'pending') {
                     return back()->with('info', 'Friend request already pending.');
@@ -36,6 +45,12 @@ class FriendController extends Controller
                 'friend_id' => $userId,
                 'status' => 'pending'
             ]);
+
+            // Send notification to the friend
+            $friend = User::find($userId);
+            if ($friend) {
+                $friend->notify(new FriendRequestSentNotification(auth()->user()));
+            }
 
             return back()->with('success', 'Friend request sent!');
         } catch (\Exception $e) {
@@ -54,6 +69,12 @@ class FriendController extends Controller
             }
 
             $friend->update(['status' => 'accepted']);
+
+            // Send notification to the requester
+            $requester = User::find($friend->user_id);
+            if ($requester) {
+                $requester->notify(new FriendRequestAcceptedNotification(auth()->user()));
+            }
 
             return back()->with('success', 'Friend request accepted!');
         } catch (\Exception $e) {
@@ -95,6 +116,10 @@ class FriendController extends Controller
 
         return Inertia::render('Friend/list', [
             'friends' => $friends,
+            'userRelations' => [
+                'isStudent' => auth()->user()->student !== null,
+                'isLecturer' => auth()->user()->lecturer !== null,
+            ],
             'can' => [
                 'team_grouping' => Gate::allows('team_grouping')
             ]

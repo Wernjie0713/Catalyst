@@ -15,8 +15,10 @@ import TeamInvitationCard from '@/Components/Friend/TeamInvitationCard';
 import FriendRequestsDropdown from '@/Components/Friend/FriendRequestsDropdown';
 import TeamInvitationsDropdown from '@/Components/Friend/TeamInvitationsDropdown';
 import AddToTeamModal from '@/Components/Friend/AddToTeamModal';
+import LecturerCard from '@/Components/Friend/LecturerCard';
+import MentorRequestModal from '@/Components/Friend/MentorRequestModal';
 
-export default function FriendsList({ auth, friends = [], teams: initialTeams = [], pendingInvitations = [], can }) {
+export default function FriendsList({ auth, friends = [], teams: initialTeams = [], pendingInvitations = [], can, userRelations }) {
     const [activeTab, setActiveTab] = useState(() => {
         // If user tries to access teams tab without permission, default to 'all'
         const urlTab = new URL(window.location.href).searchParams.get('tab') || 'all';
@@ -32,6 +34,9 @@ export default function FriendsList({ auth, friends = [], teams: initialTeams = 
     const [pendingTeamInvitations, setPendingTeamInvitations] = useState([]);
     const [isAddToTeamModalOpen, setIsAddToTeamModalOpen] = useState(false);
     const [selectedTeamForMember, setSelectedTeamForMember] = useState(null);
+    const [lecturers, setLecturers] = useState([]);
+    const [isMentorRequestModalOpen, setIsMentorRequestModalOpen] = useState(false);
+    const [selectedLecturer, setSelectedLecturer] = useState(null);
 
     // Animation variants
     const pageVariants = {
@@ -320,9 +325,51 @@ export default function FriendsList({ auth, friends = [], teams: initialTeams = 
         });
     };
 
+    // Fetch lecturers for mentor tab
+    useEffect(() => {
+        if (activeTab === 'mentors' && userRelations?.isStudent) {
+            fetchLecturers();
+        }
+    }, [activeTab]);
+
+    const fetchLecturers = async () => {
+        try {
+            const response = await axios.get(route('lecturers.list'));
+            setLecturers(response.data);
+        } catch (error) {
+            console.error('Error fetching lecturers:', error);
+        }
+    };
+
+    // Handle mentor request
+    const handleMentorRequest = (lecturer) => {
+        setSelectedLecturer(lecturer);
+        setIsMentorRequestModalOpen(true);
+    };
+
+    const handleMentorRequestSubmit = async (message) => {
+        try {
+            console.log('Submitting mentor request:', {
+                lecturerId: selectedLecturer.id,
+                message: message,
+                route: route('mentor.request', selectedLecturer.id)
+            });
+            
+            const response = await axios.post(route('mentor.request', selectedLecturer.id), { message });
+            console.log('Mentor request response:', response);
+            
+            setIsMentorRequestModalOpen(false);
+            setSelectedLecturer(null);
+            fetchLecturers(); // Refresh lecturers to update request status
+        } catch (error) {
+            console.error('Error sending mentor request:', error);
+            console.error('Error response:', error.response?.data);
+        }
+    };
+
     return (
         <AuthenticatedLayout user={auth.user}>
-            <Head title="Friends & Teams" />
+            <Head title="Connections" />
             <motion.div 
                 className="py-12"
                 initial="initial"
@@ -340,10 +387,11 @@ export default function FriendsList({ auth, friends = [], teams: initialTeams = 
                             <FriendTabs 
                                 activeTab={activeTab} 
                                 onTabChange={setActiveTab}
+                                userRelations={userRelations}
                             />
                             
                             {/* SearchBar for non-teams tabs */}
-                            {activeTab !== 'teams' && (
+                            {activeTab !== 'teams' && activeTab !== 'mentors' && (
                                 <motion.div 
                                     className="flex items-center justify-between mb-6"
                                     initial={{ opacity: 0, y: 10 }}
@@ -401,7 +449,68 @@ export default function FriendsList({ auth, friends = [], teams: initialTeams = 
 
                             {/* Content based on active tab */}
                             <AnimatePresence mode="sync">
-                                {activeTab === 'teams' ? (
+                                {activeTab === 'mentors' ? (
+                                    <motion.div
+                                        key="mentors"
+                                        initial="hidden"
+                                        animate="visible"
+                                        variants={tabContentVariants}
+                                        className="overflow-hidden"
+                                    >
+                                        {/* Search Bar for Mentors */}
+                                        <motion.div 
+                                            className="mb-6"
+                                            initial={{ opacity: 0 }}
+                                            animate={{ opacity: 1 }}
+                                            transition={{ duration: 0.4 }}
+                                        >
+                                            <SearchBar 
+                                                value={searchQuery}
+                                                onChange={setSearchQuery}
+                                                placeholder="Search lecturers by name, department, or specialization..."
+                                            />
+                                        </motion.div>
+
+                                        {/* Lecturers Grid */}
+                                        <motion.div 
+                                            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+                                            variants={containerVariants}
+                                        >
+                                            {lecturers
+                                                .filter(lecturer => 
+                                                    lecturer.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                                                    lecturer.department.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                                                    lecturer.specialization.toLowerCase().includes(searchQuery.toLowerCase())
+                                                )
+                                                .map((lecturer, index) => (
+                                                    <motion.div
+                                                        key={lecturer.id}
+                                                        custom={index}
+                                                        variants={itemVariants}
+                                                        whileHover="hover"
+                                                    >
+                                                        <LecturerCard 
+                                                            lecturer={lecturer}
+                                                            onRequestMentor={() => handleMentorRequest(lecturer)}
+                                                        />
+                                                    </motion.div>
+                                                ))
+                                            }
+                                            {lecturers.length === 0 && (
+                                                <motion.div 
+                                                    className="col-span-full"
+                                                    variants={emptyStateVariants}
+                                                >
+                                                    <EmptyState 
+                                                        icon="school"
+                                                        message="No lecturers available" 
+                                                        description="Check back later for available mentors"
+                                                    />
+                                                </motion.div>
+                                            )}
+                                        </motion.div>
+                                    </motion.div>
+                                ) : activeTab === 'teams' ? (
                                     <motion.div
                                         key="teams"
                                         initial="hidden"
@@ -692,6 +801,19 @@ export default function FriendsList({ auth, friends = [], teams: initialTeams = 
                     }}
                     team={selectedTeamForMember}
                     onSuccess={handleAddMemberSuccess}
+                />
+            )}
+
+            {/* Mentor Request Modal */}
+            {isMentorRequestModalOpen && (
+                <MentorRequestModal
+                    isOpen={isMentorRequestModalOpen}
+                    onClose={() => {
+                        setIsMentorRequestModalOpen(false);
+                        setSelectedLecturer(null);
+                    }}
+                    lecturer={selectedLecturer}
+                    onSubmit={handleMentorRequestSubmit}
                 />
             )}
         </AuthenticatedLayout>

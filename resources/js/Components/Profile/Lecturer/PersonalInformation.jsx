@@ -3,6 +3,7 @@ import { useForm } from '@inertiajs/react';
 import UpdateProfilePhoto from '@/Components/Profile/Common/UpdateProfilePhoto';
 import DisplayProfilePhoto from '@/Components/Profile/Common/DisplayProfilePhoto';
 import FriendRequestButton from '@/Components/Profile/Common/FriendRequestButton';
+import MentorRequestButton from '@/Components/Profile/Common/MentorRequestButton';
 import { useState } from 'react';
 
 const FACULTIES = [
@@ -67,7 +68,11 @@ export default function LecturerPersonalInformation({
     viewOnly = false,
     showFriendButton = false,
     friendStatus,
-    friendRequestId 
+    friendRequestId,
+    showMentorButton = false,
+    mentorStatus,
+    mentorRequestId,
+    auth
 }) {
     const [isEditing, setIsEditing] = useState(false);
 
@@ -117,6 +122,17 @@ export default function LecturerPersonalInformation({
                                     userId={user.id}
                                     friendStatus={friendStatus}
                                     friendRequestId={friendRequestId}
+                                />
+                            </div>
+                        )}
+                        
+                        {/* Add Mentor Request Button for Students */}
+                        {showMentorButton && (
+                            <div className="mt-4">
+                                <MentorRequestButton
+                                    lecturerId={user.id}
+                                    mentorStatus={mentorStatus}
+                                    mentorRequestId={mentorRequestId}
                                 />
                             </div>
                         )}

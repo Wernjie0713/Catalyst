@@ -4,12 +4,16 @@ import DepartmentStaffPersonalInformation from '@/Components/Profile/DepartmentS
 import Teams from '@/Components/Profile/Teams';
 import Certificates from '@/Components/Profile/Certificates';
 import Badges from '@/Components/Profile/Badges';
+import { usePage } from '@inertiajs/react';
 
-export default function DepartmentStaffProfile({ auth }) {
+export default function DepartmentStaffProfile({ userProfile }) {
+    const { auth } = usePage().props;
+    const user = userProfile || auth.user;
+
     const components = {
         PersonalInformation: () => (
             <DepartmentStaffPersonalInformation 
-                user={auth.user} 
+                user={user} 
                 viewOnly={false}
             />
         ),

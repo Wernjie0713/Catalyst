@@ -4,6 +4,7 @@ namespace App\Notifications;
 
 use App\Models\Event;
 use Illuminate\Bus\Queueable;
+use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
@@ -30,7 +31,29 @@ class EventReminderNotification extends Notification
             'notifiable_id' => $notifiable->id,
             'notifiable_type' => get_class($notifiable)
         ]);
-        return ['database'];
+        return ['database', 'mail'];
+    }
+
+    /**
+     * Get the mail representation of the notification.
+     */
+    public function toMail(object $notifiable): MailMessage
+    {
+        $eventTitle = $this->event->title;
+        $appName = config('app.name');
+        $eventUrl = route('events.show', $this->event->event_id);
+        $eventsUrl = route('events.index');
+
+        return (new MailMessage)
+            ->subject("Event Reminder: {$eventTitle} - {$appName}")
+            ->view('emails.event-reminder', [
+                'notifiable' => $notifiable,
+                'event' => $this->event,
+                'eventTitle' => $eventTitle,
+                'appName' => $appName,
+                'eventUrl' => $eventUrl,
+                'eventsUrl' => $eventsUrl
+            ]);
     }
 
     /**
@@ -48,6 +71,8 @@ class EventReminderNotification extends Notification
             'title' => $this->event->title,
             'message' => "You have enrolled in: {$this->event->title}",
             'start_date' => $this->event->start_date,
+            'type' => 'event_reminder',
+            'action_url' => route('events.show', $this->event->event_id)
         ];
     }
 

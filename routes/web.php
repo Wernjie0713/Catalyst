@@ -20,6 +20,7 @@ use App\Http\Controllers\CertificateTemplateController;
 use App\Http\Controllers\CertificateController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\ProjectController;
+use App\Http\Controllers\MentorController;
 
 
 Route::get('/', function () {
@@ -98,6 +99,23 @@ Route::middleware(['auth'])->group(function () {
 
     Route::delete('/friend/remove/{friend}', [FriendController::class, 'removeFriend'])
         ->name('friend.remove');
+
+    // Mentor System Routes
+    Route::post('/mentor/request/{lecturer}', [MentorController::class, 'sendRequest'])
+        ->name('mentor.request');
+    Route::post('/mentor/accept/{request}', [MentorController::class, 'acceptRequest'])
+        ->name('mentor.accept');
+    Route::post('/mentor/reject/{request}', [MentorController::class, 'rejectRequest'])
+        ->name('mentor.reject');
+    Route::get('/mentor/pending', [MentorController::class, 'getPendingRequests'])
+        ->name('mentor.pending');
+    Route::get('/lecturers/list', [MentorController::class, 'getLecturersList'])
+        ->name('lecturers.list');
+
+    // Mentees Dashboard for Lecturers
+    Route::get('/mentees/dashboard', [MentorController::class, 'getMenteesDashboard'])
+        ->middleware('can:view-lecturer-dashboard')
+        ->name('mentees.dashboard');
 
     Route::middleware(['auth', 'can:report_view'])->group(function () {
         // Reports route - make sure this is inside the auth middleware group
@@ -199,10 +217,14 @@ Route::middleware(['auth'])->group(function () {
 });
 
 Route::middleware(['auth'])->group(function () {
-    Route::get('/student/certificates', [CertificateController::class, 'studentCertificates'])
+    Route::get('/student/certificates/{user}', [CertificateController::class, 'studentCertificates'])
         ->name('student.certificates');
     Route::get('/certificates/{certificate}/download', [CertificateController::class, 'download'])
         ->name('certificates.download');
+    
+    // External Certificates Routes
+    Route::post('/external-certificates', [CertificateController::class, 'storeExternal'])
+        ->name('external.certificates.store');
 });
 
 // Project Tracking Routes
@@ -230,6 +252,15 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/projects/{project}/updates', [ProjectController::class, 'addUpdate'])
         ->middleware('can:project_update')
         ->name('projects.updates.store');
+
+    // Supervisor request routes
+    Route::post('/projects/{project}/supervisor/accept', [ProjectController::class, 'acceptSupervisorRequest'])
+        ->middleware('can:project_update')
+        ->name('projects.supervisor.accept');
+        
+    Route::post('/projects/{project}/supervisor/reject', [ProjectController::class, 'rejectSupervisorRequest'])
+        ->middleware('can:project_update')
+        ->name('projects.supervisor.reject');
 });
 
 Route::middleware(['auth', 'verified'])->group(function () {
@@ -242,5 +273,25 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->name('projects.analytics')
         ->middleware('can:view-project-analytics');
 });
+
+// Debug route - remove this in production
+Route::get('/debug/mentors', function() {
+    $mentors = \App\Models\Mentor::with(['student', 'lecturer'])->get();
+    return response()->json([
+        'total' => $mentors->count(),
+        'records' => $mentors->map(function($mentor) {
+            return [
+                'id' => $mentor->id,
+                'student_id' => $mentor->student_id,
+                'lecturer_id' => $mentor->lecturer_id,
+                'status' => $mentor->status,
+                'message' => $mentor->message,
+                'created_at' => $mentor->created_at,
+                'student_name' => $mentor->student?->name,
+                'lecturer_name' => $mentor->lecturer?->name,
+            ];
+        })
+    ]);
+})->name('debug.mentors');
 
 require __DIR__.'/auth.php';

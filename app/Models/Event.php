@@ -34,6 +34,7 @@ class Event extends Model
         'is_team_event',
         'min_team_members',
         'max_team_members',
+        'label_tags',
     ];
 
     protected $appends = ['enrolled_count', 'is_enrolled', 'enrolled_teams_count'];
@@ -48,6 +49,7 @@ class Event extends Model
         'is_team_event' => 'boolean',
         'min_team_members' => 'integer',
         'max_team_members' => 'integer',
+        'label_tags' => 'array',
     ];
 
     protected static function booted()

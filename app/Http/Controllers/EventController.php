@@ -39,6 +39,8 @@ class EventController extends Controller
             'cover_image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
             'is_external' => 'required|boolean',
             'is_team_event' => 'required|boolean',
+            'label_tags' => 'required|array|min:1',
+            'label_tags.*' => 'string|in:Technical Skills,Soft Skills,Critical Thinking,Research & Analysis,Creativity & Innovation,Business Acumen,Digital Literacy,Introductory,Intermediate,Advanced,Lecture,Workshop,Hackathon,Group Project,Mentorship,Panel,Networking,Career Exploration,Industry Exposure,Portfolio Development,Internship Pipeline,Capstone Prep',
         ];
 
         // Add validation rules based on event type (external or internal)
@@ -105,6 +107,7 @@ class EventController extends Controller
             'organizer_name' => $validated['organizer_name'] ?? null,
             'organizer_website' => $validated['organizer_website'] ?? null,
             'is_team_event' => $validated['is_team_event'],
+            'label_tags' => $validated['label_tags'],
         ];
 
         // Add non-external event specific fields
@@ -240,6 +243,8 @@ class EventController extends Controller
             'cover_image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
             'is_external' => 'required|boolean',
             'is_team_event' => 'required|boolean',
+            'label_tags' => 'required|array|min:1',
+            'label_tags.*' => 'string|in:Technical Skills,Soft Skills,Critical Thinking,Research & Analysis,Creativity & Innovation,Business Acumen,Digital Literacy,Introductory,Intermediate,Advanced,Lecture,Workshop,Hackathon,Group Project,Mentorship,Panel,Networking,Career Exploration,Industry Exposure,Portfolio Development,Internship Pipeline,Capstone Prep',
         ];
 
         // Add specific rules based on event type

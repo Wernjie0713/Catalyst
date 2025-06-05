@@ -4,9 +4,11 @@ import StudentPersonalInformation from '@/Components/Profile/Student/PersonalInf
 import Teams from '@/Components/Profile/Teams';
 import Certificates from '@/Components/Profile/Certificates';
 import Badges from '@/Components/Profile/Badges';
+import { usePage } from '@inertiajs/react';
 
-export default function StudentProfile({ auth }) {
-    const user = auth.user;
+export default function StudentProfile({ userProfile }) {
+    const { auth } = usePage().props;
+    const user = userProfile || auth.user;
 
     const components = {
         PersonalInformation: () => (
@@ -16,7 +18,7 @@ export default function StudentProfile({ auth }) {
             />
         ),
         Teams: () => <Teams user={user} />,
-        Certificates: () => <Certificates user={user} />,
+        Certificates: () => <Certificates user={user} authUserId={auth.user.id} />,
         Badges: () => <Badges user={user} />
     };
 

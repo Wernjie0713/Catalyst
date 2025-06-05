@@ -8,6 +8,7 @@ import TextArea from '@/Components/TextArea';
 import { motion } from 'framer-motion';
 import { BackButton } from '@/Components/BackButton';
 import PrimaryButton from '@/Components/PrimaryButton';
+import LabelTagsSelector from '@/Components/LabelTagsSelector';
 
 const Create = ({ auth }) => {
     const [imagePreview, setImagePreview] = useState(null);
@@ -28,6 +29,7 @@ const Create = ({ auth }) => {
         is_team_event: false,
         min_team_members: '2',
         max_team_members: '',
+        label_tags: [],
     });
 
     const handleChange = (e) => {
@@ -442,6 +444,13 @@ const Create = ({ auth }) => {
                                 />
                                 <InputError message={errors.description} className="mt-2" />
                             </div>
+
+                            {/* Label Tags Selection */}
+                            <LabelTagsSelector
+                                selectedTags={data.label_tags}
+                                onChange={(tags) => setData('label_tags', tags)}
+                                error={errors.label_tags}
+                            />
 
                             {/* Cover Image Upload */}
                             <div className="relative group">

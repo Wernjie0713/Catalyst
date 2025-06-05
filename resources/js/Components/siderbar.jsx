@@ -111,6 +111,13 @@ export const Sidebar = () => {
       visible: isLecturer
     },
     {
+      name: "My Mentees",
+      icon: "group_add",
+      route: "mentees.dashboard",
+      path: "/mentees/dashboard",
+      visible: isLecturer
+    },
+    {
       name: "Reports",
       icon: "analytics",
       route: "reports.index",
@@ -118,7 +125,7 @@ export const Sidebar = () => {
       visible: isStaff
     },
     {
-      name: "Friend/Team",
+      name: "Connections",
       icon: "group",
       route: "friends.list",
       path: "/friends",

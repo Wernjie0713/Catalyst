@@ -23,18 +23,19 @@ const priorityColors = {
     critical: 'bg-rose-100 text-rose-800 border border-rose-200',
 };
 
-export default function Show({ auth, project }) {
+export default function Show({ auth, project, available_supervisors }) {
 
     const [currentProgress, setCurrentProgress] = useState(0);
     const [currentStatus, setCurrentStatus] = useState('planning');
     
-    const { data, setData, post, processing, errors, reset } = useForm({
+    const { data, setData, post, put, processing, errors, reset } = useForm({
         progress_description: '',
         progress_percentage: 0,
         milestones_completed: '',
         challenges_faced: '',
         resources_needed: '',
         accepted_resources: '',
+        supervisor_id: '',
     });
 
     const [isDragging, setIsDragging] = useState(false);
@@ -292,6 +293,13 @@ export default function Show({ auth, project }) {
 
     // Display unresolved challenges and resources
     const unresolvedResources = project.unresolvedResources || [];
+
+    const handleReselectSupervisor = (e) => {
+        e.preventDefault();
+        put(route('projects.update', project.id), {
+            onSuccess: () => window.location.reload(),
+        });
+    };
 
     if (!project) {
         return (
@@ -568,6 +576,11 @@ export default function Show({ auth, project }) {
                                                             {project.supervisor.name.charAt(0)}
                                                         </div>
                                                         <span className="text-sm font-medium text-gray-700">{project.supervisor.name}</span>
+                                                        {project.supervisor_request_status === 'pending' && (
+                                                            <span className="ml-2 px-2 py-0.5 rounded-full bg-yellow-100 text-yellow-800 text-xs font-medium">
+                                                                Pending
+                                                            </span>
+                                                        )}
                                                         <a href={route('profile.view', project.supervisor.id)} className="ml-auto">
                                                             <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-blue-500 hover:text-blue-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
@@ -576,7 +589,33 @@ export default function Show({ auth, project }) {
                                                         </a>
                                                     </div>
                                                 ) : (
-                                                    <p className="text-gray-500 italic">No supervisor assigned.</p>
+                                                    <>
+                                                        {project.supervisor_request_status === 'rejected' && auth.user.id === project.student?.user?.id ? (
+                                                            <form onSubmit={handleReselectSupervisor} className="flex items-center gap-2 mt-2">
+                                                                <select
+                                                                    value={data.supervisor_id}
+                                                                    onChange={e => setData('supervisor_id', e.target.value)}
+                                                                    className="border rounded px-2 py-1"
+                                                                    required
+                                                                >
+                                                                    <option value="">Select Supervisor</option>
+                                                                    {available_supervisors.map(sup => (
+                                                                        <option key={sup.id} value={sup.id}>{sup.name}</option>
+                                                                    ))}
+                                                                </select>
+                                                                <button
+                                                                    type="submit"
+                                                                    disabled={processing}
+                                                                    className="px-3 py-1.5 bg-blue-100 text-blue-700 rounded hover:bg-blue-200 text-sm font-medium"
+                                                                >
+                                                                    Choose Supervisor
+                                                                </button>
+                                                                {errors.supervisor_id && <span className="text-red-500 text-xs">{errors.supervisor_id}</span>}
+                                                            </form>
+                                                        ) : (
+                                                            <p className="text-gray-500 italic">No supervisor assigned.</p>
+                                                        )}
+                                                    </>
                                                 )}
                                             </div>
                                             

@@ -9,6 +9,7 @@ import { motion } from 'framer-motion';
 import { BackButton } from '@/Components/BackButton';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import LabelTagsSelector from '@/Components/LabelTagsSelector';
 
 export default function Edit({ event, auth }) {
     const [imagePreview, setImagePreview] = useState(event.cover_image ? `/${event.cover_image}` : null);
@@ -30,6 +31,7 @@ export default function Edit({ event, auth }) {
         is_team_event: event.is_team_event || false,
         min_team_members: event.min_team_members || '2',
         max_team_members: event.max_team_members || '',
+        label_tags: event.label_tags || [],
         _method: 'put',
     });
 
@@ -350,6 +352,13 @@ export default function Edit({ event, auth }) {
                                     />
                                     <InputError message={errors.description} className="mt-2" />
                             </div>
+
+                            {/* Label Tags Selection */}
+                            <LabelTagsSelector
+                                selectedTags={data.label_tags}
+                                onChange={(tags) => setData('label_tags', tags)}
+                                error={errors.label_tags}
+                            />
 
                             {/* Team-specific fields if needed */}
                             {!data.is_external && data.is_team_event && (

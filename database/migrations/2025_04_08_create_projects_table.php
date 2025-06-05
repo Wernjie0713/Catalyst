@@ -22,6 +22,7 @@ return new class extends Migration
             $table->foreignUuid('team_id')->nullable()->constrained('teams')->onDelete('set null');
             $table->foreignUuid('student_id')->nullable()->references('student_id')->on('students')->onDelete('set null');
             $table->foreignUuid('supervisor_id')->nullable()->constrained('users')->onDelete('set null');
+            $table->enum('supervisor_request_status', ['pending', 'accepted', 'rejected'])->default('pending');
             $table->timestamps();
             $table->softDeletes();
         });

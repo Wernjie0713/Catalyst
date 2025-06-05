@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
-import { Head, Link } from '@inertiajs/react';
+import { Head, Link, router } from '@inertiajs/react';
 import { motion } from 'framer-motion';
 import { 
     ChartBarIcon, 
@@ -11,9 +11,43 @@ import {
     DocumentTextIcon,
     AcademicCapIcon
 } from '@heroicons/react/24/outline';
+import SupervisorInvitationsDropdown from '@/Components/Projects/SupervisorInvitationsDropdown';
+import MentorRequestsDropdown from '@/Components/Projects/MentorRequestsDropdown';
+import axios from 'axios';
 
-export default function LecturerDashboard({ projects, stats }) {
+export default function LecturerDashboard({ projects, pendingInvitations, stats, auth }) {
     const [statusFilter, setStatusFilter] = useState('all');
+    const [isInvitationsDropdownOpen, setIsInvitationsDropdownOpen] = useState(false);
+    const [isMentorRequestsDropdownOpen, setIsMentorRequestsDropdownOpen] = useState(false);
+    const [pendingMentorRequests, setPendingMentorRequests] = useState([]);
+    
+    // Fetch mentor requests on component mount
+    React.useEffect(() => {
+        fetchMentorRequests();
+    }, []);
+
+    const fetchMentorRequests = async () => {
+        try {
+            console.log('Fetching mentor requests...');
+            const response = await axios.get(route('mentor.pending'));
+            console.log('Mentor requests response:', response.data);
+            setPendingMentorRequests(response.data);
+        } catch (error) {
+            console.error('Error fetching mentor requests:', error);
+            console.error('Error details:', error.response?.data);
+        }
+    };
+
+    // Handle mentor request responses
+    const handleMentorResponse = async (requestId, action) => {
+        try {
+            await axios.post(route(`mentor.${action}`, requestId));
+            setIsMentorRequestsDropdownOpen(false);
+            fetchMentorRequests(); // Refresh the requests
+        } catch (error) {
+            console.error(`Error ${action}ing mentor request:`, error);
+        }
+    };
     
     // Animation variants
     const containerVariants = {
@@ -102,6 +136,15 @@ export default function LecturerDashboard({ projects, stats }) {
         return project.status === statusFilter;
     });
 
+    // Accept/Reject handler
+    const handleSupervisorResponse = (projectId, action) => {
+        router.post(route(`projects.supervisor.${action}`, projectId), {}, {
+            onSuccess: () => {
+                router.reload();
+            },
+        });
+    };
+
     return (
         <AuthenticatedLayout>
             <Head title="Project Dashboard" />
@@ -109,20 +152,92 @@ export default function LecturerDashboard({ projects, stats }) {
             <div className="py-12 bg-gradient-to-b from-gray-50 to-gray-100 min-h-screen">
                 <div className="max-w-7xl mx-auto sm:px-6 lg:px-8">
                     {/* Dashboard Header */}
-                    <motion.div
-                        initial={{ opacity: 0, y: -20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ duration: 0.5 }}
-                        className="mb-8"
-                    >
-                        <h1 className="text-3xl font-bold text-gray-900 flex items-center">
-                            <AcademicCapIcon className="h-8 w-8 text-indigo-600 mr-3" />
-                            Project Dashboard
-                        </h1>
-                        <p className="mt-2 text-gray-600">
-                            Track and manage all your supervised projects
-                        </p>
-                    </motion.div>
+                    <div className="mb-8 flex items-center justify-between">
+                        <div>
+                            <h1 className="text-3xl font-bold text-gray-900 flex items-center">
+                                <AcademicCapIcon className="h-8 w-8 text-indigo-600 mr-3" />
+                                Project Dashboard
+                            </h1>
+                            <p className="mt-2 text-gray-600">
+                                Track and manage all your supervised projects
+                            </p>
+                        </div>
+                        <div className="flex gap-4">
+                            {/* Mentor Requests Dropdown */}
+                            <div className="relative">
+                                <motion.button
+                                    onClick={() => setIsMentorRequestsDropdownOpen(!isMentorRequestsDropdownOpen)}
+                                    whileHover={{ scale: 1.02 }}
+                                    whileTap={{ scale: 0.98 }}
+                                    className="inline-flex items-center px-4 py-2 bg-gradient-to-r from-green-500/20 to-emerald-600/20 hover:from-green-500/30 hover:to-emerald-600/30 text-green-700 rounded-lg text-sm border border-white/10 hover:border-white/20 transition-all duration-200 font-medium shadow"
+                                >
+                                    <span className="material-symbols-outlined text-sm mr-2">
+                                        group_add
+                                    </span>
+                                    Mentor Requests
+                                    {pendingMentorRequests.length > 0 && (
+                                        <motion.span 
+                                            className="ml-2 bg-red-500/30 px-2 py-0.5 rounded-full text-xs"
+                                            initial={{ scale: 0 }}
+                                            animate={{ scale: 1 }}
+                                            transition={{ 
+                                                type: "spring", 
+                                                stiffness: 400, 
+                                                damping: 10 
+                                            }}
+                                        >
+                                            {pendingMentorRequests.length}
+                                        </motion.span>
+                                    )}
+                                </motion.button>
+                                <MentorRequestsDropdown
+                                    isOpen={isMentorRequestsDropdownOpen}
+                                    onClose={() => setIsMentorRequestsDropdownOpen(false)}
+                                    requests={pendingMentorRequests}
+                                    onAccept={requestId => handleMentorResponse(requestId, 'accept')}
+                                    onReject={requestId => handleMentorResponse(requestId, 'reject')}
+                                    auth={auth}
+                                />
+                            </div>
+                            
+                            {/* Supervisor Invitations Dropdown */}
+                        <div className="relative">
+                            <motion.button
+                                onClick={() => setIsInvitationsDropdownOpen(!isInvitationsDropdownOpen)}
+                                whileHover={{ scale: 1.02 }}
+                                whileTap={{ scale: 0.98 }}
+                                className="inline-flex items-center px-4 py-2 bg-gradient-to-r from-blue-500/20 to-purple-600/20 hover:from-blue-500/30 hover:to-purple-600/30 text-indigo-700 rounded-lg text-sm border border-white/10 hover:border-white/20 transition-all duration-200 font-medium shadow"
+                            >
+                                <span className="material-symbols-outlined text-sm mr-2">
+                                    mail
+                                </span>
+                                Supervisor Invitations
+                                {pendingInvitations.length > 0 && (
+                                    <motion.span 
+                                        className="ml-2 bg-red-500/30 px-2 py-0.5 rounded-full text-xs"
+                                        initial={{ scale: 0 }}
+                                        animate={{ scale: 1 }}
+                                        transition={{ 
+                                            type: "spring", 
+                                            stiffness: 400, 
+                                            damping: 10 
+                                        }}
+                                    >
+                                        {pendingInvitations.length}
+                                    </motion.span>
+                                )}
+                            </motion.button>
+                            <SupervisorInvitationsDropdown
+                                isOpen={isInvitationsDropdownOpen}
+                                onClose={() => setIsInvitationsDropdownOpen(false)}
+                                invitations={pendingInvitations}
+                                onAccept={projectId => handleSupervisorResponse(projectId, 'accept')}
+                                onReject={projectId => handleSupervisorResponse(projectId, 'reject')}
+                                auth={auth}
+                            />
+                            </div>
+                        </div>
+                    </div>
                 
                     {/* Stats Overview */}
                     <motion.div 

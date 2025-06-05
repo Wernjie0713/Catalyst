@@ -47,12 +47,7 @@ class ProfileController extends Controller
         }
 
         return Inertia::render($roleComponents[$role], [
-            'auth' => [
-                'user' => array_merge($user->toArray(), [
-                    'notifications' => $user->notifications,
-                    $role => $user->load($role)[$role]
-                ])
-            ]
+            'userProfile' => $user->load($role)
         ]);
     }
 

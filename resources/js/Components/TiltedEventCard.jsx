@@ -2,6 +2,7 @@ import { useRef, useState, useEffect } from "react";
 import { motion, useMotionValue, useSpring } from "framer-motion";
 import { format } from 'date-fns';
 import EventModal from './EventModal';
+import TagDisplay from './TagDisplay';
 import { usePage } from '@inertiajs/react';
 
 const springValues = {
@@ -140,6 +141,17 @@ const TiltedEventCard = ({ event: initialEvent, onEventUpdate }) => {
                       : `${event.enrolled_count}/${event.max_participants} participants`}
                   </span>
                 </div>
+
+                {/* Tags */}
+                {event.label_tags && event.label_tags.length > 0 && (
+                  <div className="mt-1">
+                    <TagDisplay 
+                      tags={event.label_tags} 
+                      maxDisplay={2} 
+                      className="text-[8px]" 
+                    />
+                  </div>
+                )}
               </div>
             </motion.div>
           </motion.div>

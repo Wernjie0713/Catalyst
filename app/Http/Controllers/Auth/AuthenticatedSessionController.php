@@ -37,6 +37,12 @@ class AuthenticatedSessionController extends Controller
         // Clear all cache instead of using tags
         Cache::flush();
 
+        // Check if email is verified first
+        if (!Auth::user()->hasVerifiedEmail()) {
+            return redirect()->route('verification.notice');
+        }
+
+        // Then check if user has selected a role
         if (!Auth::user()->roles()->exists()) {
             return redirect()->route('role.selection');
         }

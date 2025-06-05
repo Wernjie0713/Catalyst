@@ -3,6 +3,7 @@ import { format } from 'date-fns';
 import { useForm } from '@inertiajs/react';
 import { useState, useEffect } from 'react';
 import axios from 'axios';
+import TagDisplay from './TagDisplay';
 
 export default function EventModal({ event: initialEvent, isOpen, onClose, onEventUpdate, auth }) {
     if (!isOpen) return null;
@@ -321,6 +322,22 @@ export default function EventModal({ event: initialEvent, isOpen, onClose, onEve
                                 <h3 className="text-sm font-medium text-gray-400 mb-2">Description</h3>
                                 <p className="text-white whitespace-pre-line">{event.description}</p>
                             </div>
+
+                            {/* Event Tags */}
+                            {event.label_tags && event.label_tags.length > 0 && (
+                                <div className="mt-6">
+                                    <h3 className="text-sm font-medium text-gray-400 mb-3 flex items-center gap-2">
+                                        <span className="material-symbols-outlined text-sm text-indigo-400">label</span>
+                                        Event Categories
+                                    </h3>
+                                    <TagDisplay 
+                                        tags={event.label_tags} 
+                                        maxDisplay={50} // Show all tags in modal
+                                        showCount={false}
+                                        className="gap-2"
+                                    />
+                                </div>
+                            )}
 
                             {/* Team Selection (for team events) */}
                             {event.is_team_event && !event.is_external && !event.is_enrolled && event.status === 'Upcoming' && (

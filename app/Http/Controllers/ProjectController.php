@@ -219,9 +219,14 @@ class ProjectController extends Controller
             }
         }
         
+        $supervisors = User::whereHas('roles', function ($q) {
+            $q->where('name', 'lecturer');
+        })->get(['id', 'name']);
+
         return Inertia::render('Projects/Show', [
             'project' => $project,
-            'unresolvedResources' => $unresolvedResources->unique()->values()
+            'unresolvedResources' => $unresolvedResources->unique()->values(),
+            'available_supervisors' => $supervisors
         ]);
     }
 
@@ -237,6 +242,12 @@ class ProjectController extends Controller
         ]);
 
         $project->update($validated);
+
+        if ($request->has('supervisor_id')) {
+            $project->supervisor_id = $request->input('supervisor_id');
+            $project->supervisor_request_status = 'pending';
+            $project->save();
+        }
 
         return back()->with('success', 'Project updated successfully.');
     }
@@ -346,8 +357,10 @@ class ProjectController extends Controller
             return redirect()->route('dashboard')->with('error', 'Unauthorized access.');
         }
 
-        $supervisedProjects = Project::with(['team', 'student.user', 'updates'])
+        // Accepted projects for the main dashboard
+        $acceptedProjects = Project::with(['team', 'student.user', 'updates'])
             ->where('supervisor_id', Auth::id())
+            ->where('supervisor_request_status', 'accepted')
             ->get()
             ->map(function ($project) {
                 return [
@@ -360,21 +373,40 @@ class ProjectController extends Controller
                     'last_update' => $project->updates->last()?->created_at?->diffForHumans() ?? 'No updates',
                     'days_remaining' => now()->diffInDays($project->expected_end_date, false),
                     'is_overdue' => now()->gt($project->expected_end_date) && $project->status !== 'completed',
-                    'team_name' => $project->team?->name ?? 'Individual Project'
+                    'team_name' => $project->team?->name ?? 'Individual Project',
+                    'supervisor_request_status' => $project->supervisor_request_status,
+                ];
+            });
+
+        // Pending invitations for the dropdown
+        $pendingInvitations = Project::with(['team', 'student.user'])
+            ->where('supervisor_id', Auth::id())
+            ->where('supervisor_request_status', 'pending')
+            ->get()
+            ->map(function ($project) {
+                return [
+                    'id' => $project->id,
+                    'title' => $project->title,
+                    'student_name' => $project->student->user->name ?? 'N/A',
+                    'type' => $project->type,
+                    'status' => $project->status,
+                    'progress' => $project->progress_percentage,
+                    'team_name' => $project->team?->name ?? 'Individual Project',
                 ];
             });
 
         $projectStats = [
-            'total' => $supervisedProjects->count(),
-            'completed' => $supervisedProjects->where('status', 'completed')->count(),
-            'in_progress' => $supervisedProjects->where('status', 'in_progress')->count(),
-            'planning' => $supervisedProjects->where('status', 'planning')->count(),
-            'on_hold' => $supervisedProjects->where('status', 'on_hold')->count(),
-            'overdue' => $supervisedProjects->where('is_overdue', true)->count(),
+            'total' => $acceptedProjects->count(),
+            'completed' => $acceptedProjects->where('status', 'completed')->count(),
+            'in_progress' => $acceptedProjects->where('status', 'in_progress')->count(),
+            'planning' => $acceptedProjects->where('status', 'planning')->count(),
+            'on_hold' => $acceptedProjects->where('status', 'on_hold')->count(),
+            'overdue' => $acceptedProjects->where('is_overdue', true)->count(),
         ];
 
         return Inertia::render('Projects/LecturerDashboard', [
-            'projects' => $supervisedProjects,
+            'projects' => $acceptedProjects,
+            'pendingInvitations' => $pendingInvitations,
             'stats' => $projectStats
         ]);
     }
@@ -471,5 +503,31 @@ class ProjectController extends Controller
             ->filter()
             ->countBy()
             ->sortDesc();
+    }
+
+    public function acceptSupervisorRequest($projectId)
+    {
+        $project = Project::findOrFail($projectId);
+
+        // Optional: Check if the current user is the intended supervisor
+        if ($project->supervisor_id !== auth()->id()) {
+            abort(403, 'Unauthorized');
+        }
+
+        $project->acceptSupervisorRequest(); // This calls the model helper
+        return back()->with('success', 'Supervisor request accepted.');
+    }
+
+    public function rejectSupervisorRequest($projectId)
+    {
+        $project = Project::findOrFail($projectId);
+
+        // Optional: Check if the current user is the intended supervisor
+        if ($project->supervisor_id !== auth()->id()) {
+            abort(403, 'Unauthorized');
+        }
+
+        $project->rejectSupervisorRequest(); // This calls the model helper
+        return back()->with('success', 'Supervisor request rejected.');
     }
 } 
