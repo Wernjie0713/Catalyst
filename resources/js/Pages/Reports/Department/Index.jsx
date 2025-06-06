@@ -9,39 +9,25 @@ import { Menu } from '@headlessui/react'
 // Register ChartJS components
 ChartJS.register(...registerables)
 
-// Dummy data for prototyping
-const dummyMetrics = {
-    total_students: 1200,
-    active_students: 800, // This will be removed
-    total_certificates: 300, // This will be removed
-    events_participated: 50, // This will be removed
-    student_success_startup: 150,
-    startup_plans_ongoing: 30,
-    high_potential_students: 75
-};
+// No more dummy data - using real data from backend
 
-const dummyEventParticipation = [
-    { month: 'January', count: 5 },
-    { month: 'February', count: 10 },
-    { month: 'March', count: 15 },
-    { month: 'April', count: 20 },
-    { month: 'May', count: 25 },
-    { month: 'June', count: 30 },
-    { month: 'July', count: 35 },
-    { month: 'August', count: 40 },
-    { month: 'September', count: 45 },
-    { month: 'October', count: 50 },
-    { month: 'November', count: 55 },
-    { month: 'December', count: 60 }
-];
-
-// Enhanced styles and animations
-const carouselItems = [1, 2, 3, 4, 5];
+// Real data analytics for department
 
 export default function Index({ auth }) {
     const { report } = usePage().props;
     const metrics = report?.data?.metrics || {};
     const eventParticipation = report?.data?.department_metrics?.event_participation || [];
+    
+    // Calculate additional metrics from the real data
+    const totalStudents = metrics.total_students || 0;
+    const activeStudents = metrics.active_students || 0;
+    const totalCertificates = metrics.total_certificates || 0;
+    const eventsParticipated = metrics.events_participated || 0;
+    
+    // Calculate success metrics
+    const successRate = totalStudents > 0 ? Math.round((activeStudents / totalStudents) * 100) : 0;
+    const certificateRate = totalStudents > 0 ? Math.round((totalCertificates / totalStudents) * 100) : 0;
+    const highPotentialStudents = Math.round(activeStudents * 0.75); // Estimate based on active students
 
     return (
         <AuthenticatedLayout user={auth.user}>
@@ -59,35 +45,35 @@ export default function Index({ auth }) {
                     </p>
                 </div>
 
-                {/* Updated Metrics Grid with smaller graph */}
+                {/* Real Department Metrics Grid */}
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
                     <MetricCard 
-                        label="Student Success Startups" 
-                        value={dummyMetrics.student_success_startup}
+                        label="Total Students" 
+                        value={totalStudents}
+                        icon="school"
+                        description="Total students in department"
+                    />
+                    <MetricCard 
+                        label="Active Students" 
+                        value={activeStudents}
                         icon="trending_up"
-                        description="Number of successful startups this year"
+                        description={`${successRate}% participation rate`}
                     />
                     <MetricCard 
-                        label="Ongoing Startup Plans" 
-                        value={dummyMetrics.startup_plans_ongoing}
-                        icon="lightbulb"
-                        description="Current startup plans in progress"
-                    />
-                    <MetricCard 
-                        label="High Potential Students" 
-                        value={dummyMetrics.high_potential_students}
-                        icon="star"
-                        description="Students with success rate >= 75%"
+                        label="Certificates Awarded" 
+                        value={totalCertificates}
+                        icon="card_membership"
+                        description={`${certificateRate}% certificate rate`}
                     />
                     <div className="bg-[#24225a] p-4 rounded-lg shadow-lg hover:shadow-xl transition-all duration-300">
                         <h3 className="text-lg font-semibold mb-2">Monthly Events</h3>
                         <div className="h-[150px]">
                             <Line 
                                 data={{
-                                    labels: dummyEventParticipation.map(item => item.month),
+                                    labels: eventParticipation.map(item => item.month),
                                     datasets: [{
                                         label: 'Events',
-                                        data: dummyEventParticipation.map(item => item.count),
+                                        data: eventParticipation.map(item => item.count),
                                         borderColor: '#8b5cf6',
                                         backgroundColor: 'rgba(139, 92, 246, 0.1)',
                                         borderWidth: 2,
@@ -133,90 +119,170 @@ export default function Index({ auth }) {
                     </div>
                 </div>
 
-                {/* Student Carousel */}
-                <div className="carousel mt-8 mb-8">
-                    <h3 className="text-xl font-semibold mb-4">Student Success Rates</h3>
-                    <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-                        {carouselItems.map((student, index) => (
-                            <div key={index} className="bg-[#24225a] p-4 rounded-lg shadow-lg transform transition-transform duration-300 hover:scale-105">
-                                <h4 className="text-lg font-bold">Student {index + 1}</h4>
-                                <p className="text-gray-400">Success Rate: {Math.floor(Math.random() * 100)}%</p>
+                {/* Department Performance Overview */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                    <div className="bg-[#24225a] p-6 rounded-lg shadow-lg">
+                        <h3 className="text-xl font-semibold mb-4 text-white flex items-center">
+                            <span className="material-icons text-blue-400 mr-2">assessment</span>
+                            Performance Metrics
+                        </h3>
+                        <div className="space-y-4">
+                            <div className="flex justify-between items-center">
+                                <span className="text-gray-300">Participation Rate</span>
+                                <span className="text-blue-400 font-bold">{successRate}%</span>
                             </div>
-                        ))}
+                            <div className="flex justify-between items-center">
+                                <span className="text-gray-300">Certificate Rate</span>
+                                <span className="text-green-400 font-bold">{certificateRate}%</span>
+                            </div>
+                            <div className="flex justify-between items-center">
+                                <span className="text-gray-300">Events Participated</span>
+                                <span className="text-purple-400 font-bold">{eventsParticipated}</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="bg-[#24225a] p-6 rounded-lg shadow-lg">
+                        <h3 className="text-xl font-semibold mb-4 text-white flex items-center">
+                            <span className="material-icons text-yellow-400 mr-2">insights</span>
+                            Department Insights
+                        </h3>
+                        <div className="space-y-3">
+                            <div className="flex items-center">
+                                <span className="material-icons text-green-400 mr-2">trending_up</span>
+                                <span className="text-gray-300 text-sm">
+                                    {activeStudents > totalStudents * 0.6 ? 'High engagement rate' : 'Room for improvement'}
+                                </span>
+                            </div>
+                            <div className="flex items-center">
+                                <span className="material-icons text-blue-400 mr-2">event</span>
+                                <span className="text-gray-300 text-sm">
+                                    {eventsParticipated > 10 ? 'Active in events' : 'Limited event participation'}
+                                </span>
+                            </div>
+                            <div className="flex items-center">
+                                <span className="material-icons text-purple-400 mr-2">star</span>
+                                <span className="text-gray-300 text-sm">
+                                    {certificateRate > 25 ? 'Strong achievement rate' : 'Moderate achievement rate'}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="bg-[#24225a] p-6 rounded-lg shadow-lg">
+                        <h3 className="text-xl font-semibold mb-4 text-white flex items-center">
+                            <span className="material-icons text-green-400 mr-2">emoji_events</span>
+                            Achievement Summary
+                        </h3>
+                        <div className="space-y-4">
+                            <div className="text-center">
+                                <div className="text-3xl font-bold text-green-400">{totalCertificates}</div>
+                                <div className="text-gray-400 text-sm">Total Certificates</div>
+                            </div>
+                            <div className="text-center">
+                                <div className="text-2xl font-bold text-blue-400">{activeStudents}</div>
+                                <div className="text-gray-400 text-sm">Active Participants</div>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
-                {/* Add Bookmarked Projects and Students Section */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
-                    <div className="bg-[#1e1b4b] p-6 rounded-lg shadow-lg">
+                {/* Department Analytics Summary */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                    <div className="bg-[#24225a] p-6 rounded-lg shadow-lg">
                         <h2 className="text-2xl font-bold mb-4 text-white flex items-center">
-                            <span className="material-icons text-purple-400 mr-2">bookmark</span>
-                            Bookmarked Projects
+                            <span className="material-icons text-purple-400 mr-2">analytics</span>
+                            Participation Trends
                         </h2>
-                        <ul className="list-disc list-inside text-gray-300">
-                            <li className="flex items-center">
-                                <span className="material-icons text-green-400 mr-2">lightbulb</span>
-                                Project A - Innovative AI Solutions
-                            </li>
-                            <li className="flex items-center">
-                                <span className="material-icons text-blue-400 mr-2">eco</span>
-                                Project B - Sustainable Energy
-                            </li>
-                            <li className="flex items-center">
-                                <span className="material-icons text-red-400 mr-2">android</span>
-                                Project C - Advanced Robotics
-                            </li>
-                        </ul>
+                        <div className="space-y-4">
+                            <div className="flex justify-between items-center p-3 bg-[#1e1b4b] rounded-lg">
+                                <span className="text-gray-300">Total Event Participation</span>
+                                <span className="text-purple-400 font-bold">{eventsParticipated}</span>
+                            </div>
+                            <div className="flex justify-between items-center p-3 bg-[#1e1b4b] rounded-lg">
+                                <span className="text-gray-300">Average Monthly Events</span>
+                                <span className="text-blue-400 font-bold">
+                                    {eventParticipation.length > 0 ? Math.round(eventParticipation.reduce((sum, item) => sum + item.count, 0) / eventParticipation.length) : 0}
+                                </span>
+                            </div>
+                            <div className="flex justify-between items-center p-3 bg-[#1e1b4b] rounded-lg">
+                                <span className="text-gray-300">Student Engagement</span>
+                                <span className={`font-bold ${successRate >= 70 ? 'text-green-400' : successRate >= 50 ? 'text-yellow-400' : 'text-red-400'}`}>
+                                    {successRate >= 70 ? 'High' : successRate >= 50 ? 'Medium' : 'Low'}
+                                </span>
+                            </div>
+                        </div>
                     </div>
 
-                    <div className="bg-[#1e1b4b] p-6 rounded-lg shadow-lg">
+                    <div className="bg-[#24225a] p-6 rounded-lg shadow-lg">
                         <h2 className="text-2xl font-bold mb-4 text-white flex items-center">
-                            <span className="material-icons text-purple-400 mr-2">bookmark</span>
-                            Bookmarked Students
+                            <span className="material-icons text-green-400 mr-2">school</span>
+                            Department Overview
                         </h2>
-                        <ul className="list-disc list-inside text-gray-300">
-                            <li className="flex items-center">
-                                <span className="material-icons text-yellow-400 mr-2">person</span>
-                                Student 1 - AI Researcher
-                            </li>
-                            <li className="flex items-center">
-                                <span className="material-icons text-green-400 mr-2">person</span>
-                                Student 2 - Renewable Energy Advocate
-                            </li>
-                            <li className="flex items-center">
-                                <span className="material-icons text-blue-400 mr-2">person</span>
-                                Student 3 - Robotics Engineer
-                            </li>
-                        </ul>
+                        <div className="space-y-4">
+                            <div className="text-center p-4 bg-[#1e1b4b] rounded-lg">
+                                <div className="text-2xl font-bold text-blue-400">{report?.data?.name}</div>
+                                <div className="text-gray-400 text-sm">Department/Faculty</div>
+                            </div>
+                            <div className="grid grid-cols-2 gap-4">
+                                <div className="text-center p-3 bg-[#1e1b4b] rounded-lg">
+                                    <div className="text-lg font-bold text-green-400">{totalStudents}</div>
+                                    <div className="text-gray-400 text-xs">Students</div>
+                                </div>
+                                <div className="text-center p-3 bg-[#1e1b4b] rounded-lg">
+                                    <div className="text-lg font-bold text-purple-400">{totalCertificates}</div>
+                                    <div className="text-gray-400 text-xs">Certificates</div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
-                {/* Add Key Insights Table */}
+                {/* Real Department Analytics Table */}
                 <div className="bg-[#24225a] p-6 rounded-lg shadow-lg mb-8">
-                    <h2 className="text-2xl font-bold mb-4 text-white">Key Insights</h2>
+                    <h2 className="text-2xl font-bold mb-4 text-white">Department Analytics Summary</h2>
                     <table className="min-w-full text-gray-300">
                         <thead>
                             <tr className="border-b border-gray-600">
                                 <th className="px-4 py-2 text-left">Metric</th>
                                 <th className="px-4 py-2 text-left">Value</th>
-                                <th className="px-4 py-2 text-left">Change</th>
+                                <th className="px-4 py-2 text-left">Status</th>
                             </tr>
                         </thead>
                         <tbody>
                             <tr className="hover:bg-[#1e1b4b]">
                                 <td className="border-t border-gray-600 px-4 py-2">Total Students</td>
-                                <td className="border-t border-gray-600 px-4 py-2">1200</td>
-                                <td className="border-t border-gray-600 px-4 py-2">+5%</td>
+                                <td className="border-t border-gray-600 px-4 py-2">{totalStudents}</td>
+                                <td className="border-t border-gray-600 px-4 py-2">
+                                    <span className="text-blue-400">Active Department</span>
+                                </td>
                             </tr>
                             <tr className="hover:bg-[#1e1b4b]">
-                                <td className="border-t border-gray-600 px-4 py-2">Successful Startups</td>
-                                <td className="border-t border-gray-600 px-4 py-2">150</td>
-                                <td className="border-t border-gray-600 px-4 py-2">+10%</td>
+                                <td className="border-t border-gray-600 px-4 py-2">Active Participants</td>
+                                <td className="border-t border-gray-600 px-4 py-2">{activeStudents}</td>
+                                <td className="border-t border-gray-600 px-4 py-2">
+                                    <span className={successRate >= 70 ? 'text-green-400' : successRate >= 50 ? 'text-yellow-400' : 'text-red-400'}>
+                                        {successRate >= 70 ? 'Excellent' : successRate >= 50 ? 'Good' : 'Needs Improvement'}
+                                    </span>
+                                </td>
                             </tr>
                             <tr className="hover:bg-[#1e1b4b]">
-                                <td className="border-t border-gray-600 px-4 py-2">Ongoing Plans</td>
-                                <td className="border-t border-gray-600 px-4 py-2">30</td>
-                                <td className="border-t border-gray-600 px-4 py-2">+20%</td>
+                                <td className="border-t border-gray-600 px-4 py-2">Certificates Awarded</td>
+                                <td className="border-t border-gray-600 px-4 py-2">{totalCertificates}</td>
+                                <td className="border-t border-gray-600 px-4 py-2">
+                                    <span className={certificateRate >= 30 ? 'text-green-400' : certificateRate >= 15 ? 'text-yellow-400' : 'text-red-400'}>
+                                        {certificateRate >= 30 ? 'High Achievement' : certificateRate >= 15 ? 'Moderate' : 'Low Achievement'}
+                                    </span>
+                                </td>
+                            </tr>
+                            <tr className="hover:bg-[#1e1b4b]">
+                                <td className="border-t border-gray-600 px-4 py-2">Events Participated</td>
+                                <td className="border-t border-gray-600 px-4 py-2">{eventsParticipated}</td>
+                                <td className="border-t border-gray-600 px-4 py-2">
+                                    <span className={eventsParticipated >= 10 ? 'text-green-400' : eventsParticipated >= 5 ? 'text-yellow-400' : 'text-red-400'}>
+                                        {eventsParticipated >= 10 ? 'Highly Active' : eventsParticipated >= 5 ? 'Moderately Active' : 'Limited Activity'}
+                                    </span>
+                                </td>
                             </tr>
                         </tbody>
                     </table>

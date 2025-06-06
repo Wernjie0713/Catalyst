@@ -31,24 +31,48 @@ class ViewProfileController extends Controller
             $profilePhotoPath = $profileUser->{$roleType}->profile_photo_path;
         }
 
-        // Get friend request status
-        $friendRequest = Friend::where(function($query) use ($userId) {
-            $query->where('user_id', auth()->id())
-                  ->where('friend_id', $userId);
-        })->orWhere(function($query) use ($userId) {
-            $query->where('user_id', $userId)
-                  ->where('friend_id', auth()->id());
-        })->first();
-
-        // Get mentor request status (for students viewing lecturers)
+        // Get current user role type
+        $authUserRole = $authUser->roles->first();
+        $authUserRoleType = $authUserRole ? $authUserRole->name : null;
+        
+        // Initialize relationship data
+        $friendRequest = null;
         $mentorRequest = null;
-        if ($authUser->student && $roleType === 'lecturer') {
+        
+        // Business Rules for connections:
+        // 1. Friend requests: ONLY between students
+        // 2. Mentor requests: ONLY from students TO lecturers
+        // 3. Admin, University, Department Staff: NO connection abilities
+        
+        // Only check friend status if both users are students
+        if ($authUserRoleType === 'student' && $roleType === 'student' && auth()->id() !== $userId) {
+            $friendRequest = Friend::where(function($query) use ($userId) {
+                $query->where('user_id', auth()->id())
+                      ->where('friend_id', $userId);
+            })->orWhere(function($query) use ($userId) {
+                $query->where('user_id', $userId)
+                      ->where('friend_id', auth()->id());
+            })->first();
+        }
+
+        // Only check mentor status if current user is student viewing lecturer
+        if ($authUserRoleType === 'student' && $roleType === 'lecturer' && auth()->id() !== $userId) {
             $mentorRequest = Mentor::where('student_id', auth()->id())
                                   ->where('lecturer_id', $userId)
                                   ->first();
         }
 
         if (Bouncer::can('view_otherprofile')) {
+            // Log the connection check for debugging
+            \Log::info('Profile view connection check', [
+                'current_user_id' => auth()->id(),
+                'current_user_role' => $authUserRoleType,
+                'profile_user_id' => $userId,
+                'profile_user_role' => $roleType,
+                'friend_request_exists' => $friendRequest !== null,
+                'mentor_request_exists' => $mentorRequest !== null
+            ]);
+            
             return Inertia::render('ViewProfile', [
                 'profileUser' => $profileUser,
                 'roleType' => $roleType,
@@ -58,7 +82,7 @@ class ViewProfileController extends Controller
                         'title' => $role->title
                     ];
                 }),
-                'profilePhotoPath' => $profilePhotoPath, // This should be like 'images/profile-photos/filename.jpg'
+                'profilePhotoPath' => $profilePhotoPath,
                 'isStudent' => $roleType === 'student',
                 'isLecturer' => $roleType === 'lecturer',
                 'isOrganizer' => $roleType === 'organizer',
@@ -69,7 +93,7 @@ class ViewProfileController extends Controller
                 'mentorStatus' => $mentorRequest ? $mentorRequest->status : null,
                 'mentorRequestId' => $mentorRequest ? $mentorRequest->id : null,
                 'auth' => [
-                    'user' => $authUser // Pass the fully loaded auth user
+                    'user' => $authUser // Pass the fully loaded auth user with roles
                 ]
             ]);
         }

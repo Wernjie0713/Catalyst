@@ -42,13 +42,18 @@ class HandleInertiaRequests extends Middleware
                             'title' => $role->title
                         ];
                     }),
-                    'notifications' => $request->user()->unreadNotifications->map(function($notification) {
-                        return [
-                            'id' => $notification->id,
-                            'data' => $notification->data,
-                            'created_at' => $notification->created_at->diffForHumans(),
-                        ];
-                    }),
+                    'notifications' => $request->user()->notifications()
+                        ->latest()
+                        ->take(20)
+                        ->get()
+                        ->map(function($notification) {
+                            return [
+                                'id' => $notification->id,
+                                'data' => $notification->data,
+                                'created_at' => $notification->created_at->diffForHumans(),
+                                'read_at' => $notification->read_at,
+                            ];
+                        }),
                 ] : null,
                 'url' => $request->path(),
             ],

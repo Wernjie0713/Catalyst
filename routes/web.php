@@ -261,6 +261,10 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/projects/{project}/supervisor/reject', [ProjectController::class, 'rejectSupervisorRequest'])
         ->middleware('can:project_update')
         ->name('projects.supervisor.reject');
+        
+    Route::post('/projects/{project}/supervisor/request-new', [ProjectController::class, 'requestNewSupervisor'])
+        ->middleware('can:project_update')
+        ->name('projects.supervisor.request-new');
 });
 
 Route::middleware(['auth', 'verified'])->group(function () {

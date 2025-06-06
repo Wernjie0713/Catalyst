@@ -4,6 +4,9 @@ namespace App\Http\Controllers;
 
 use App\Models\Team;
 use App\Models\TeamMember;
+use App\Models\User;
+use App\Notifications\TeamInvitationSentNotification;
+use App\Notifications\TeamInvitationAcceptedNotification;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Illuminate\Support\Str;
@@ -38,7 +41,7 @@ class TeamController extends Controller
                 'status' => 'accepted'  // Creator is automatically accepted
             ]);
 
-            // Add other members with pending status
+            // Add other members with pending status and send notifications
             foreach ($validated['members'] as $memberId) {
                 // Skip if the member is the creator (since we already added them)
                 if ($memberId != auth()->id()) {
@@ -47,6 +50,12 @@ class TeamController extends Controller
                         'user_id' => $memberId,
                         'status' => 'pending'
                     ]);
+
+                    // Send notification to the invited member
+                    $invitedUser = User::find($memberId);
+                    if ($invitedUser) {
+                        $invitedUser->notify(new TeamInvitationSentNotification(auth()->user(), $team));
+                    }
                 }
             }
 
@@ -198,6 +207,12 @@ class TeamController extends Controller
                 'status' => 'pending'
             ]);
 
+            // Send notification to the invited member
+            $invitedUser = User::find($validated['user_id']);
+            if ($invitedUser) {
+                $invitedUser->notify(new TeamInvitationSentNotification(auth()->user(), $team));
+            }
+
             // Update member count
             $team->updateMemberCount();
 
@@ -305,8 +320,14 @@ class TeamController extends Controller
 
             $teamMember->update(['status' => 'accepted']);
             
-            // Update member count
+            // Get team and send notification to team creator
             $team = $teamMember->team;
+            $teamCreator = $team->creator;
+            if ($teamCreator) {
+                $teamCreator->notify(new TeamInvitationAcceptedNotification(auth()->user(), $team));
+            }
+            
+            // Update member count
             $team->updateMemberCount();
 
             return response()->json([

@@ -101,7 +101,7 @@ class CertificateTemplateController extends Controller
     {
         // Determine validation rules based on event type and certificate type
         $validationRules = [
-            'title' => 'required|string|max:255',
+            'title' => 'nullable|string|max:255',
             'body_text' => 'nullable|string',
             'signature_image' => 'nullable|image|max:2048',
             'is_participant_template' => 'required|boolean',
@@ -122,6 +122,26 @@ class CertificateTemplateController extends Controller
         }
 
         $validated = $request->validate($validationRules);
+
+        // Provide default values if fields are empty
+        $isParticipant = $validated['is_participant_template'];
+        $isTeamEvent = $event->is_team_event;
+        
+        // Set default title if empty
+        if (empty($validated['title'])) {
+            $validated['title'] = $isParticipant ? 'CERTIFICATE OF PARTICIPATION' : 'CERTIFICATE OF ACHIEVEMENT';
+        }
+        
+        // Set default body text if empty
+        if (empty($validated['body_text'])) {
+            if ($isParticipant) {
+                $validated['body_text'] = 'for participating in the event';
+            } else {
+                $validated['body_text'] = $isTeamEvent 
+                    ? 'for outstanding team achievement in the event'
+                    : 'for outstanding achievement in the event';
+            }
+        }
 
         // Use the direct public path instead of storage path
         $backgroundImagePath = 'images/Certificate.png';

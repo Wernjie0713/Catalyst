@@ -36,7 +36,8 @@ export default function FriendRequestsDropdown({
                     initial={{ opacity: 0, y: -20 }}
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: -20 }}
-                    className="absolute right-0 mt-2 w-96 bg-gradient-to-br from-gray-800/95 via-gray-900/95 to-gray-950/95 rounded-xl shadow-lg border border-white/10 backdrop-blur-xl z-50"
+                    className="absolute right-0 mt-2 w-96 bg-gradient-to-br from-gray-800/95 via-gray-900/95 to-gray-950/95 rounded-xl shadow-xl border border-white/10 backdrop-blur-xl z-[9999]"
+                    style={{ zIndex: 9999 }}
                 >
                     <div className="p-4">
                         <div className="flex items-center justify-between mb-4">

@@ -136,34 +136,41 @@ class ReportController extends BaseController
             }
 
             $universityName = $user->university->name;
-            \Log::info('Getting university report for:', ['university' => $universityName]);
+            \Log::info('Getting university report for:', ['university' => $universityName, 'user_id' => $user->id]);
 
-            // Simple direct queries using your existing structure
+            // University-specific queries with proper filtering
+            $totalStudents = DB::table('students')
+                ->where('university', $universityName)
+                ->count();
+
+            $activeStudents = DB::table('students')
+                ->join('users', 'students.user_id', '=', 'users.id')
+                ->join('enrollments', 'users.id', '=', 'enrollments.user_id')
+                ->where('students.university', $universityName)
+                ->distinct('students.student_id')
+                ->count('students.student_id');
+
+            $totalEvents = DB::table('events')
+                ->join('enrollments', 'events.event_id', '=', 'enrollments.event_id')
+                ->join('users', 'enrollments.user_id', '=', 'users.id')
+                ->join('students', 'users.id', '=', 'students.user_id')
+                ->where('students.university', $universityName)
+                ->distinct('events.event_id')
+                ->count('events.event_id');
+
+            $certificatesAwarded = DB::table('certificates')
+                ->join('students', 'certificates.student_id', '=', 'students.student_id')
+                ->where('students.university', $universityName)
+                ->count();
+
             $metrics = [
-                'totalStudents' => DB::table('students')
-                    ->where('university', $universityName)
-                    ->count(),
-
-                'activeStudents' => DB::table('students')
-                    ->join('users', 'students.user_id', '=', 'users.id')
-                    ->join('enrollments', 'users.id', '=', 'enrollments.user_id')
-                    ->where('students.university', $universityName)
-                    ->distinct('students.student_id')
-                    ->count('students.student_id'),
-
-                'totalEvents' => DB::table('events')
-                    ->join('enrollments', 'events.event_id', '=', 'enrollments.event_id')
-                    ->join('users', 'enrollments.user_id', '=', 'users.id')
-                    ->join('students', 'users.id', '=', 'students.user_id')
-                    ->where('students.university', $universityName)
-                    ->distinct('events.event_id')
-                    ->count('events.event_id'),
-
-                'certificatesAwarded' => DB::table('certificates')
-                    ->join('students', 'certificates.student_id', '=', 'students.student_id')
-                    ->where('students.university', $universityName)
-                    ->count()
+                'totalStudents' => $totalStudents,
+                'activeStudents' => $activeStudents,
+                'totalEvents' => $totalEvents,
+                'certificatesAwarded' => $certificatesAwarded
             ];
+
+            \Log::info('University metrics calculated:', $metrics);
 
             // Faculty distribution
             $facultyDistribution = DB::table('students')
@@ -247,39 +254,74 @@ class ReportController extends BaseController
             }
 
             $facultyName = $departmentStaff->faculty;
+            \Log::info('Getting department report for faculty:', ['faculty' => $facultyName]);
 
-            // Get event participation data
+            // Get basic student metrics
+            $totalStudents = Student::where('faculty', $facultyName)->count();
+            $activeStudents = Student::where('faculty', $facultyName)
+                ->whereHas('user.enrolledEvents')->count();
+
+            // Get certificate data
+            $totalCertificates = Certificate::whereHas('student', function($query) use ($facultyName) {
+                $query->where('faculty', $facultyName);
+            })->count();
+
+            // Get events participated (unique events where faculty students enrolled)
+            $eventsParticipated = Event::whereHas('enrolledUsers.student', function($query) use ($facultyName) {
+                $query->where('faculty', $facultyName);
+            })->count();
+
+            // Get detailed event participation by month
             $eventParticipation = DB::table('events')
                 ->join('enrollments', 'events.event_id', '=', 'enrollments.event_id')
                 ->join('users', 'enrollments.user_id', '=', 'users.id')
                 ->join('students', 'users.id', '=', 'students.user_id')
                 ->where('students.faculty', $facultyName)
+                ->whereYear('events.created_at', now()->year)
                 ->select(
                     DB::raw('MONTH(events.created_at) as month_number'),
-                    DB::raw('DATE_FORMAT(events.created_at, "%M") as month'),
+                    DB::raw('MONTHNAME(events.created_at) as month'),
                     DB::raw('COUNT(DISTINCT events.event_id) as count')
                 )
                 ->groupBy('month_number', 'month')
                 ->orderBy('month_number')
                 ->get();
 
+            // Add months with 0 events to complete the year
+            $allMonths = collect([
+                1 => 'January', 2 => 'February', 3 => 'March', 4 => 'April',
+                5 => 'May', 6 => 'June', 7 => 'July', 8 => 'August',
+                9 => 'September', 10 => 'October', 11 => 'November', 12 => 'December'
+            ]);
+
+            $eventParticipationComplete = $allMonths->map(function ($monthName, $monthNumber) use ($eventParticipation) {
+                $existing = $eventParticipation->where('month_number', $monthNumber)->first();
+                return [
+                    'month_number' => $monthNumber,
+                    'month' => $monthName,
+                    'count' => $existing ? $existing->count : 0
+                ];
+            })->values();
+
+            \Log::info('Department report metrics calculated:', [
+                'total_students' => $totalStudents,
+                'active_students' => $activeStudents,
+                'total_certificates' => $totalCertificates,
+                'events_participated' => $eventsParticipated
+            ]);
+
             return [
                 'data' => [
                     'name' => $facultyName,
                     'generatedDate' => now()->format('F d, Y'),
                     'metrics' => [
-                        'total_students' => Student::where('faculty', $facultyName)->count(),
-                        'active_students' => Student::where('faculty', $facultyName)
-                            ->whereHas('user.enrolledEvents')->count(),
-                        'total_certificates' => Certificate::whereHas('student', function($query) use ($facultyName) {
-                            $query->where('faculty', $facultyName);
-                        })->count(),
-                        'events_participated' => Event::whereHas('enrolledUsers.student', function($query) use ($facultyName) {
-                            $query->where('faculty', $facultyName);
-                        })->count(),
+                        'total_students' => $totalStudents,
+                        'active_students' => $activeStudents,
+                        'total_certificates' => $totalCertificates,
+                        'events_participated' => $eventsParticipated,
                     ],
                     'department_metrics' => [
-                        'event_participation' => $eventParticipation
+                        'event_participation' => $eventParticipationComplete
                     ]
                 ]
             ];

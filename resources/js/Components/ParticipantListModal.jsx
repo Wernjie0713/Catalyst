@@ -4,6 +4,8 @@ import Modal from '@/Components/Modal';
 
 const ParticipantListModal = ({ event, isOpen, onClose }) => {
     const [enrolledUsers, setEnrolledUsers] = useState([]);
+    const [enrolledTeams, setEnrolledTeams] = useState([]);
+    const [isTeamEvent, setIsTeamEvent] = useState(false);
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
     
@@ -17,7 +19,17 @@ const ParticipantListModal = ({ event, isOpen, onClose }) => {
         try {
             setLoading(true);
             const response = await axios.get(route('events.enrolled-users', event.event_id));
-            setEnrolledUsers(response.data);
+            const data = response.data;
+            
+            if (data.is_team_event) {
+                setIsTeamEvent(true);
+                setEnrolledTeams(data.teams || []);
+                setEnrolledUsers([]);
+            } else {
+                setIsTeamEvent(false);
+                setEnrolledUsers(data.users || []);
+                setEnrolledTeams([]);
+            }
         } catch (error) {
             console.error('Failed to fetch enrolled users:', error);
         } finally {
@@ -25,12 +37,24 @@ const ParticipantListModal = ({ event, isOpen, onClose }) => {
         }
     };
     
-    const filteredUsers = searchTerm 
+    // Filter logic for both individual users and teams
+    const filteredUsers = searchTerm && !isTeamEvent
         ? enrolledUsers.filter(user => 
             user.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
             user.email.toLowerCase().includes(searchTerm.toLowerCase())
           )
         : enrolledUsers;
+
+    const filteredTeams = searchTerm && isTeamEvent
+        ? enrolledTeams.filter(team =>
+            team.team_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            team.leader.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            team.members.some(member => 
+                member.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                member.email.toLowerCase().includes(searchTerm.toLowerCase())
+            )
+          )
+        : enrolledTeams;
 
     return (
         <Modal show={isOpen} onClose={onClose}>
@@ -42,7 +66,10 @@ const ParticipantListModal = ({ event, isOpen, onClose }) => {
                             Event Participants
                         </h2>
                         <div className="px-3 py-1 bg-indigo-500/20 rounded-full text-indigo-300 text-sm font-medium">
-                            {enrolledUsers.length} / {event?.max_participants || '∞'}
+                            {isTeamEvent 
+                                ? `${enrolledTeams.length} teams / ${event?.max_participants || '∞'}`
+                                : `${enrolledUsers.length} / ${event?.max_participants || '∞'}`
+                            }
                         </div>
                     </div>
                     <p className="text-sm text-gray-400 mt-1">
@@ -74,7 +101,72 @@ const ParticipantListModal = ({ event, isOpen, onClose }) => {
                         <div className="flex items-center justify-center py-8">
                             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white"></div>
                         </div>
-                    ) : filteredUsers.length > 0 ? (
+                    ) : isTeamEvent ? (
+                        // Team Event Display
+                        filteredTeams.length > 0 ? (
+                            filteredTeams.map((team) => (
+                                <div 
+                                    key={team.team_id} 
+                                    className="group p-4 bg-[#242031]/80 hover:bg-[#242031] rounded-xl transition-all duration-200 border border-gray-700/30"
+                                >
+                                    {/* Team Header */}
+                                    <div className="flex items-center space-x-3 mb-3">
+                                        <div className="flex-shrink-0">
+                                            <div className="w-12 h-12 rounded-full bg-gradient-to-br from-blue-500 to-cyan-600 flex items-center justify-center">
+                                                <span className="material-symbols-outlined text-white">groups</span>
+                                            </div>
+                                        </div>
+                                        <div className="flex-1 min-w-0">
+                                            <p className="text-sm font-medium text-white group-hover:text-blue-300 transition-colors">
+                                                {team.team_name}
+                                            </p>
+                                            <p className="text-xs text-gray-400">
+                                                Leader: {team.leader} • {team.members.length} members
+                                            </p>
+                                        </div>
+                                    </div>
+                                    
+                                    {/* Team Members */}
+                                    <div className="ml-4 pl-4 border-l border-gray-600/50 space-y-2">
+                                        {team.members.map((member) => (
+                                            <div key={member.id} className="flex items-center justify-between">
+                                                <div className="flex items-center space-x-3">
+                                                    <div className="w-8 h-8 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center">
+                                                        <span className="text-white text-xs font-medium">
+                                                            {member.name.charAt(0).toUpperCase()}
+                                                        </span>
+                                                    </div>
+                                                    <div>
+                                                        <p className="text-sm text-white">{member.name}</p>
+                                                        <p className="text-xs text-gray-400">{member.email}</p>
+                                                    </div>
+                                                </div>
+                                                <a 
+                                                    href={route('profile.view', member.id)}
+                                                    className="px-2 py-1 text-xs font-medium text-indigo-400 border border-indigo-500/30 rounded hover:bg-indigo-500/10 transition-colors"
+                                                >
+                                                    Profile
+                                                </a>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            ))
+                        ) : (
+                            <div className="text-center py-8">
+                                <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-[#242031] mb-4">
+                                    <span className="material-symbols-outlined text-gray-400 text-2xl">
+                                        group_off
+                                    </span>
+                                </div>
+                                <p className="text-gray-400 text-sm">
+                                    {searchTerm ? 'No matching teams found' : 'No enrolled teams yet'}
+                                </p>
+                            </div>
+                        )
+                    ) : (
+                        // Individual Event Display
+                        filteredUsers.length > 0 ? (
                         filteredUsers.map((user) => (
                             <div 
                                 key={user.id} 
@@ -114,6 +206,7 @@ const ParticipantListModal = ({ event, isOpen, onClose }) => {
                                 {searchTerm ? 'No matching participants found' : 'No enrolled users yet'}
                             </p>
                         </div>
+                        )
                     )}
                 </div>
 

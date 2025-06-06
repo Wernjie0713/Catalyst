@@ -149,7 +149,7 @@ export const Sidebar = () => {
       name: "Settings",
       icon: "settings",
       route: "settings.edit",
-      path: "/Setting/edit",
+      path: "/settings",
       visible: true
     },
     {

@@ -17,10 +17,17 @@ class MentorController extends Controller
     public function sendRequest(Request $request, $lecturerId)
     {
         try {
+            // Add validation for the request
+            $validated = $request->validate([
+                'message' => 'nullable|string|max:500'
+            ]);
+
             \Log::info('Mentor request attempt:', [
                 'student_id' => auth()->id(),
                 'lecturer_id' => $lecturerId,
                 'message' => $request->message,
+                'validated_message' => $validated['message'] ?? null,
+                'request_all' => $request->all(),
                 'user_role' => auth()->user()->roles->pluck('name'),
                 'has_student_profile' => auth()->user()->student ? 'yes' : 'no'
             ]);
@@ -50,16 +57,17 @@ class MentorController extends Controller
                     // If rejected, allow new request
                     $existingRequest->update([
                         'status' => 'pending',
-                        'message' => $request->message
+                        'message' => $validated['message']
                     ]);
                     \Log::info('Updated rejected request to pending:', [
-                        'request_id' => $existingRequest->id
+                        'request_id' => $existingRequest->id,
+                        'updated_message' => $validated['message']
                     ]);
                     
                     // Send notification to lecturer
                     $lecturer = User::find($lecturerId);
                     if ($lecturer) {
-                        $lecturer->notify(new MentorRequestSentNotification(auth()->user(), $request->message));
+                        $lecturer->notify(new MentorRequestSentNotification(auth()->user(), $validated['message'] ?? ''));
                     }
                     
                     return back()->with('success', 'Mentor request sent!');
@@ -81,7 +89,7 @@ class MentorController extends Controller
                 'student_id' => auth()->id(),
                 'lecturer_id' => $lecturerId,
                 'status' => 'pending',
-                'message' => $request->message
+                'message' => $validated['message']
             ]);
 
             \Log::info('New mentor request created:', [
@@ -90,6 +98,7 @@ class MentorController extends Controller
                 'lecturer_id' => $newRequest->lecturer_id,
                 'status' => $newRequest->status,
                 'message' => $newRequest->message,
+                'message_length' => strlen($newRequest->message ?? ''),
                 'created_at' => $newRequest->created_at
             ]);
 
@@ -103,7 +112,7 @@ class MentorController extends Controller
             // Send notification to lecturer
             $lecturer = User::find($lecturerId);
             if ($lecturer) {
-                $lecturer->notify(new MentorRequestSentNotification(auth()->user(), $request->message));
+                $lecturer->notify(new MentorRequestSentNotification(auth()->user(), $validated['message'] ?? ''));
             }
 
             return back()->with('success', 'Mentor request sent!');
@@ -112,7 +121,8 @@ class MentorController extends Controller
                 'error' => $e->getMessage(),
                 'trace' => $e->getTraceAsString(),
                 'student_id' => auth()->id(),
-                'lecturer_id' => $lecturerId
+                'lecturer_id' => $lecturerId,
+                'request_data' => $request->all()
             ]);
             return back()->with('error', 'Unable to send mentor request.');
         }

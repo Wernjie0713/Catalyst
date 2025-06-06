@@ -170,7 +170,7 @@ export default function EventModal({ event: initialEvent, isOpen, onClose, onEve
                         {/* Close Button */}
                         <button
                             onClick={onClose}
-                            className="absolute right-4 top-4 text-gray-400 hover:text-white transition-colors"
+                            className="absolute right-4 top-4 z-10 text-gray-400 hover:text-white transition-colors p-2 hover:bg-gray-700/50 rounded-full"
                         >
                             <span className="material-symbols-outlined">close</span>
                         </button>

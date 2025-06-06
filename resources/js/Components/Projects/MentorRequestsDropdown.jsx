@@ -1,7 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 
-export default function MentorRequestsDropdown({ isOpen, onClose, requests, onAccept, onReject, auth }) {
+export default function MentorRequestsDropdown({ isOpen, onClose, requests, onAccept, onReject, auth, loadingStates = {} }) {
     const dropdownRef = useRef(null);
 
     useEffect(() => {
@@ -143,26 +143,46 @@ export default function MentorRequestsDropdown({ isOpen, onClose, requests, onAc
 
                                                 <div className="flex space-x-2 mt-3">
                                                     <motion.button
-                                                        onClick={() => onAccept(request.id)}
-                                                        whileHover={{ scale: 1.05 }}
-                                                        whileTap={{ scale: 0.95 }}
-                                                        className="px-3 py-1.5 bg-green-600 hover:bg-green-700 text-white rounded-lg text-xs font-medium flex items-center space-x-1 transition-colors"
+                                                        onClick={() => !loadingStates[request.id] && onAccept(request.id)}
+                                                        whileHover={!loadingStates[request.id] ? { scale: 1.05 } : {}}
+                                                        whileTap={!loadingStates[request.id] ? { scale: 0.95 } : {}}
+                                                        disabled={loadingStates[request.id]}
+                                                        className={`px-3 py-1.5 bg-green-600 hover:bg-green-700 text-white rounded-lg text-xs font-medium flex items-center space-x-1 transition-colors ${
+                                                            loadingStates[request.id] === 'accepting' ? 'opacity-75 cursor-not-allowed' : ''
+                                                        }`}
                                                     >
-                                                        <span className="material-symbols-outlined text-sm">
-                                                            check
-                                                        </span>
+                                                        {loadingStates[request.id] === 'accepting' ? (
+                                                            <svg className="animate-spin h-3 w-3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                                                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                                                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                                            </svg>
+                                                        ) : (
+                                                            <span className="material-symbols-outlined text-sm">
+                                                                check
+                                                            </span>
+                                                        )}
                                                         <span>Accept</span>
                                                     </motion.button>
                                                     
                                                     <motion.button
-                                                        onClick={() => onReject(request.id)}
-                                                        whileHover={{ scale: 1.05 }}
-                                                        whileTap={{ scale: 0.95 }}
-                                                        className="px-3 py-1.5 bg-red-600 hover:bg-red-700 text-white rounded-lg text-xs font-medium flex items-center space-x-1 transition-colors"
+                                                        onClick={() => !loadingStates[request.id] && onReject(request.id)}
+                                                        whileHover={!loadingStates[request.id] ? { scale: 1.05 } : {}}
+                                                        whileTap={!loadingStates[request.id] ? { scale: 0.95 } : {}}
+                                                        disabled={loadingStates[request.id]}
+                                                        className={`px-3 py-1.5 bg-red-600 hover:bg-red-700 text-white rounded-lg text-xs font-medium flex items-center space-x-1 transition-colors ${
+                                                            loadingStates[request.id] === 'rejecting' ? 'opacity-75 cursor-not-allowed' : ''
+                                                        }`}
                                                     >
-                                                        <span className="material-symbols-outlined text-sm">
-                                                            close
-                                                        </span>
+                                                        {loadingStates[request.id] === 'rejecting' ? (
+                                                            <svg className="animate-spin h-3 w-3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                                                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                                                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                                            </svg>
+                                                        ) : (
+                                                            <span className="material-symbols-outlined text-sm">
+                                                                close
+                                                            </span>
+                                                        )}
                                                         <span>Reject</span>
                                                     </motion.button>
                                                 </div>

@@ -13,19 +13,34 @@ import Badges from '@/Components/Profile/Badges';
 export default function ViewProfile({ auth, profileUser, roleType, roles, profilePhotoPath, friendStatus, friendRequestId, mentorStatus, mentorRequestId }) {
 
     const getPersonalInformationComponent = () => {
-        // Check if current user is a student
+        // Check current user role
         const isCurrentUserStudent = auth.user.student !== null;
-        // Check if viewing a lecturer's profile
-        const isViewingLecturer = roleType === 'lecturer';
+        const isCurrentUserLecturer = auth.user.lecturer !== null;
+        const isCurrentUserAdmin = auth.user.roles?.some(role => role.name === 'admin') || false;
+        const isCurrentUserUniversity = auth.user.roles?.some(role => role.name === 'university') || false;
+        const isCurrentUserDepartmentStaff = auth.user.roles?.some(role => role.name === 'department_staff') || false;
+        
         // Check if viewing own profile
         const isViewingOwnProfile = auth.user.id === profileUser.id;
         
-        // Show mentor button only if: student viewing lecturer's profile (not their own)
-        const shouldShowMentorButton = isCurrentUserStudent && isViewingLecturer && !isViewingOwnProfile;
+        // Check profile user role
+        const isViewingStudent = roleType === 'student';
+        const isViewingLecturer = roleType === 'lecturer';
         
-        // Show friend button logic: show if not viewing own profile AND either not a student OR not viewing a lecturer
-        // This means: students can't send friend requests to lecturers (they should use mentor requests instead)
-        const shouldShowFriendButton = !isViewingOwnProfile && (!isCurrentUserStudent || roleType !== 'lecturer');
+        // Business Rules:
+        // 1. Friend connections: ONLY between students
+        // 2. Mentor connections: ONLY from students TO lecturers (not the reverse)
+        // 3. Admin, University, Department Staff: NO connection abilities
+        
+        // Friend button: Only show for student-to-student connections
+        const shouldShowFriendButton = !isViewingOwnProfile && 
+                                     isCurrentUserStudent && 
+                                     isViewingStudent;
+        
+        // Mentor button: Only show for student requesting lecturer as mentor
+        const shouldShowMentorButton = !isViewingOwnProfile && 
+                                     isCurrentUserStudent && 
+                                     isViewingLecturer;
 
         switch (roleType) {
             case 'student':
@@ -105,7 +120,7 @@ export default function ViewProfile({ auth, profileUser, roleType, roles, profil
                 components={components} 
                 profileUser={profileUser}
                 roles={roles}
-                showFriendButton={auth.user.id !== profileUser.id}
+                showFriendButton={false} // Connection buttons are now handled in individual components
                 friendStatus={friendStatus}
                 friendRequestId={friendRequestId}
             />

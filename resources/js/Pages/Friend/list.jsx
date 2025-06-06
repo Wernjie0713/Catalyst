@@ -1,7 +1,7 @@
 import { Head } from '@inertiajs/react';
 import { router } from '@inertiajs/react';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import FriendCard from '@/Components/Friend/FriendCard';
 import FriendTabs from '@/Components/Friend/FriendTabs';
 import EmptyState from '@/Components/Friend/EmptyState';
@@ -31,12 +31,21 @@ export default function FriendsList({ auth, friends = [], teams: initialTeams = 
     const [isTeamDetailsModalOpen, setIsTeamDetailsModalOpen] = useState(false);
     const [isRequestsDropdownOpen, setIsRequestsDropdownOpen] = useState(false);
     const [isTeamInvitationsOpen, setIsTeamInvitationsOpen] = useState(false);
+    const teamInvitationsButtonRef = useRef(null);
     const [pendingTeamInvitations, setPendingTeamInvitations] = useState([]);
     const [isAddToTeamModalOpen, setIsAddToTeamModalOpen] = useState(false);
     const [selectedTeamForMember, setSelectedTeamForMember] = useState(null);
     const [lecturers, setLecturers] = useState([]);
     const [isMentorRequestModalOpen, setIsMentorRequestModalOpen] = useState(false);
     const [selectedLecturer, setSelectedLecturer] = useState(null);
+    
+    // Loading states for different actions
+    const [loadingStates, setLoadingStates] = useState({
+        friendRequests: {},
+        teamInvitations: {},
+        mentorRequests: {},
+        supervisorRequests: {}
+    });
 
     // Animation variants
     const pageVariants = {
@@ -144,14 +153,40 @@ export default function FriendsList({ auth, friends = [], teams: initialTeams = 
     };
 
     const handleAcceptRequest = (requestId) => {
+        // Set loading state
+        setLoadingStates(prev => ({
+            ...prev,
+            friendRequests: { ...prev.friendRequests, [requestId]: 'accepting' }
+        }));
+
         router.post(route('friend.accept', requestId), {}, {
             preserveScroll: true,
+            onFinish: () => {
+                // Clear loading state
+                setLoadingStates(prev => ({
+                    ...prev,
+                    friendRequests: { ...prev.friendRequests, [requestId]: null }
+                }));
+            }
         });
     };
 
     const handleRejectRequest = (requestId) => {
+        // Set loading state
+        setLoadingStates(prev => ({
+            ...prev,
+            friendRequests: { ...prev.friendRequests, [requestId]: 'rejecting' }
+        }));
+
         router.post(route('friend.reject', requestId), {}, {
             preserveScroll: true,
+            onFinish: () => {
+                // Clear loading state
+                setLoadingStates(prev => ({
+                    ...prev,
+                    friendRequests: { ...prev.friendRequests, [requestId]: null }
+                }));
+            }
         });
     };
 
@@ -246,6 +281,12 @@ export default function FriendsList({ auth, friends = [], teams: initialTeams = 
 
     // Update the team invitation handlers
     const handleAcceptTeamInvitation = async (teamId) => {
+        // Set loading state
+        setLoadingStates(prev => ({
+            ...prev,
+            teamInvitations: { ...prev.teamInvitations, [teamId]: 'accepting' }
+        }));
+
         try {
             await axios.post(route('teams.accept-invitation', teamId));
             // Close the dropdown first
@@ -257,14 +298,32 @@ export default function FriendsList({ auth, friends = [], teams: initialTeams = 
                 preserveState: true,
                 onSuccess: () => {
                     fetchTeams(); // Refresh teams data
+                },
+                onFinish: () => {
+                    // Clear loading state
+                    setLoadingStates(prev => ({
+                        ...prev,
+                        teamInvitations: { ...prev.teamInvitations, [teamId]: null }
+                    }));
                 }
             });
         } catch (error) {
             console.error('Error accepting team invitation:', error);
+            // Clear loading state on error
+            setLoadingStates(prev => ({
+                ...prev,
+                teamInvitations: { ...prev.teamInvitations, [teamId]: null }
+            }));
         }
     };
 
     const handleRejectTeamInvitation = async (teamId) => {
+        // Set loading state
+        setLoadingStates(prev => ({
+            ...prev,
+            teamInvitations: { ...prev.teamInvitations, [teamId]: 'rejecting' }
+        }));
+
         try {
             await axios.post(route('teams.reject-invitation', teamId));
             // Close the dropdown first
@@ -276,10 +335,22 @@ export default function FriendsList({ auth, friends = [], teams: initialTeams = 
                 preserveState: true,
                 onSuccess: () => {
                     fetchTeams(); // Refresh teams data
+                },
+                onFinish: () => {
+                    // Clear loading state
+                    setLoadingStates(prev => ({
+                        ...prev,
+                        teamInvitations: { ...prev.teamInvitations, [teamId]: null }
+                    }));
                 }
             });
         } catch (error) {
             console.error('Error rejecting team invitation:', error);
+            // Clear loading state on error
+            setLoadingStates(prev => ({
+                ...prev,
+                teamInvitations: { ...prev.teamInvitations, [teamId]: null }
+            }));
         }
     };
 
@@ -355,12 +426,18 @@ export default function FriendsList({ auth, friends = [], teams: initialTeams = 
                 route: route('mentor.request', selectedLecturer.id)
             });
             
-            const response = await axios.post(route('mentor.request', selectedLecturer.id), { message });
-            console.log('Mentor request response:', response);
-            
-            setIsMentorRequestModalOpen(false);
-            setSelectedLecturer(null);
-            fetchLecturers(); // Refresh lecturers to update request status
+            // Use Inertia's router.post instead of axios for proper CSRF handling
+            router.post(route('mentor.request', selectedLecturer.id), { message }, {
+                onSuccess: () => {
+                    console.log('Mentor request sent successfully');
+                    setIsMentorRequestModalOpen(false);
+                    setSelectedLecturer(null);
+                    fetchLecturers(); // Refresh lecturers to update request status
+                },
+                onError: (errors) => {
+                    console.error('Error sending mentor request:', errors);
+                }
+            });
         } catch (error) {
             console.error('Error sending mentor request:', error);
             console.error('Error response:', error.response?.data);
@@ -405,7 +482,7 @@ export default function FriendsList({ auth, friends = [], teams: initialTeams = 
                                         />
                                     </div>
                                     
-                                    <div className="relative ml-4">
+                                    <div className="relative ml-4 z-50">
                                         <motion.button
                                             onClick={() => setIsRequestsDropdownOpen(!isRequestsDropdownOpen)}
                                             whileHover={{ scale: 1.02 }}
@@ -535,8 +612,9 @@ export default function FriendsList({ auth, friends = [], teams: initialTeams = 
                                                 
                                             <div className="flex gap-4 ml-4">
                                                 {/* Team Invitations Button with Dropdown */}
-                                                <div className="relative">
+                                                <div className="relative z-50">
                                                     <motion.button
+                                                        ref={teamInvitationsButtonRef}
                                                         onClick={() => setIsTeamInvitationsOpen(!isTeamInvitationsOpen)}
                                                         whileHover="hover"
                                                         whileTap="tap"
@@ -569,7 +647,9 @@ export default function FriendsList({ auth, friends = [], teams: initialTeams = 
                                                         pendingInvitations={pendingTeamInvitations}
                                                         onAccept={handleAcceptTeamInvitation}
                                                         onReject={handleRejectTeamInvitation}
+                                                        buttonRef={teamInvitationsButtonRef}
                                                         auth={auth}
+                                                        loadingStates={loadingStates.teamInvitations}
                                                     />
                                                 </div>
                                                 
@@ -704,6 +784,7 @@ export default function FriendsList({ auth, friends = [], teams: initialTeams = 
                                                                 onAccept={handleAcceptRequest}
                                                                 onReject={handleRejectRequest}
                                                                 teams={teams}
+                                                                isLoading={loadingStates.friendRequests[friend.id]}
                                                             />
                                                         </motion.div>
                                                     );

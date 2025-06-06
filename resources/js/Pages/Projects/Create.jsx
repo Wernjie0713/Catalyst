@@ -7,7 +7,7 @@ import PrimaryButton from '@/Components/PrimaryButton';
 import TextInput from '@/Components/TextInput';
 import TextArea from '@/Components/TextArea';
 
-export default function Create({ auth, teams = [], supervisors = [], isTeamLeader = false }) {
+export default function Create({ auth, teams = [], supervisors = [], isTeamLeader = false, hasMentors = false, canSelectSupervisor = false }) {
     const { data, setData, post, processing, errors, reset } = useForm({
         title: '',
         description: '',
@@ -21,17 +21,21 @@ export default function Create({ auth, teams = [], supervisors = [], isTeamLeade
 
     const submit = (e) => {
         e.preventDefault();
-        console.log('Submitting form with data:', data);
         
-        post(route('projects.store'), {
+        // Clean up the data before submission
+        const submitData = {
+            ...data,
+            supervisor_id: data.supervisor_id || null,
+            team_id: data.team_id || null
+        };
+        
+        post(route('projects.store'), submitData, {
             onSuccess: () => {
-                console.log('Project created successfully');
-                reset();
+                // Redirect will be handled by the backend
             },
             onError: (errors) => {
-                console.error('Error creating project:', errors);
-            },
-            preserveScroll: true
+                // Form validation errors will be displayed automatically
+            }
         });
     };
 
@@ -185,34 +189,55 @@ export default function Create({ auth, teams = [], supervisors = [], isTeamLeade
                                 )}
 
                                 <div>
-                                    <InputLabel htmlFor="supervisor_id" value="Project Supervisor" />
-                                    {supervisors.length > 0 ? (
-                                        <select
-                                            id="supervisor_id"
-                                            name="supervisor_id"
-                                            value={data.supervisor_id}
-                                            className="mt-1 block w-full border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm"
-                                            onChange={(e) => setData('supervisor_id', e.target.value)}
-                                            required
-                                        >
-                                            <option value="">Select a supervisor</option>
-                                            {supervisors.map((supervisor) => (
-                                                <option key={supervisor.id} value={supervisor.id}>
-                                                    {supervisor.name}
-                                                </option>
-                                            ))}
-                                        </select>
+                                    <InputLabel htmlFor="supervisor_id" value="Project Supervisor (Required)" />
+                                    {hasMentors ? (
+                                        canSelectSupervisor ? (
+                                            <>
+                                                <select
+                                                    id="supervisor_id"
+                                                    name="supervisor_id"
+                                                    value={data.supervisor_id}
+                                                    className="mt-1 block w-full border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm pr-10"
+                                                    onChange={(e) => setData('supervisor_id', e.target.value)}
+                                                    required
+                                                >
+                                                    <option value="">Select a supervisor from your mentors</option>
+                                                    {supervisors.map((supervisor) => (
+                                                        <option key={supervisor.id} value={supervisor.id}>
+                                                            {supervisor.name}
+                                                        </option>
+                                                    ))}
+                                                </select>
+                                                <p className="mt-2 text-sm text-gray-600">
+                                                    You must select one of your mentors as a supervisor to create a project.
+                                                </p>
+                                            </>
+                                        ) : (
+                                            <div className="mt-1 p-3 bg-yellow-50 border border-yellow-200 rounded-md">
+                                                <p className="text-sm text-yellow-800">
+                                                    <strong>No available supervisors.</strong> You have mentors, but none are available as supervisors at the moment.
+                                                    You cannot create a project without a supervisor.
+                                                </p>
+                                            </div>
+                                        )
                                     ) : (
-                                        <p className="mt-1 text-sm text-red-600">
-                                            No supervisors available. Please contact your administrator.
-                                        </p>
+                                        <div className="mt-1 p-3 bg-blue-50 border border-blue-200 rounded-md">
+                                            <p className="text-sm text-blue-800">
+                                                <strong>No mentors found.</strong> You must have mentors to create a project. 
+                                                Please establish mentor relationships first by visiting the{' '}
+                                                <a href={route('friends.list', { tab: 'mentors' })} className="text-blue-600 hover:text-blue-800 underline">
+                                                    Find Mentors
+                                                </a>{' '}
+                                                page.
+                                            </p>
+                                        </div>
                                     )}
                                     <InputError message={errors.supervisor_id} className="mt-2" />
                                 </div>
 
                                 <div className="flex items-center justify-end">
                                     <PrimaryButton 
-                                        disabled={processing || supervisors.length === 0 || (data.type === 'team' && !data.team_id)}
+                                        disabled={processing || (data.type === 'team' && !data.team_id) || !data.supervisor_id}
                                         className="ml-4"
                                     >
                                         {processing ? 'Creating...' : 'Create Project'}

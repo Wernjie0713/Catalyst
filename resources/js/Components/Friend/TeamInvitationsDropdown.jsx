@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import TeamInvitationCard from './TeamInvitationCard';
 
@@ -7,9 +8,23 @@ export default function TeamInvitationsDropdown({
     onClose, 
     pendingInvitations,
     onAccept,
-    onReject
+    onReject,
+    buttonRef,
+    loadingStates = {}
 }) {
     const dropdownRef = useRef(null);
+    const [position, setPosition] = useState({ top: 0, right: 0 });
+
+    // Calculate position based on button position
+    useEffect(() => {
+        if (isOpen && buttonRef?.current) {
+            const buttonRect = buttonRef.current.getBoundingClientRect();
+            setPosition({
+                top: buttonRect.bottom + 8,
+                right: window.innerWidth - buttonRect.right
+            });
+        }
+    }, [isOpen, buttonRef]);
 
     // Close dropdown when clicking outside
     useEffect(() => {
@@ -23,7 +38,7 @@ export default function TeamInvitationsDropdown({
         return () => document.removeEventListener('mousedown', handleClickOutside);
     }, [onClose]);
 
-    return (
+    const dropdownContent = (
         <AnimatePresence>
             {isOpen && (
                 <motion.div
@@ -31,7 +46,12 @@ export default function TeamInvitationsDropdown({
                     initial={{ opacity: 0, y: -20 }}
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: -20 }}
-                    className="absolute right-0 mt-2 w-96 bg-gradient-to-br from-gray-800/95 via-gray-900/95 to-gray-950/95 rounded-xl shadow-lg border border-white/10 backdrop-blur-xl z-50"
+                    className="fixed w-96 bg-gradient-to-br from-gray-800/95 via-gray-900/95 to-gray-950/95 rounded-xl shadow-xl border border-white/10 backdrop-blur-xl z-[9999]"
+                    style={{ 
+                        top: position.top,
+                        right: position.right,
+                        zIndex: 9999 
+                    }}
                 >
                     <div className="p-4">
                         <div className="flex items-center justify-between mb-4">
@@ -50,6 +70,7 @@ export default function TeamInvitationsDropdown({
                                         onAccept={() => onAccept(invitation.team_id)}
                                         onReject={() => onReject(invitation.team_id)}
                                         compact={true}
+                                        isLoading={loadingStates[invitation.team_id]}
                                     />
                                 ))
                             ) : (
@@ -69,4 +90,6 @@ export default function TeamInvitationsDropdown({
             )}
         </AnimatePresence>
     );
+
+    return typeof document !== 'undefined' ? createPortal(dropdownContent, document.body) : null;
 } 

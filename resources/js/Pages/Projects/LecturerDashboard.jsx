@@ -21,6 +21,12 @@ export default function LecturerDashboard({ projects, pendingInvitations, stats,
     const [isMentorRequestsDropdownOpen, setIsMentorRequestsDropdownOpen] = useState(false);
     const [pendingMentorRequests, setPendingMentorRequests] = useState([]);
     
+    // Loading states for different actions
+    const [loadingStates, setLoadingStates] = useState({
+        mentorRequests: {},
+        supervisorRequests: {}
+    });
+    
     // Fetch mentor requests on component mount
     React.useEffect(() => {
         fetchMentorRequests();
@@ -40,12 +46,24 @@ export default function LecturerDashboard({ projects, pendingInvitations, stats,
 
     // Handle mentor request responses
     const handleMentorResponse = async (requestId, action) => {
+        // Set loading state
+        setLoadingStates(prev => ({
+            ...prev,
+            mentorRequests: { ...prev.mentorRequests, [requestId]: action === 'accept' ? 'accepting' : 'rejecting' }
+        }));
+
         try {
             await axios.post(route(`mentor.${action}`, requestId));
             setIsMentorRequestsDropdownOpen(false);
             fetchMentorRequests(); // Refresh the requests
         } catch (error) {
             console.error(`Error ${action}ing mentor request:`, error);
+        } finally {
+            // Clear loading state
+            setLoadingStates(prev => ({
+                ...prev,
+                mentorRequests: { ...prev.mentorRequests, [requestId]: null }
+            }));
         }
     };
     
@@ -138,10 +156,23 @@ export default function LecturerDashboard({ projects, pendingInvitations, stats,
 
     // Accept/Reject handler
     const handleSupervisorResponse = (projectId, action) => {
+        // Set loading state
+        setLoadingStates(prev => ({
+            ...prev,
+            supervisorRequests: { ...prev.supervisorRequests, [projectId]: action === 'accept' ? 'accepting' : 'rejecting' }
+        }));
+
         router.post(route(`projects.supervisor.${action}`, projectId), {}, {
             onSuccess: () => {
                 router.reload();
             },
+            onFinish: () => {
+                // Clear loading state
+                setLoadingStates(prev => ({
+                    ...prev,
+                    supervisorRequests: { ...prev.supervisorRequests, [projectId]: null }
+                }));
+            }
         });
     };
 
@@ -197,6 +228,7 @@ export default function LecturerDashboard({ projects, pendingInvitations, stats,
                                     onAccept={requestId => handleMentorResponse(requestId, 'accept')}
                                     onReject={requestId => handleMentorResponse(requestId, 'reject')}
                                     auth={auth}
+                                    loadingStates={loadingStates.mentorRequests}
                                 />
                             </div>
                             
@@ -234,6 +266,7 @@ export default function LecturerDashboard({ projects, pendingInvitations, stats,
                                 onAccept={projectId => handleSupervisorResponse(projectId, 'accept')}
                                 onReject={projectId => handleSupervisorResponse(projectId, 'reject')}
                                 auth={auth}
+                                loadingStates={loadingStates.supervisorRequests}
                             />
                             </div>
                         </div>

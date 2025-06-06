@@ -32,7 +32,7 @@ export default function LecturerCard({ lecturer, onRequestMentor }) {
 
     return (
         <motion.div 
-            className="bg-gradient-to-br from-gray-800/30 via-gray-900/30 to-gray-950/30 rounded-xl p-6 border border-white/10 hover:border-white/20 transition-all duration-300"
+            className="bg-gradient-to-br from-gray-800/30 via-gray-900/30 to-gray-950/30 rounded-xl p-6 border border-white/10 hover:border-white/20 transition-all duration-300 h-full flex flex-col"
             whileHover={{ y: -2 }}
             layout
         >
@@ -58,26 +58,26 @@ export default function LecturerCard({ lecturer, onRequestMentor }) {
                 </div>
             </div>
 
-            <div className="space-y-2 mb-4">
-                <div className="flex items-center text-sm">
+            <div className="space-y-2 mb-4 flex-1">
+                <div className="flex items-center text-sm min-h-[20px]">
                     <span className="material-symbols-outlined text-blue-400 mr-2 text-lg">
                         domain
                     </span>
-                    <span className="text-gray-300">{lecturer.department}</span>
+                    <span className="text-gray-300 truncate">{lecturer.department}</span>
                 </div>
                 
-                <div className="flex items-center text-sm">
+                <div className="flex items-center text-sm min-h-[20px]">
                     <span className="material-symbols-outlined text-purple-400 mr-2 text-lg">
                         psychology
                     </span>
-                    <span className="text-gray-300">{lecturer.specialization}</span>
+                    <span className="text-gray-300 truncate">{lecturer.specialization}</span>
                 </div>
                 
-                <div className="flex items-center text-sm">
-                    <span className="material-symbols-outlined text-green-400 mr-2 text-lg">
-                        work_history
+                <div className="flex items-center text-sm min-h-[20px]">
+                    <span className="material-symbols-outlined text-amber-400 mr-2 text-lg">
+                        school
                     </span>
-                    <span className="text-gray-300">{lecturer.experience_years} years experience</span>
+                    <span className="text-gray-300 truncate">{lecturer.university}</span>
                 </div>
             </div>
 

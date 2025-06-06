@@ -19,6 +19,7 @@ class ProjectController extends Controller
     {
         $projects = Project::with(['team', 'student', 'supervisor'])
             ->when(Auth::user()->isA('student'), function ($query) {
+                // Students see all their projects regardless of supervisor approval status
                 return $query->where('student_id', Auth::user()->student->student_id)
                     ->orWhereHas('team', function ($q) {
                         $q->whereHas('members', function ($q) {
@@ -27,7 +28,9 @@ class ProjectController extends Controller
                     });
             })
             ->when(Auth::user()->isA('lecturer'), function ($query) {
-                return $query->where('supervisor_id', Auth::id());
+                // Lecturers only see projects where they've accepted the supervisor role
+                return $query->where('supervisor_id', Auth::id())
+                         ->where('supervisor_request_status', 'accepted');
             })
             ->latest()
             ->get();
@@ -68,41 +71,72 @@ class ProjectController extends Controller
                         ];
                     });
 
-                \Log::info('Retrieved teams for user:', [
-                    'user_id' => Auth::id(),
-                    'teams_count' => $teams->count(),
-                    'teams' => $teams
-                ]);
+
             }
 
-            $supervisors = User::whereHas('roles', function ($query) {
-                $query->where('name', 'lecturer');
-            })->get()->map(function ($user) {
-                return [
-                    'id' => $user->id,
-                    'name' => $user->name
-                ];
-            });
+            // Get lecturers who are mentors of the current student
+            $studentId = Auth::id();
+            
+            try {
+                // First try to get mentors using the mentors relationship
+                $supervisors = collect();
+                
+                // Check if we have the mentors relationship defined
+                $mentorIds = \DB::table('mentors')
+                    ->where('student_id', $studentId)
+                    ->where('status', 'accepted')
+                    ->pluck('lecturer_id');
+                
+                                 if ($mentorIds->isNotEmpty()) {
+                     $supervisors = User::whereHas('roles', function ($query) {
+                         $query->where('name', 'lecturer');
+                     })->whereIn('id', $mentorIds)->get()->map(function ($user) {
+                         return [
+                             'id' => $user->id,
+                             'name' => $user->name
+                         ];
+                     });
+                 } else {
+                     // No mentors available - return empty collection
+                     $supervisors = collect();
+                 }
+                
+                
+                
+            } catch (\Exception $e) {
+                \Log::error('Error getting mentors, falling back to all lecturers:', [
+                    'error' => $e->getMessage()
+                ]);
+                
+                                 // Error occurred - return empty collection for safety
+                 $supervisors = collect();
+            }
+
+            // Check if student has mentors
+            $hasMentors = \DB::table('mentors')
+                ->where('student_id', $studentId)
+                ->where('status', 'accepted')
+                ->exists();
 
             return Inertia::render('Projects/Create', [
                 'teams' => $teams,
                 'supervisors' => $supervisors,
-                'isTeamLeader' => $teams->isNotEmpty() // Add this flag to indicate if user is a team leader
+                'isTeamLeader' => $teams->isNotEmpty(),
+                'hasMentors' => $hasMentors,
+                'canSelectSupervisor' => $supervisors->isNotEmpty()
             ]);
         } catch (\Exception $e) {
             \Log::error('Error in create method:', [
                 'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString()
+                'user_id' => Auth::id()
             ]);
-            return back()->with('error', 'Failed to load project creation form. Please try again.');
+            return back()->with('error', 'Failed to load project creation form.');
         }
     }
 
     public function store(Request $request)
     {
         try {
-            \Log::info('Incoming request data:', $request->all());
-            
             $validated = $request->validate([
                 'title' => 'required|string|max:255',
                 'description' => 'required|string',
@@ -111,25 +145,26 @@ class ProjectController extends Controller
                 'start_date' => 'required|date',
                 'expected_end_date' => 'required|date|after:start_date',
                 'team_id' => 'nullable|required_if:type,team|exists:teams,id',
-                'supervisor_id' => 'required|exists:users,id',
+                'supervisor_id' => 'required|exists:users,id', // Supervisor is now required
             ]);
 
-            \Log::info('Validation passed, validated data:', $validated);
-
             $student = Student::where('user_id', Auth::id())->first();
-            \Log::info('Student lookup result:', ['student' => $student ? $student->toArray() : null]);
             
             if (!$student) {
                 \Log::error('Student profile not found for user:', ['user_id' => Auth::id()]);
                 return back()->with('error', 'Student profile not found. Please contact administrator.');
             }
 
-            \Log::info('About to create project with data:', [
-                'title' => $validated['title'],
-                'type' => $validated['type'],
-                'student_id' => $student->student_id,
-                'supervisor_id' => $validated['supervisor_id']
-            ]);
+            // Validate that the selected supervisor is one of the student's mentors
+            $isMentor = \DB::table('mentors')
+                ->where('student_id', Auth::id())
+                ->where('lecturer_id', $validated['supervisor_id'])
+                ->where('status', 'accepted')
+                ->exists();
+                
+            if (!$isMentor) {
+                return back()->withErrors(['supervisor_id' => 'You can only select supervisors from your mentors.']);
+            }
 
             $project = Project::create([
                 'id' => Str::uuid(),
@@ -144,12 +179,13 @@ class ProjectController extends Controller
                 'student_id' => $student->student_id,
                 'status' => 'planning',
                 'progress_percentage' => 0,
+                'supervisor_request_status' => 'pending', // Always pending since supervisor is required
             ]);
 
-            \Log::info('Project created successfully:', ['project' => $project->toArray()]);
-
+            $successMessage = 'Project created successfully! Your supervisor request has been sent and is pending approval.';
+            
             return redirect()->route('projects.show', $project)
-                ->with('success', 'Project created successfully.');
+                ->with('success', $successMessage);
         } catch (\Exception $e) {
             \Log::error('Project creation failed:', [
                 'error' => $e->getMessage(),
@@ -162,6 +198,27 @@ class ProjectController extends Controller
 
     public function show(Project $project)
     {
+        // Check access permissions
+        $user = Auth::user();
+        $canAccess = false;
+        
+        if ($user->isA('student')) {
+            // Students can view their own projects regardless of supervisor status
+            $canAccess = $project->student_id === $user->student->student_id ||
+                        ($project->team && $project->team->members->contains('user_id', $user->id));
+        } elseif ($user->isA('lecturer')) {
+            // Lecturers can only view projects where they are the supervisor AND have accepted
+            $canAccess = $project->supervisor_id === $user->id && 
+                        $project->supervisor_request_status === 'accepted';
+        } elseif ($user->isA('admin')) {
+            // Admins can view all projects
+            $canAccess = true;
+        }
+        
+        if (!$canAccess) {
+            abort(403, 'You do not have permission to view this project.');
+        }
+        
         // Load the project with its relationships including team members for team projects
         if ($project->type === 'team' && $project->team) {
             $project->load(['team.members.user', 'student.user', 'supervisor', 'updates.updatedBy']);
@@ -219,14 +276,25 @@ class ProjectController extends Controller
             }
         }
         
-        $supervisors = User::whereHas('roles', function ($q) {
-            $q->where('name', 'lecturer');
-        })->get(['id', 'name']);
+        // Get available mentors for supervisor selection (for students who can request new supervisor)
+        $availableMentors = collect();
+        if ($user->isA('student')) {
+            $mentorIds = \DB::table('mentors')
+                ->where('student_id', $user->id)
+                ->where('status', 'accepted')
+                ->pluck('lecturer_id');
+                
+            if ($mentorIds->isNotEmpty()) {
+                $availableMentors = User::whereHas('roles', function ($query) {
+                    $query->where('name', 'lecturer');
+                })->whereIn('id', $mentorIds)->get(['id', 'name']);
+            }
+        }
 
         return Inertia::render('Projects/Show', [
             'project' => $project,
             'unresolvedResources' => $unresolvedResources->unique()->values(),
-            'available_supervisors' => $supervisors
+            'available_mentors' => $availableMentors
         ]);
     }
 
@@ -243,10 +311,26 @@ class ProjectController extends Controller
 
         $project->update($validated);
 
+        // Handle supervisor change/assignment
         if ($request->has('supervisor_id')) {
-            $project->supervisor_id = $request->input('supervisor_id');
-            $project->supervisor_request_status = 'pending';
-            $project->save();
+            $newSupervisorId = $request->input('supervisor_id');
+            
+            // Handle different supervisor assignment scenarios
+            if ($project->supervisor_id !== $newSupervisorId) {
+                $project->supervisor_id = $newSupervisorId;
+                
+                if ($newSupervisorId) {
+                    // Assigning a supervisor - set status to pending
+                    $project->supervisor_request_status = 'pending';
+                } else {
+                    // Removing supervisor - clear status
+                    $project->supervisor_request_status = null;
+                }
+                
+                $project->save();
+                
+                
+            }
         }
 
         return back()->with('success', 'Project updated successfully.');
@@ -507,27 +591,110 @@ class ProjectController extends Controller
 
     public function acceptSupervisorRequest($projectId)
     {
-        $project = Project::findOrFail($projectId);
+        try {
+            $project = Project::findOrFail($projectId);
 
-        // Optional: Check if the current user is the intended supervisor
-        if ($project->supervisor_id !== auth()->id()) {
-            abort(403, 'Unauthorized');
+            // Check if the current user is the intended supervisor
+            if ($project->supervisor_id !== auth()->id()) {
+                abort(403, 'Unauthorized');
+            }
+            
+            // Check if request is still pending
+            if ($project->supervisor_request_status !== 'pending') {
+                return back()->with('error', 'This supervisor request has already been processed.');
+            }
+
+            // Update supervisor request status to accepted
+            $project->supervisor_request_status = 'accepted';
+            $project->save();
+            
+
+
+            return back()->with('success', 'Supervisor request accepted successfully. You can now supervise this project.');
+        } catch (\Exception $e) {
+            \Log::error('Failed to accept supervisor request:', [
+                'project_id' => $projectId,
+                'error' => $e->getMessage()
+            ]);
+            return back()->with('error', 'Failed to accept supervisor request.');
         }
-
-        $project->acceptSupervisorRequest(); // This calls the model helper
-        return back()->with('success', 'Supervisor request accepted.');
     }
 
     public function rejectSupervisorRequest($projectId)
     {
-        $project = Project::findOrFail($projectId);
+        try {
+            $project = Project::findOrFail($projectId);
 
-        // Optional: Check if the current user is the intended supervisor
-        if ($project->supervisor_id !== auth()->id()) {
-            abort(403, 'Unauthorized');
+            // Check if the current user is the intended supervisor
+            if ($project->supervisor_id !== auth()->id()) {
+                abort(403, 'Unauthorized');
+            }
+            
+            // Check if request is still pending
+            if ($project->supervisor_request_status !== 'pending') {
+                return back()->with('error', 'This supervisor request has already been processed.');
+            }
+
+            // Update supervisor request status to rejected
+            $project->supervisor_request_status = 'rejected';
+            $project->supervisor_id = null; // Remove supervisor assignment
+            $project->save();
+            
+
+
+            return back()->with('success', 'Supervisor request rejected. The student will need to select a new supervisor.');
+        } catch (\Exception $e) {
+            \Log::error('Failed to reject supervisor request:', [
+                'project_id' => $projectId,
+                'error' => $e->getMessage()
+            ]);
+            return back()->with('error', 'Failed to reject supervisor request.');
         }
+    }
 
-        $project->rejectSupervisorRequest(); // This calls the model helper
-        return back()->with('success', 'Supervisor request rejected.');
+    public function requestNewSupervisor(Request $request, $projectId)
+    {
+        try {
+            $project = Project::findOrFail($projectId);
+            
+            // Check if the current user is the project owner
+            $user = Auth::user();
+            if (!($user->isA('student') && $project->student_id === $user->student->student_id)) {
+                abort(403, 'Unauthorized');
+            }
+            
+            // Check if the previous request was rejected
+            if ($project->supervisor_request_status !== 'rejected') {
+                return back()->with('error', 'You can only request a new supervisor after the previous request was rejected.');
+            }
+            
+            $validated = $request->validate([
+                'supervisor_id' => 'required|exists:users,id',
+            ]);
+            
+            // Verify the new supervisor is one of the student's mentors
+            $isMentor = \DB::table('mentors')
+                ->where('student_id', $user->id)
+                ->where('lecturer_id', $validated['supervisor_id'])
+                ->where('status', 'accepted')
+                ->exists();
+                
+            if (!$isMentor) {
+                return back()->with('error', 'You can only select supervisors from your mentors.');
+            }
+            
+            // Update project with new supervisor request
+            $project->supervisor_id = $validated['supervisor_id'];
+            $project->supervisor_request_status = 'pending';
+            $project->save();
+            
+            return back()->with('success', 'New supervisor request sent successfully. Waiting for approval.');
+        } catch (\Exception $e) {
+            \Log::error('Failed to request new supervisor:', [
+                'project_id' => $projectId,
+                'error' => $e->getMessage()
+            ]);
+            return back()->with('error', 'Failed to request new supervisor.');
+        }
     }
 } 

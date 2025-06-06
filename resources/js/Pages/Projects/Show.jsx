@@ -23,7 +23,7 @@ const priorityColors = {
     critical: 'bg-rose-100 text-rose-800 border border-rose-200',
 };
 
-export default function Show({ auth, project, available_supervisors }) {
+export default function Show({ auth, project, available_mentors }) {
 
     const [currentProgress, setCurrentProgress] = useState(0);
     const [currentStatus, setCurrentStatus] = useState('planning');
@@ -294,10 +294,22 @@ export default function Show({ auth, project, available_supervisors }) {
     // Display unresolved challenges and resources
     const unresolvedResources = project.unresolvedResources || [];
 
-    const handleReselectSupervisor = (e) => {
+    const handleRequestNewSupervisor = (e) => {
         e.preventDefault();
-        put(route('projects.update', project.id), {
-            onSuccess: () => window.location.reload(),
+        
+        if (!data.supervisor_id) {
+            return;
+        }
+        
+        post(route('projects.supervisor.request-new', project.id), {
+            supervisor_id: data.supervisor_id
+        }, {
+            onSuccess: () => {
+                window.location.reload();
+            },
+            onError: (errors) => {
+                console.error('Failed to request new supervisor:', errors);
+            }
         });
     };
 
@@ -578,7 +590,12 @@ export default function Show({ auth, project, available_supervisors }) {
                                                         <span className="text-sm font-medium text-gray-700">{project.supervisor.name}</span>
                                                         {project.supervisor_request_status === 'pending' && (
                                                             <span className="ml-2 px-2 py-0.5 rounded-full bg-yellow-100 text-yellow-800 text-xs font-medium">
-                                                                Pending
+                                                                Pending Approval
+                                                            </span>
+                                                        )}
+                                                        {project.supervisor_request_status === 'accepted' && (
+                                                            <span className="ml-2 px-2 py-0.5 rounded-full bg-green-100 text-green-800 text-xs font-medium">
+                                                                Approved
                                                             </span>
                                                         )}
                                                         <a href={route('profile.view', project.supervisor.id)} className="ml-auto">
@@ -591,27 +608,49 @@ export default function Show({ auth, project, available_supervisors }) {
                                                 ) : (
                                                     <>
                                                         {project.supervisor_request_status === 'rejected' && auth.user.id === project.student?.user?.id ? (
-                                                            <form onSubmit={handleReselectSupervisor} className="flex items-center gap-2 mt-2">
-                                                                <select
-                                                                    value={data.supervisor_id}
-                                                                    onChange={e => setData('supervisor_id', e.target.value)}
-                                                                    className="border rounded px-2 py-1"
-                                                                    required
-                                                                >
-                                                                    <option value="">Select Supervisor</option>
-                                                                    {available_supervisors.map(sup => (
-                                                                        <option key={sup.id} value={sup.id}>{sup.name}</option>
-                                                                    ))}
-                                                                </select>
-                                                                <button
-                                                                    type="submit"
-                                                                    disabled={processing}
-                                                                    className="px-3 py-1.5 bg-blue-100 text-blue-700 rounded hover:bg-blue-200 text-sm font-medium"
-                                                                >
-                                                                    Choose Supervisor
-                                                                </button>
-                                                                {errors.supervisor_id && <span className="text-red-500 text-xs">{errors.supervisor_id}</span>}
-                                                            </form>
+                                                            <div className="space-y-3">
+                                                                <div className="p-3 bg-red-50 border border-red-200 rounded-lg">
+                                                                    <p className="text-sm text-red-800 font-medium">Supervisor Request Rejected</p>
+                                                                    <p className="text-xs text-red-600 mt-1">
+                                                                        Your previous supervisor request was rejected. Please select a new supervisor from your mentors.
+                                                                    </p>
+                                                                </div>
+                                                                
+                                                                {available_mentors && available_mentors.length > 0 ? (
+                                                                    <form onSubmit={handleRequestNewSupervisor} className="flex items-center gap-2">
+                                                                        <select
+                                                                            value={data.supervisor_id}
+                                                                            onChange={e => setData('supervisor_id', e.target.value)}
+                                                                            className="flex-1 border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                                                                            required
+                                                                        >
+                                                                            <option value="">Select a new supervisor from your mentors</option>
+                                                                            {available_mentors.map(mentor => (
+                                                                                <option key={mentor.id} value={mentor.id}>{mentor.name}</option>
+                                                                            ))}
+                                                                        </select>
+                                                                        <button
+                                                                            type="submit"
+                                                                            disabled={processing || !data.supervisor_id}
+                                                                            className="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium"
+                                                                        >
+                                                                            {processing ? 'Requesting...' : 'Request Supervisor'}
+                                                                        </button>
+                                                                        {errors.supervisor_id && <span className="text-red-500 text-xs">{errors.supervisor_id}</span>}
+                                                                    </form>
+                                                                ) : (
+                                                                    <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                                                                        <p className="text-sm text-blue-800">
+                                                                            <strong>No mentors available.</strong> You need mentors to request a new supervisor.
+                                                                            Please visit the{' '}
+                                                                            <a href={route('friends.list', { tab: 'mentors' })} className="text-blue-600 hover:text-blue-800 underline">
+                                                                                Find Mentors
+                                                                            </a>{' '}
+                                                                            page to establish mentor relationships first.
+                                                                        </p>
+                                                                    </div>
+                                                                )}
+                                                            </div>
                                                         ) : (
                                                             <p className="text-gray-500 italic">No supervisor assigned.</p>
                                                         )}

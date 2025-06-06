@@ -6,6 +6,7 @@ export default function NotificationDropdown() {
     const [isOpen, setIsOpen] = useState(false);
     const { auth } = usePage().props;
     const notifications = auth.user?.notifications || [];
+    const unreadCount = notifications.filter(n => !n.read_at).length;
     const dropdownRef = useRef(null);
 
     // Close dropdown when clicking outside
@@ -50,10 +51,10 @@ export default function NotificationDropdown() {
                     />
                 </svg>
                 
-                {/* Notification Badge */}
-                {notifications.length > 0 && (
+                {/* Notification Badge - show unread count */}
+                {unreadCount > 0 && (
                     <span className="absolute -top-1 -right-1 bg-red-600 text-white rounded-full text-xs w-5 h-5 flex items-center justify-center font-bold">
-                        {notifications.length}
+                        {unreadCount}
                     </span>
                 )}
             </button>
@@ -65,27 +66,42 @@ export default function NotificationDropdown() {
                     style={{maxHeight: '80vh', overflowY: 'auto'}}
                 >
                     <div className="py-2">
-                        <div className="px-4 py-2 font-medium border-b border-gray-200 bg-gray-50">
-                            Notifications
+                        <div className="px-4 py-2 font-medium border-b border-gray-200 bg-gray-50 flex justify-between items-center">
+                            <span>Notifications</span>
+                            {notifications.length > 0 && (
+                                <button 
+                                    onClick={() => router.post('/notifications/mark-all-as-read')}
+                                    className="text-xs text-blue-600 hover:text-blue-800"
+                                >
+                                    Mark all as read
+                                </button>
+                            )}
                         </div>
                         
                         {notifications.length === 0 ? (
                             <div className="px-4 py-6 text-gray-500 text-center">
-                                No new notifications
+                                No notifications
                             </div>
                         ) : (
                             notifications.map((notification) => (
                                 <div 
                                     key={notification.id} 
-                                    className="px-4 py-3 hover:bg-gray-50 border-b border-gray-100 cursor-pointer"
+                                    className={`px-4 py-3 hover:bg-gray-50 border-b border-gray-100 cursor-pointer flex items-start ${
+                                        !notification.read_at ? 'bg-blue-50' : ''
+                                    }`}
                                     onClick={() => markAsRead(notification.id)}
                                 >
-                                    <div className="text-sm font-medium text-gray-800">
-                                        {notification.data.message || "New notification"}
+                                    <div className="flex-1">
+                                        <div className={`text-sm ${!notification.read_at ? 'font-semibold text-gray-900' : 'font-medium text-gray-800'}`}>
+                                            {notification.data.message || "New notification"}
+                                        </div>
+                                        <div className="text-xs text-gray-500 mt-1">
+                                            {notification.created_at}
+                                        </div>
                                     </div>
-                                    <div className="text-xs text-gray-500 mt-1">
-                                        {notification.created_at}
-                                    </div>
+                                    {!notification.read_at && (
+                                        <div className="ml-2 w-2 h-2 bg-blue-600 rounded-full mt-2"></div>
+                                    )}
                                 </div>
                             ))
                         )}

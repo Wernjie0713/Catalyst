@@ -8,8 +8,11 @@ use App\Notifications\FriendRequestSentNotification;
 use App\Notifications\FriendRequestAcceptedNotification;
 use App\Notifications\MentorRequestSentNotification;
 use App\Notifications\MentorRequestAcceptedNotification;
+use App\Notifications\TeamInvitationSentNotification;
+use App\Notifications\TeamInvitationAcceptedNotification;
 use App\Notifications\EventReminderNotification;
 use App\Models\Event;
+use App\Models\Team;
 
 class TestEmailNotifications extends Command
 {
@@ -67,6 +70,19 @@ class TestEmailNotifications extends Command
             // Test Mentor Request Accepted
             $this->line('Sending Mentor Request Accepted notification...');
             $testUser->notify(new MentorRequestAcceptedNotification($sender));
+
+            // Test Team Invitation Sent
+            $team = Team::first();
+            if ($team) {
+                $this->line('Sending Team Invitation Sent notification...');
+                $testUser->notify(new TeamInvitationSentNotification($sender, $team));
+
+                // Test Team Invitation Accepted
+                $this->line('Sending Team Invitation Accepted notification...');
+                $testUser->notify(new TeamInvitationAcceptedNotification($sender, $team));
+            } else {
+                $this->warn('No teams found, skipping Team Invitation tests.');
+            }
 
             // Test Event Reminder
             $event = Event::first();

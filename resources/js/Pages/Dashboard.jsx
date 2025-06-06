@@ -145,27 +145,29 @@ export default function Dashboard() {
                         </div>
                     </motion.div>
 
-                    {/* Friend Suggestions Section */}
-                    <motion.div
-                        style={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        transition={{ delay: 0.3, duration: 0.7 }}
-                        className="mt-12"
-                    >
-                        <div className="flex items-center justify-between mb-6">
-                            <h2 className="text-xl font-semibold text-white">Friend Suggestions</h2>
-                        </div>
+                    {/* Friend Suggestions Section - Only for Students */}
+                    {auth.user.roles[0]?.name === 'student' && friendSuggestions.length > 0 && (
+                        <motion.div
+                            style={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            transition={{ delay: 0.3, duration: 0.7 }}
+                            className="mt-12"
+                        >
+                            <div className="flex items-center justify-between mb-6">
+                                <h2 className="text-xl font-semibold text-white">Friend Suggestions</h2>
+                            </div>
 
-                        <div className="friend-suggestions grid grid-cols-1 md:grid-cols-3 gap-4">
-                            {friendSuggestions.map((user, index) => (
-                                <FriendSuggestionCard 
-                                    key={user.id}
-                                    user={user}
-                                    index={index}
-                                />
-                            ))}
-                        </div>
-                    </motion.div>
+                            <div className="friend-suggestions grid grid-cols-1 md:grid-cols-3 gap-4">
+                                {friendSuggestions.map((user, index) => (
+                                    <FriendSuggestionCard 
+                                        key={user.id}
+                                        user={user}
+                                        index={index}
+                                    />
+                                ))}
+                            </div>
+                        </motion.div>
+                    )}
                 </div>
             </div>
         </AuthenticatedLayout>

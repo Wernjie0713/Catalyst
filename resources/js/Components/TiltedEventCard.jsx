@@ -130,17 +130,19 @@ const TiltedEventCard = ({ event: initialEvent, onEventUpdate }) => {
                   <span className="truncate">{event.location}</span>
                 </div>
 
-                {/* Participants */}
-                <div className="flex items-center text-[10px]">
-                  <span className="material-symbols-outlined text-xs mr-1">
-                    {event.is_team_event ? 'groups' : 'group'}
-                  </span>
-                  <span>
-                    {event.is_team_event 
-                      ? `${event.enrolled_teams_count || 0}/${event.max_participants} teams` 
-                      : `${event.enrolled_count}/${event.max_participants} participants`}
-                  </span>
-                </div>
+                {/* Participants - Only for internal events */}
+                {!event.is_external && (
+                  <div className="flex items-center text-[10px]">
+                    <span className="material-symbols-outlined text-xs mr-1">
+                      {event.is_team_event ? 'groups' : 'group'}
+                    </span>
+                    <span>
+                      {event.is_team_event 
+                        ? `${event.enrolled_teams_count || 0}/${event.max_participants} teams` 
+                        : `${event.enrolled_count}/${event.max_participants} participants`}
+                    </span>
+                  </div>
+                )}
 
                 {/* Tags */}
                 {event.label_tags && event.label_tags.length > 0 && (

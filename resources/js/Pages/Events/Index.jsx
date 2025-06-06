@@ -7,7 +7,7 @@ import { useState } from 'react';
 
 const Index = ({ events: initialEvents }) => {
     const [events, setEvents] = useState(initialEvents);
-    const [showTeamEvents, setShowTeamEvents] = useState(false);
+    const [eventFilter, setEventFilter] = useState('individual'); // 'individual', 'team', 'external'
     const { can } = usePage().props;
 
     const handleEventUpdate = (updatedEvent) => {
@@ -19,10 +19,22 @@ const Index = ({ events: initialEvents }) => {
         }));
     };
 
-    // Filter events based on the selected tab
-    const filteredEvents = events.data.filter(event => 
-        showTeamEvents ? event.is_team_event : !event.is_team_event
-    );
+    // Filter events based on the selected filter
+    const filteredEvents = events.data.filter(event => {
+        switch (eventFilter) {
+            case 'individual':
+                // Internal individual events only
+                return !event.is_team_event && !event.is_external;
+            case 'team':
+                // Internal team events only
+                return event.is_team_event && !event.is_external;
+            case 'external':
+                // External events only
+                return event.is_external;
+            default:
+                return true;
+        }
+    });
 
     // Softer page animation
     const pageVariants = {
@@ -97,83 +109,50 @@ const Index = ({ events: initialEvents }) => {
                                 </p>
                             </div>
                             <div className="flex items-center space-x-4">
-                                {/* Mobile Toggle Buttons */}
-                                <div className="sm:hidden flex items-center bg-[#1E1E2E]/50 rounded-lg p-1.5 w-full">
+                                {/* Filter Buttons */}
+                                <div className="flex items-center bg-[#1E1E2E]/50 rounded-lg p-1.5 gap-1">
                                     <button
-                                        onClick={() => setShowTeamEvents(false)}
+                                        onClick={() => setEventFilter('individual')}
                                         className={`
-                                            flex-1 px-4 py-2 rounded-md text-sm font-medium 
+                                            w-12 sm:w-28 px-3 py-2 rounded-md text-sm font-medium 
                                             transition-colors duration-300 flex items-center justify-center gap-2
-                                            ${!showTeamEvents 
+                                            ${eventFilter === 'individual' 
                                                 ? 'bg-blue-500 text-white' 
                                                 : 'text-gray-400 hover:text-white'
                                             }
                                         `}
                                     >
                                         <span className="material-symbols-outlined text-sm">person</span>
-                                        <span>Individual</span>
+                                        <span className="hidden sm:inline">Individual</span>
                                     </button>
                                     <button
-                                        onClick={() => setShowTeamEvents(true)}
+                                        onClick={() => setEventFilter('team')}
                                         className={`
-                                            flex-1 px-4 py-2 rounded-md text-sm font-medium 
+                                            w-12 sm:w-28 px-3 py-2 rounded-md text-sm font-medium 
                                             transition-colors duration-300 flex items-center justify-center gap-2
-                                            ${showTeamEvents 
+                                            ${eventFilter === 'team' 
                                                 ? 'bg-blue-500 text-white' 
                                                 : 'text-gray-400 hover:text-white'
                                             }
                                         `}
                                     >
                                         <span className="material-symbols-outlined text-sm">groups</span>
-                                        <span>Team</span>
+                                        <span className="hidden sm:inline">Team</span>
                                     </button>
-                                </div>
-
-                                {/* Desktop Toggle Switch */}
-                                <div className="hidden sm:flex items-center space-x-3 bg-[#1E1E2E]/50 px-4 py-2 rounded-xl">
-                                    <div className="flex items-center space-x-2">
-                                        <span className="material-symbols-outlined text-gray-400">person</span>
-                                        <span className={`text-sm font-medium transition-colors duration-300 ${!showTeamEvents ? 'text-white' : 'text-gray-400'}`}>
-                                            Individual
-                                        </span>
-                                    </div>
-
                                     <button
-                                        onClick={() => setShowTeamEvents(!showTeamEvents)}
+                                        onClick={() => setEventFilter('external')}
                                         className={`
-                                            relative inline-flex h-7 w-14 items-center rounded-full
-                                            transition-all duration-300 ease-in-out focus:outline-none
-                                            ${showTeamEvents 
-                                                ? 'bg-gradient-to-r from-blue-500 to-indigo-500' 
-                                                : 'bg-gradient-to-r from-rose-400 to-amber-400'
+                                            w-12 sm:w-28 px-3 py-2 rounded-md text-sm font-medium 
+                                            transition-colors duration-300 flex items-center justify-center gap-2
+                                            ${eventFilter === 'external' 
+                                                ? 'bg-purple-500 text-white' 
+                                                : 'text-gray-400 hover:text-white'
                                             }
-                                            shadow-lg
                                         `}
                                     >
-                                        <span
-                                            className={`
-                                                inline-block h-5 w-5 transform rounded-full
-                                                transition-all duration-300 ease-in-out
-                                                ${showTeamEvents ? 'translate-x-8' : 'translate-x-1'}
-                                                bg-white shadow-md
-                                                flex items-center justify-center
-                                            `}
-                                        >
-                                            <span className={`
-                                                material-symbols-outlined text-[12px]
-                                                ${showTeamEvents ? 'text-blue-500' : 'text-amber-500'}
-                                            `}>
-                                                {showTeamEvents ? 'groups' : 'person'}
-                                            </span>
-                                        </span>
+                                        <span className="material-symbols-outlined text-sm">public</span>
+                                        <span className="hidden sm:inline">External</span>
                                     </button>
-
-                                    <div className="flex items-center space-x-2">
-                                        <span className="material-symbols-outlined text-gray-400">groups</span>
-                                        <span className={`text-sm font-medium transition-colors duration-300 ${showTeamEvents ? 'text-white' : 'text-gray-400'}`}>
-                                            Team
-                                        </span>
-                                    </div>
                                 </div>
 
                                 {can.event_upload && (
@@ -240,10 +219,15 @@ const Index = ({ events: initialEvents }) => {
                                     </span>
                                 </div>
                                 <h3 className="text-xl font-medium text-gray-300 mb-2">
-                                    No {showTeamEvents ? 'Team' : 'Individual'} Events Found
+                                    No {eventFilter === 'individual' ? 'Individual' : eventFilter === 'team' ? 'Team' : 'External'} Events Found
                                 </h3>
                                 <p className="text-gray-400">
-                                    There are no {showTeamEvents ? 'team' : 'individual'} events available at the moment.
+                                    {eventFilter === 'individual' 
+                                        ? 'There are no internal individual events available at the moment.'
+                                        : eventFilter === 'team'
+                                        ? 'There are no internal team-based events available at the moment.'
+                                        : 'There are no external events available at the moment.'
+                                    }
                                 </p>
                             </motion.div>
                         )}

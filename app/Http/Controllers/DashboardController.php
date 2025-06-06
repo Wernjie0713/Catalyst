@@ -56,44 +56,48 @@ class DashboardController extends Controller
                 return $data;
             });
 
-        // Get IDs of existing friends (where status is 'accepted')
-        $existingFriendIds = Friend::where(function($query) use ($user) {
-            $query->where(function($q) use ($user) {
-                $q->where('user_id', $user->id)
-                  ->orWhere('friend_id', $user->id);
+        // Only show friend suggestions for students
+        $friendSuggestions = collect();
+        
+        if ($role === 'student') {
+            // Get IDs of existing friends (where status is 'accepted')
+            $existingFriendIds = Friend::where(function($query) use ($user) {
+                $query->where(function($q) use ($user) {
+                    $q->where('user_id', $user->id)
+                      ->orWhere('friend_id', $user->id);
+                })
+                ->where('status', 'accepted');
             })
-            ->where('status', 'accepted');
-        })
-        ->get()
-        ->map(function($friend) use ($user) {
-            return $friend->user_id == $user->id ? $friend->friend_id : $friend->user_id;
-        })
-        ->toArray();
-
-        // Fetch other users for friend suggestions, excluding admins and existing friends
-        $friendSuggestions = User::where('id', '!=', $user->id)
-            ->whereNotIn('id', $existingFriendIds)
-            ->whereDoesntHave('roles', function ($query) {
-                $query->where('name', 'admin');
-            })
-            ->with(['roles', $role])
-            ->inRandomOrder()
-            ->take(3)
             ->get()
-            ->map(function ($user) {
-                $roleType = $user->roles()->first()?->name;
-                $profilePhotoPath = null;
-                
-                if ($user->{$roleType} && $user->{$roleType}->profile_photo_path) {
-                    $profilePhotoPath = $user->{$roleType}->profile_photo_path;
-                }
+            ->map(function($friend) use ($user) {
+                return $friend->user_id == $user->id ? $friend->friend_id : $friend->user_id;
+            })
+            ->toArray();
 
-                return [
-                    'id' => $user->id,
-                    'name' => $user->name,
-                    'profile_picture' => $profilePhotoPath
-                ];
-            });
+            // Fetch other student users for friend suggestions, excluding existing friends
+            $friendSuggestions = User::where('id', '!=', $user->id)
+                ->whereNotIn('id', $existingFriendIds)
+                ->whereHas('roles', function ($query) {
+                    $query->where('name', 'student');
+                })
+                ->with(['roles', 'student'])
+                ->inRandomOrder()
+                ->take(3)
+                ->get()
+                ->map(function ($user) {
+                    $profilePhotoPath = null;
+                    
+                    if ($user->student && $user->student->profile_photo_path) {
+                        $profilePhotoPath = $user->student->profile_photo_path;
+                    }
+
+                    return [
+                        'id' => $user->id,
+                        'name' => $user->name,
+                        'profile_picture' => $profilePhotoPath
+                    ];
+                });
+        }
 
         return Inertia::render('Dashboard', [
             'abilities' => [
@@ -113,8 +117,7 @@ class DashboardController extends Controller
                             'name' => $role->name,
                             'title' => $role->title
                         ];
-                    }),
-                    'notifications' => $user->notifications
+                    })
                 ]
             ],
             'currentRole' => $role,
