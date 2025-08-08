@@ -216,6 +216,7 @@ class ProfileController extends Controller
             'bio' => 'nullable|string',
             'faculty' => 'nullable|string',
             'university' => 'nullable|string',
+            'programme' => 'nullable|string',
             'expected_graduate' => 'nullable|integer'
         ]);
 
@@ -228,7 +229,7 @@ class ProfileController extends Controller
 
             $student->update($request->only([
                 'matric_no', 'year', 'level', 'contact_number', 
-                'bio', 'faculty', 'university', 'expected_graduate'
+                'bio', 'faculty', 'university', 'programme', 'expected_graduate'
             ]));
 
             Log::info('Student profile updated successfully:', [

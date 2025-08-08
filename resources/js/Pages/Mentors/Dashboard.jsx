@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
-import { Head, Link, router } from '@inertiajs/react';
+import { Head, Link, router, usePage } from '@inertiajs/react';
 import { motion } from 'framer-motion';
 import { 
     UserGroupIcon,
@@ -11,7 +11,8 @@ import {
     ClockIcon
 } from '@heroicons/react/24/outline';
 
-export default function MenteesDashboard({ mentees, stats, auth }) {
+export default function MenteesDashboard({ mentees, stats }) {
+    const { auth } = usePage().props;
     const [searchQuery, setSearchQuery] = useState('');
     
     // Animation variants
@@ -227,10 +228,10 @@ export default function MenteesDashboard({ mentees, stats, auth }) {
                                                                     className="h-10 w-10 rounded-full object-cover"
                                                                 />
                                                             ) : (
-                                                                <div className="h-10 w-10 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
-                                                                    <span className="text-white font-medium text-sm">
-                                                                        {mentee.name.charAt(0).toUpperCase()}
-                                                                    </span>
+                                                                <div className="h-10 w-10 rounded-full bg-indigo-500 flex items-center justify-center">
+                                                                    <svg className="h-6 w-6 text-white" fill="currentColor" viewBox="0 0 20 20">
+                                                                        <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" />
+                                                                    </svg>
                                                                 </div>
                                                             )}
                                                         </div>

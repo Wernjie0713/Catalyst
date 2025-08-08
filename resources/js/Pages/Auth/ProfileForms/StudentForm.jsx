@@ -74,6 +74,7 @@ export default function StudentForm({ data, onChange, visibleFields = [] }) {
         bio: data.bio || '',
         faculty: data.faculty || '',
         university: data.university || '',
+        programme: data.programme || '',
         expected_graduate: data.expected_graduate || ''
     });
     
@@ -103,6 +104,11 @@ export default function StudentForm({ data, onChange, visibleFields = [] }) {
             return {
                 title: "Academic Information",
                 description: "Tell us about your institution"
+            };
+        } else if (visibleFields.includes('programme')) {
+            return {
+                title: "Programme Details",
+                description: "Tell us about your programme of study"
             };
         } else {
             return {
@@ -235,6 +241,26 @@ export default function StudentForm({ data, onChange, visibleFields = [] }) {
                                 <option key={university} value={university}>{university}</option>
                             ))}
                         </select>
+                    </div>
+                )}
+                
+                {/* Programme */}
+                {isVisible('programme') && (
+                    <div>
+                        <label htmlFor="programme" className="block text-sm font-medium text-gray-300 mb-1">
+                            Programme
+                        </label>
+                        <input
+                            type="text"
+                            id="programme"
+                            name="programme"
+                            value={form.programme}
+                            onChange={handleInputChange}
+                            className="w-full px-4 py-2 bg-white/5 border border-white/10 rounded-lg 
+                                text-white placeholder-gray-500 focus:border-[#635985] focus:ring-1 
+                                focus:ring-[#635985] transition-colors"
+                            placeholder="e.g., Bachelor of Computer Science, Master of Engineering"
+                        />
                     </div>
                 )}
                 

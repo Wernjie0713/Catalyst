@@ -27,6 +27,7 @@ class Student extends Model
         'bio',
         'faculty',
         'university',
+        'programme',
         'expected_graduate',
         'profile_photo_path'
     ];
@@ -37,6 +38,7 @@ class Student extends Model
         'level' => 'string',
         'faculty' => 'string',
         'university' => 'string',
+        'programme' => 'string',
     ];
 
     // Ensure timestamps are enabled

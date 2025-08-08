@@ -85,6 +85,7 @@ export default function StudentPersonalInformation({
         bio: user?.student?.bio || '',
         faculty: user?.student?.faculty || '',
         university: user?.student?.university || '',
+        programme: user?.student?.programme || '',
         expected_graduate: user?.student?.expected_graduate || ''
     });
 
@@ -226,6 +227,14 @@ export default function StudentPersonalInformation({
                                 className="bg-white/5 border-white/10 text-white"
                             />
                             <Input
+                                label="Programme"
+                                value={data.programme}
+                                onChange={(e) => setData('programme', e.target.value)}
+                                error={errors.programme}
+                                placeholder="e.g., Bachelor of Computer Science"
+                                className="bg-white/5 border-white/10 text-white"
+                            />
+                            <Input
                                 label="Expected Graduate Year"
                                 type="number"
                                 value={data.expected_graduate}
@@ -287,7 +296,8 @@ export default function StudentPersonalInformation({
                             title="Institution"
                             items={[
                                 { label: "University", value: user?.student?.university },
-                                { label: "Faculty", value: user?.student?.faculty }
+                                { label: "Faculty", value: user?.student?.faculty },
+                                { label: "Programme", value: user?.student?.programme }
                             ]}
                         />
                         <DetailCard

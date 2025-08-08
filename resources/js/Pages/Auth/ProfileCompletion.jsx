@@ -18,7 +18,7 @@ const roleSteps = {
         { 
             id: 'academic', 
             title: 'Academic Details',
-            fields: ['faculty', 'university', 'expected_graduate']
+            fields: ['faculty', 'university', 'programme', 'expected_graduate']
         },
         { 
             id: 'personal', 

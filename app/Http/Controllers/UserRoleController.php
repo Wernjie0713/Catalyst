@@ -163,7 +163,7 @@ class UserRoleController extends Controller
                 case 'student':
                     $user->student()->update($request->only([
                         'matric_no', 'year', 'level', 'contact_number', 
-                        'bio', 'faculty', 'university', 'expected_graduate'
+                        'bio', 'faculty', 'university', 'programme', 'expected_graduate'
                     ]));
                     break;
                     

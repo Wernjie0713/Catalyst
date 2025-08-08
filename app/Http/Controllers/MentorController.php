@@ -284,9 +284,6 @@ class MentorController extends Controller
         return Inertia::render('Mentors/Dashboard', [
             'mentees' => $menteeDetails,
             'stats' => $stats,
-            'auth' => [
-                'user' => auth()->user()
-            ]
         ]);
     }
 
