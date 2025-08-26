@@ -149,18 +149,18 @@ class EventController extends Controller
         }
         
         // Event type filter (individual, team, external)
-        if ($request->filled('eventFilter')) {
-            switch ($request->get('eventFilter')) {
-                case 'individual':
-                    $query->where('is_team_event', false)->where('is_external', false);
-                    break;
-                case 'team':
-                    $query->where('is_team_event', true)->where('is_external', false);
-                    break;
-                case 'external':
-                    $query->where('is_external', true);
-                    break;
-            }
+        // Default to 'individual' if no filter is specified
+        $eventFilter = $request->get('eventFilter', 'individual');
+        switch ($eventFilter) {
+            case 'individual':
+                $query->where('is_team_event', false)->where('is_external', false);
+                break;
+            case 'team':
+                $query->where('is_team_event', true)->where('is_external', false);
+                break;
+            case 'external':
+                $query->where('is_external', true);
+                break;
         }
         
         // Status filter

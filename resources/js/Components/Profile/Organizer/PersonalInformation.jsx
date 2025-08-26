@@ -232,12 +232,13 @@ function QuickInfo({ icon, label, value, isLink }) {
                     href={value}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-sm sm:text-base text-orange-500 hover:text-orange-600"
+                    className="text-sm sm:text-base text-orange-500 hover:text-orange-600 break-all hover:break-normal transition-all duration-200"
+                    title={value}
                 >
-                    {value}
+                    {value.length > 30 ? value.substring(0, 30) + '...' : value}
                 </a>
             ) : (
-                <p className="text-sm sm:text-base text-gray-800">{value || 'Not set'}</p>
+                <p className="text-sm sm:text-base text-gray-800 break-words">{value || 'Not set'}</p>
             )}
         </div>
     );
@@ -259,12 +260,13 @@ function DetailCard({ icon, title, items }) {
                                 href={item.value}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="text-orange-500 hover:text-orange-600"
+                                className="text-orange-500 hover:text-orange-600 break-all hover:break-normal transition-all duration-200"
+                                title={item.value}
                             >
-                                {item.value}
+                                {item.value.length > 50 ? item.value.substring(0, 50) + '...' : item.value}
                             </a>
                         ) : (
-                            <p className="text-gray-800">{item.value || 'Not set'}</p>
+                            <p className="text-gray-800 break-words">{item.value || 'Not set'}</p>
                         )}
                     </div>
                 ))}

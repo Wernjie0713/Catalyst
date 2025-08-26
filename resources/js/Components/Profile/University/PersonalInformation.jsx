@@ -214,7 +214,7 @@ export default function UniversityPersonalInformation({
                             items={[
                                 { label: "Email", value: user?.university?.contact_email },
                                 { label: "Phone", value: user?.university?.contact_number },
-                                { label: "Website", value: user?.university?.website }
+                                { label: "Website", value: user?.university?.website, isLink: true }
                             ]}
                         />
                         <DetailCard
@@ -254,7 +254,19 @@ function DetailCard({ icon, title, items }) {
                 {items.map((item, index) => (
                     <div key={index}>
                         <p className="text-sm text-gray-600 mb-1">{item.label}</p>
-                        <p className="text-gray-800">{item.value || 'Not set'}</p>
+                        {item.isLink && item.value ? (
+                            <a 
+                                href={item.value}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-orange-500 hover:text-orange-600 break-all hover:break-normal transition-all duration-200"
+                                title={item.value}
+                            >
+                                {item.value.length > 50 ? item.value.substring(0, 50) + '...' : item.value}
+                            </a>
+                        ) : (
+                            <p className="text-gray-800 break-words">{item.value || 'Not set'}</p>
+                        )}
                     </div>
                 ))}
             </div>

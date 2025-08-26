@@ -3,84 +3,76 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Http\Requests\UpdateRoleRequest;
 use Illuminate\Http\Request;
+use Silber\Bouncer\Bouncer;
 use Inertia\Inertia;
-use Silber\Bouncer\BouncerFacade as Bouncer;
+use Inertia\Response;
 
 class RoleController extends Controller
 {
-    public function index()
+    public function index(): Response
     {
-        $roles = Bouncer::role()->all();
+        $roles = \Bouncer::role()->all();
         
         return Inertia::render('Admin/Roles/Index', [
-            'roles' => $roles->map(function($role) {
-                return [
-                    'id' => $role->id,
-                    'name' => $role->name,
-                    'title' => ucwords(str_replace('_', ' ', $role->name)),
-                    'editUrl' => route('admin.roles.edit', $role->id),
-                    'deleteUrl' => route('admin.roles.destroy', $role->id)
-                ];
-            })
+            'roles' => $roles
         ]);
     }
 
-    public function edit($id)
+    public function edit($role): Response
     {
-        $role = Bouncer::role()->find($id);
-        $abilities = Bouncer::ability()->all();
-        $roleAbilities = $role->getAbilities()->pluck('name')->toArray();
+        $roleModel = \Bouncer::role()->find($role);
+        
+        if (!$roleModel) {
+            abort(404);
+        }
 
         return Inertia::render('Admin/Roles/Edit', [
-            'role' => [
-                'id' => $role->id,
-                'name' => $role->name,
-                'title' => ucwords(str_replace('_', ' ', $role->name))
-            ],
-            'abilities' => $abilities->map(function($ability) {
-                return [
-                    'id' => $ability->id,
-                    'name' => $ability->name,
-                    'title' => $ability->title ?? ucwords(str_replace('_', ' ', $ability->name))
-                ];
-            }),
-            'roleAbilities' => $roleAbilities
+            'role' => $roleModel
         ]);
     }
 
-    public function update(UpdateRoleRequest $request, $id)
+    public function update(Request $request, $role): \Illuminate\Http\RedirectResponse
     {
-        $role = Bouncer::role()->find($id);
-        $abilities = $request->validated('abilities');
-
-        // Remove all existing abilities
-        foreach ($role->getAbilities() as $ability) {
-            Bouncer::disallow($role->name)->to($ability->name);
+        $roleModel = \Bouncer::role()->find($role);
+        
+        if (!$roleModel) {
+            abort(404);
         }
 
-        // Assign new abilities
-        foreach ($abilities as $ability) {
-            Bouncer::allow($role->name)->to($ability);
-        }
+        $request->validate([
+            'name' => 'required|string|max:255',
+            'title' => 'required|string|max:255',
+        ]);
+
+        $roleModel->update([
+            'name' => $request->name,
+            'title' => $request->title,
+        ]);
 
         return redirect()->route('admin.roles.index')
-            ->with('message', 'Role updated successfully');
+            ->with('success', 'Role updated successfully.');
     }
 
-    public function destroy($id)
+    public function destroy($role): \Illuminate\Http\RedirectResponse
     {
-        $role = Bouncer::role()->find($id);
+        $roleModel = \Bouncer::role()->find($role);
         
-        // Remove all abilities from role before deleting
-        foreach ($role->getAbilities() as $ability) {
-            Bouncer::disallow($role->name)->to($ability->name);
+        if (!$roleModel) {
+            abort(404);
         }
+
+        // Check if role is assigned to any users
+        $usersWithRole = \Bouncer::role($roleModel)->getUsers();
         
-        $role->delete();
+        if ($usersWithRole->count() > 0) {
+            return redirect()->route('admin.roles.index')
+                ->with('error', 'Cannot delete role that is assigned to users.');
+        }
+
+        $roleModel->delete();
 
         return redirect()->route('admin.roles.index')
-            ->with('message', 'Role deleted successfully');
+            ->with('success', 'Role deleted successfully.');
     }
-} 
+}

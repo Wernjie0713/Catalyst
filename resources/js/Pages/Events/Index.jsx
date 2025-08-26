@@ -3,11 +3,12 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import TiltedEventCard from '@/Components/TiltedEventCard';
 import ModernPagination from '@/Components/ModernPagination';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import ScrollingRainbow from '@/Components/ScrollingRainbow';
 
 const Index = ({ events: initialEvents }) => {
     const [events, setEvents] = useState(initialEvents);
+    const [isLoading, setIsLoading] = useState(false);
     const [eventFilter, setEventFilter] = useState('individual'); // 'individual', 'team', 'external'
     const [searchTerm, setSearchTerm] = useState('');
     const [statusFilter, setStatusFilter] = useState('all');
@@ -15,14 +16,17 @@ const Index = ({ events: initialEvents }) => {
     const [dateFilter, setDateFilter] = useState('all');
     const [showFilters, setShowFilters] = useState(false);
     const { can } = usePage().props;
+    const isInitialRender = useRef(true);
 
     // Update events when props change (from backend filtering)
     useEffect(() => {
         setEvents(initialEvents);
+        setIsLoading(false);
     }, [initialEvents]);
 
     // Function to apply filters via backend
     const applyFilters = () => {
+        setIsLoading(true);
         const params = {};
         
         if (searchTerm) params.search = searchTerm;
@@ -34,11 +38,19 @@ const Index = ({ events: initialEvents }) => {
         router.get(route('events.index'), params, {
             preserveState: true,
             preserveScroll: true,
+            onStart: () => setIsLoading(true),
+            onFinish: () => setIsLoading(false),
         });
     };
 
-    // Apply filters when any filter changes
+    // Apply filters when any filter changes (but not on initial load)
     useEffect(() => {
+        // Skip the initial render to prevent immediate filtering
+        if (isInitialRender.current) {
+            isInitialRender.current = false;
+            return;
+        }
+
         const timeoutId = setTimeout(() => {
             applyFilters();
         }, 300); // Debounce for search
@@ -48,6 +60,7 @@ const Index = ({ events: initialEvents }) => {
 
     // Function to handle pagination with current filters
     const handlePageChange = (url) => {
+        setIsLoading(true);
         const params = new URLSearchParams(url.split('?')[1] || '');
         
         // Add current filters to pagination URL
@@ -60,6 +73,8 @@ const Index = ({ events: initialEvents }) => {
         router.get(route('events.index') + '?' + params.toString(), {}, {
             preserveState: true,
             preserveScroll: true,
+            onStart: () => setIsLoading(true),
+            onFinish: () => setIsLoading(false),
         });
     };
 
@@ -71,6 +86,38 @@ const Index = ({ events: initialEvents }) => {
             )
         }));
     };
+
+    // Check for URL parameters on initial load
+    useEffect(() => {
+        const urlParams = new URLSearchParams(window.location.search);
+        const urlEventFilter = urlParams.get('eventFilter');
+        const urlSearchTerm = urlParams.get('search');
+        const urlStatusFilter = urlParams.get('statusFilter');
+        const urlEventTypeFilter = urlParams.get('eventTypeFilter');
+        const urlDateFilter = urlParams.get('dateFilter');
+
+        // Only set filters if they exist in URL and are different from defaults
+        if (urlEventFilter && urlEventFilter !== 'individual') {
+            setEventFilter(urlEventFilter);
+        }
+        if (urlSearchTerm) {
+            setSearchTerm(urlSearchTerm);
+        }
+        if (urlStatusFilter && urlStatusFilter !== 'all') {
+            setStatusFilter(urlStatusFilter);
+        }
+        if (urlEventTypeFilter && urlEventTypeFilter !== 'all') {
+            setEventTypeFilter(urlEventTypeFilter);
+        }
+        if (urlDateFilter && urlDateFilter !== 'all') {
+            setDateFilter(urlDateFilter);
+        }
+
+        // If there are URL parameters, we need to apply filters immediately
+        if (urlEventFilter || urlSearchTerm || urlStatusFilter || urlEventTypeFilter || urlDateFilter) {
+            isInitialRender.current = false;
+        }
+    }, []);
 
     const clearAllFilters = () => {
         setSearchTerm('');
@@ -413,21 +460,42 @@ const Index = ({ events: initialEvents }) => {
                             {/* Results Count */}
                             <motion.div 
                                 className="text-sm text-gray-600"
-                                key={`${filteredEvents.length}-${events.total}`}
+                                key={`${filteredEvents.length}-${events.total}-${isLoading}`}
                                 initial={{ opacity: 0.7, y: 2 }}
                                 animate={{ opacity: 1, y: 0 }}
                                 transition={{ duration: 0.2 }}
                             >
-                                Showing {filteredEvents.length} of {events.total} events
-                                {(searchTerm || statusFilter !== 'all' || eventTypeFilter !== 'all' || dateFilter !== 'all') && (
-                                    <span className="ml-2 text-[#F37022]">
-                                        (filtered)
+                                {isLoading ? (
+                                    <span className="flex items-center space-x-2">
+                                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-[#F37022]"></div>
+                                        <span>Loading...</span>
                                     </span>
+                                ) : (
+                                    <>
+                                        Showing {filteredEvents.length} of {events.total} events
+                                        {(searchTerm || statusFilter !== 'all' || eventTypeFilter !== 'all' || dateFilter !== 'all') && (
+                                            <span className="ml-2 text-[#F37022]">
+                                                (filtered)
+                                            </span>
+                                        )}
+                                    </>
                                 )}
                             </motion.div>
                         </motion.div>
 
-                        {filteredEvents.length > 0 ? (
+                        {isLoading ? (
+                            <motion.div 
+                                initial={{ opacity: 0 }}
+                                animate={{ opacity: 1 }}
+                                transition={{ duration: 0.3 }}
+                                className="text-center py-12"
+                            >
+                                <div className="flex items-center justify-center space-x-3">
+                                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#F37022]"></div>
+                                    <span className="text-gray-600">Loading events...</span>
+                                </div>
+                            </motion.div>
+                        ) : filteredEvents.length > 0 ? (
                             <>
                                 <motion.div 
                                     variants={container}

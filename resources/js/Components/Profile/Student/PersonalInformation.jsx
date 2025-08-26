@@ -338,7 +338,7 @@ function DetailCard({ icon, title, items }) {
                 {items.map((item, index) => (
                     <div key={index}>
                         <p className="text-sm text-gray-600 mb-1">{item.label}</p>
-                        <p className="text-gray-800">{item.value || 'Not set'}</p>
+                        <p className="text-gray-800 break-words">{item.value || 'Not set'}</p>
                     </div>
                 ))}
             </div>

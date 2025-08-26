@@ -131,8 +131,8 @@
       "_dialog-Db2lgBmZ.js"
     ]
   },
-  "_PersonalInformation-CifppxPj.js": {
-    "file": "assets/PersonalInformation-CifppxPj.js",
+  "_PersonalInformation-9tsiK6T2.js": {
+    "file": "assets/PersonalInformation-9tsiK6T2.js",
     "name": "PersonalInformation",
     "imports": [
       "_index-D3Bj6weo.js",
@@ -141,8 +141,8 @@
       "_DisplayProfilePhoto-DFIzBEor.js"
     ]
   },
-  "_PersonalInformation-Cyjzz_Al.js": {
-    "file": "assets/PersonalInformation-Cyjzz_Al.js",
+  "_PersonalInformation-BHOpVqj1.js": {
+    "file": "assets/PersonalInformation-BHOpVqj1.js",
     "name": "PersonalInformation",
     "imports": [
       "_index-D3Bj6weo.js",
@@ -151,8 +151,8 @@
       "_DisplayProfilePhoto-DFIzBEor.js"
     ]
   },
-  "_PersonalInformation-DLL3AF9n.js": {
-    "file": "assets/PersonalInformation-DLL3AF9n.js",
+  "_PersonalInformation-DVgat5Ur.js": {
+    "file": "assets/PersonalInformation-DVgat5Ur.js",
     "name": "PersonalInformation",
     "imports": [
       "_index-D3Bj6weo.js",
@@ -163,8 +163,8 @@
       "_DisplayProfilePhoto-DFIzBEor.js"
     ]
   },
-  "_PersonalInformation-JAMuohB7.js": {
-    "file": "assets/PersonalInformation-JAMuohB7.js",
+  "_PersonalInformation-n6pDwumC.js": {
+    "file": "assets/PersonalInformation-n6pDwumC.js",
     "name": "PersonalInformation",
     "imports": [
       "_index-D3Bj6weo.js",
@@ -173,8 +173,8 @@
       "_DisplayProfilePhoto-DFIzBEor.js"
     ]
   },
-  "_PersonalInformation-cAHNiPdI.js": {
-    "file": "assets/PersonalInformation-cAHNiPdI.js",
+  "_PersonalInformation-oF4g6XDl.js": {
+    "file": "assets/PersonalInformation-oF4g6XDl.js",
     "name": "PersonalInformation",
     "imports": [
       "_index-D3Bj6weo.js",
@@ -317,7 +317,7 @@
     "isDynamicEntry": true
   },
   "resources/css/app.css": {
-    "file": "assets/app-CqCPLh7d.css",
+    "file": "assets/app-C1T8nAAZ.css",
     "src": "resources/js/app.jsx",
     "isEntry": true
   },
@@ -574,7 +574,7 @@
     ]
   },
   "resources/js/Pages/Events/Index.jsx": {
-    "file": "assets/Index-C9zHZteZ.js",
+    "file": "assets/Index-Ccat2gU7.js",
     "name": "Index",
     "src": "resources/js/Pages/Events/Index.jsx",
     "isEntry": true,
@@ -713,7 +713,7 @@
     ]
   },
   "resources/js/Pages/Profile/DepartmentStaff/Profile.jsx": {
-    "file": "assets/Profile-Ca39xeCS.js",
+    "file": "assets/Profile-9TtcZ2XO.js",
     "name": "Profile",
     "src": "resources/js/Pages/Profile/DepartmentStaff/Profile.jsx",
     "isEntry": true,
@@ -721,7 +721,7 @@
       "_index-D3Bj6weo.js",
       "_AuthenticatedLayout-DgmrdonU.js",
       "_FriendRequestButton-C82Mjoh0.js",
-      "_PersonalInformation-Cyjzz_Al.js",
+      "_PersonalInformation-n6pDwumC.js",
       "_index-CfYVbadh.js",
       "_index.esm-CYkcvaz4.js",
       "_en-US-DNUEYIb-.js",
@@ -731,14 +731,14 @@
     ]
   },
   "resources/js/Pages/Profile/Lecturer/Profile.jsx": {
-    "file": "assets/Profile-DxXPIKfY.js",
+    "file": "assets/Profile-CV6h3eaO.js",
     "name": "Profile",
     "src": "resources/js/Pages/Profile/Lecturer/Profile.jsx",
     "isEntry": true,
     "imports": [
       "_index-D3Bj6weo.js",
       "_FriendRequestButton-C82Mjoh0.js",
-      "_PersonalInformation-CifppxPj.js",
+      "_PersonalInformation-9tsiK6T2.js",
       "_index.esm-CYkcvaz4.js",
       "_index-CfYVbadh.js",
       "_AuthenticatedLayout-DgmrdonU.js",
@@ -749,14 +749,14 @@
     ]
   },
   "resources/js/Pages/Profile/Organizer/Profile.jsx": {
-    "file": "assets/Profile-DmnCs4Jq.js",
+    "file": "assets/Profile-DAliCUIS.js",
     "name": "Profile",
     "src": "resources/js/Pages/Profile/Organizer/Profile.jsx",
     "isEntry": true,
     "imports": [
       "_index-D3Bj6weo.js",
       "_FriendRequestButton-C82Mjoh0.js",
-      "_PersonalInformation-cAHNiPdI.js",
+      "_PersonalInformation-oF4g6XDl.js",
       "_index.esm-CYkcvaz4.js",
       "_index-CfYVbadh.js",
       "_AuthenticatedLayout-DgmrdonU.js",
@@ -767,7 +767,7 @@
     ]
   },
   "resources/js/Pages/Profile/Student/Profile.jsx": {
-    "file": "assets/Profile-DeiMCXho.js",
+    "file": "assets/Profile-BO1GCFaT.js",
     "name": "Profile",
     "src": "resources/js/Pages/Profile/Student/Profile.jsx",
     "isEntry": true,
@@ -775,7 +775,7 @@
       "_index-D3Bj6weo.js",
       "_AuthenticatedLayout-DgmrdonU.js",
       "_FriendRequestButton-C82Mjoh0.js",
-      "_PersonalInformation-DLL3AF9n.js",
+      "_PersonalInformation-DVgat5Ur.js",
       "_index.esm-CYkcvaz4.js",
       "_en-US-DNUEYIb-.js",
       "_index-CfYVbadh.js",
@@ -787,14 +787,14 @@
     ]
   },
   "resources/js/Pages/Profile/University/Profile.jsx": {
-    "file": "assets/Profile-BLSO7itb.js",
+    "file": "assets/Profile-Be-YrFVW.js",
     "name": "Profile",
     "src": "resources/js/Pages/Profile/University/Profile.jsx",
     "isEntry": true,
     "imports": [
       "_index-D3Bj6weo.js",
       "_FriendRequestButton-C82Mjoh0.js",
-      "_PersonalInformation-JAMuohB7.js",
+      "_PersonalInformation-BHOpVqj1.js",
       "_index.esm-CYkcvaz4.js",
       "_index-CfYVbadh.js",
       "_AuthenticatedLayout-DgmrdonU.js",
@@ -1022,7 +1022,7 @@
     ]
   },
   "resources/js/Pages/ViewProfile.jsx": {
-    "file": "assets/ViewProfile-BSFko4Ib.js",
+    "file": "assets/ViewProfile-g7giwbhE.js",
     "name": "ViewProfile",
     "src": "resources/js/Pages/ViewProfile.jsx",
     "isEntry": true,
@@ -1031,11 +1031,11 @@
       "_AuthenticatedLayout-DgmrdonU.js",
       "_index.esm-CYkcvaz4.js",
       "_FriendRequestButton-C82Mjoh0.js",
-      "_PersonalInformation-DLL3AF9n.js",
-      "_PersonalInformation-CifppxPj.js",
-      "_PersonalInformation-cAHNiPdI.js",
-      "_PersonalInformation-JAMuohB7.js",
-      "_PersonalInformation-Cyjzz_Al.js",
+      "_PersonalInformation-DVgat5Ur.js",
+      "_PersonalInformation-9tsiK6T2.js",
+      "_PersonalInformation-oF4g6XDl.js",
+      "_PersonalInformation-BHOpVqj1.js",
+      "_PersonalInformation-n6pDwumC.js",
       "_en-US-DNUEYIb-.js",
       "_index-CfYVbadh.js",
       "_proxy-CrpZcEeN.js",
@@ -1056,7 +1056,7 @@
     ]
   },
   "resources/js/app.jsx": {
-    "file": "assets/app-D9DILkkc.js",
+    "file": "assets/app-DKAwtGl1.js",
     "name": "app",
     "src": "resources/js/app.jsx",
     "isEntry": true,
@@ -1139,17 +1139,17 @@
       "_CheckCircleIcon-DRy72VPP.js",
       "_ClockIcon-ljP0LaTI.js",
       "_FriendRequestButton-C82Mjoh0.js",
-      "_PersonalInformation-Cyjzz_Al.js",
-      "_PersonalInformation-CifppxPj.js",
-      "_PersonalInformation-cAHNiPdI.js",
-      "_PersonalInformation-DLL3AF9n.js",
-      "_PersonalInformation-JAMuohB7.js",
+      "_PersonalInformation-n6pDwumC.js",
+      "_PersonalInformation-9tsiK6T2.js",
+      "_PersonalInformation-oF4g6XDl.js",
+      "_PersonalInformation-DVgat5Ur.js",
+      "_PersonalInformation-BHOpVqj1.js",
       "_SecondaryButton-Cr4unrZI.js",
       "_DocumentTextIcon-Bt31Fz68.js",
       "_index-BpekFtwt.js"
     ],
     "css": [
-      "assets/app-CqCPLh7d.css"
+      "assets/app-C1T8nAAZ.css"
     ]
   }
 }
