@@ -59,19 +59,27 @@ export default function NotificationDropdown() {
                 )}
             </button>
 
-            {/* Dropdown - Fixed positioning */}
+            {/* Backdrop for focus */}
+            {isOpen && (
+                <div className="fixed inset-0 z-[9998] bg-black/10 backdrop-blur-[2px]"></div>
+            )}
+
+            {/* Dropdown - Responsive positioning */}
             {isOpen && (
                 <div 
-                    className="fixed right-4 top-16 w-80 bg-white rounded-md shadow-xl border border-gray-200 overflow-hidden z-[9999]"
+                    className="fixed top-16 left-1/2 -translate-x-1/2 w-[92vw] max-w-sm sm:left-auto sm:right-4 sm:translate-x-0 sm:w-80 bg-white rounded-xl shadow-2xl ring-1 ring-black/5 overflow-hidden z-[9999]"
                     style={{maxHeight: '80vh', overflowY: 'auto'}}
                 >
                     <div className="py-2">
-                        <div className="px-4 py-2 font-medium border-b border-gray-200 bg-gray-50 flex justify-between items-center">
-                            <span>Notifications</span>
+                        <div className="px-4 py-3 font-medium border-b border-gray-100 bg-gray-50 flex justify-between items-center sticky top-0">
+                            <div className="flex items-center gap-2 text-gray-900">
+                                <span className="material-symbols-outlined text-[#F37022]">notifications</span>
+                                <span>Notifications</span>
+                            </div>
                             {notifications.length > 0 && (
                                 <button 
                                     onClick={() => router.post('/notifications/mark-all-as-read')}
-                                    className="text-xs text-blue-600 hover:text-blue-800"
+                                    className="text-xs text-[#F37022] hover:text-orange-600"
                                 >
                                     Mark all as read
                                 </button>
@@ -79,14 +87,17 @@ export default function NotificationDropdown() {
                         </div>
                         
                         {notifications.length === 0 ? (
-                            <div className="px-4 py-6 text-gray-500 text-center">
-                                No notifications
+                            <div className="px-6 py-12 text-gray-500 text-center">
+                                <div className="mx-auto mb-3 w-12 h-12 rounded-full bg-orange-50 flex items-center justify-center">
+                                    <span className="material-symbols-outlined text-[#F37022]">notifications_off</span>
+                                </div>
+                                <div className="text-sm">No new notifications</div>
                             </div>
                         ) : (
                             notifications.map((notification) => (
                                 <div 
                                     key={notification.id} 
-                                    className={`px-4 py-3 hover:bg-gray-50 border-b border-gray-100 cursor-pointer flex items-start ${
+                                    className={`px-4 py-3 hover:bg-orange-50/40 border-b border-gray-100 cursor-pointer flex items-start ${
                                         !notification.read_at ? 'bg-blue-50' : ''
                                     }`}
                                     onClick={() => markAsRead(notification.id)}
@@ -100,7 +111,7 @@ export default function NotificationDropdown() {
                                         </div>
                                     </div>
                                     {!notification.read_at && (
-                                        <div className="ml-2 w-2 h-2 bg-blue-600 rounded-full mt-2"></div>
+                                        <div className="ml-2 w-2 h-2 bg-[#F37022] rounded-full mt-2"></div>
                                     )}
                                 </div>
                             ))

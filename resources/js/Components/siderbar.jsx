@@ -11,6 +11,7 @@ export const Sidebar = () => {
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
   const notificationsRef = useRef(null);
   const notifications = auth.user?.notifications || [];
+  const unreadFromServer = auth.user?.unread_count ?? 0;
   
   // Function to check if user has a specific role
   const hasRole = (role) => {
@@ -50,8 +51,20 @@ export const Sidebar = () => {
     return () => window.removeEventListener('resize', checkIfMobile);
   }, []);
 
-  const markAsRead = (notificationId) => {
-    router.post(`/notifications/${notificationId}/read`);
+  const goToNotification = (notification) => {
+    const id = notification.id;
+    const data = notification.data || {};
+    const url = data.action_url || null;
+
+    if (url) {
+      router.visit(url, {
+        onFinish: () => router.post(`/notifications/${id}/read`),
+        preserveScroll: true,
+      });
+    } else {
+      // Fallback: just mark as read
+      router.post(`/notifications/${id}/read`);
+    }
   };
 
   const formatNotificationDate = (dateString) => {
@@ -64,7 +77,7 @@ export const Sidebar = () => {
   };
 
   // Count unread notifications - using the actual count now
-  const unreadCount = notifications.filter(n => !n.read_at).length;
+  const unreadCount = Math.max(unreadFromServer, notifications.filter(n => !n.read_at).length);
 
   // Define nav items with visibility conditions
   const navItems = [
@@ -101,13 +114,20 @@ export const Sidebar = () => {
       icon: "folder_supervised",
       route: "projects.index",
       path: "/projects",
-      visible: isAdmin || hasRole('lecturer') || hasRole('student')
+      visible: isAdmin || hasRole('student')
     },
     {
-      name: "Lecturer Dashboard",
+      name: "Project Dashboard",
       icon: "school",
       route: "lecturer.dashboard",
       path: "/lecturer/dashboard",
+      visible: isLecturer
+    },
+    {
+      name: "Faculty Students",
+      icon: "groups_3",
+      route: "lecturer.students",
+      path: "/lecturer/students",
       visible: isLecturer
     },
     {
@@ -216,7 +236,7 @@ export const Sidebar = () => {
     <div className="md:hidden">
       <button
         onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-        className="fixed top-4 left-4 z-50 p-2 rounded-md bg-gray-800 text-white hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-800 focus:ring-white"
+        className="fixed top-4 left-4 z-50 p-2 rounded-md bg-white text-[#F37022] border border-orange-200 shadow hover:bg-orange-50 focus:outline-none focus:ring-2 focus:ring-[#F37022] focus:ring-offset-2 focus:ring-offset-white"
       >
         <span className="sr-only">Open menu</span>
         <svg
@@ -237,7 +257,7 @@ export const Sidebar = () => {
       {isMobileMenuOpen && (
         <>
           <div className="fixed inset-0 bg-black bg-opacity-50 z-40" onClick={() => setIsMobileMenuOpen(false)} />
-          <div className="fixed top-16 left-4 z-50 w-48 rounded-md shadow-lg bg-gray-800 ring-1 ring-black ring-opacity-5">
+          <div className="fixed top-16 left-4 z-50 w-56 rounded-lg shadow-xl bg-white border border-orange-200">
             <div className="py-1">
               {filteredNavItems.map((item, index) => {
                 return (
@@ -247,8 +267,8 @@ export const Sidebar = () => {
                   className={`
                     w-full text-left px-4 py-2 text-sm flex items-center space-x-3
                     ${activeIndex === index 
-                      ? 'bg-gray-700 text-white' 
-                      : 'text-gray-300 hover:bg-gray-700 hover:text-white'
+                      ? 'bg-orange-50 text-[#F37022] font-medium' 
+                      : 'text-gray-700 hover:bg-orange-50 hover:text-[#F37022]'
                     }
                   `}
                 >
@@ -276,7 +296,7 @@ export const Sidebar = () => {
         <div className="inner">
           <div className="header">
             <img src={logo} className="logo" alt="Catalyst Logo" />
-            <h1 className="text-white">Catalyst</h1>
+            <h2 className="text-black">Catalyst</h2>
           </div>
           <nav
             className="menu"
@@ -291,15 +311,13 @@ export const Sidebar = () => {
                 onClick={() => handleClick(item)}
                 style={{ position: 'relative' }}
               >
-                <span className="material-symbols-outlined">{item.icon}</span>
+                <span className="relative inline-flex items-center justify-center">
+                  <span className="material-symbols-outlined">{item.icon}</span>
+                  {item.name === "Notifications" && unreadCount > 0 && (
+                    <span className="absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full bg-red-600"></span>
+                  )}
+                </span>
                 <p>{item.name}</p>
-                {item.name === "Notifications" && item.badge > 0 && (
-                  <span 
-                    className="absolute top-2 right-2 bg-red-600 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center z-10"
-                  >
-                    {item.badge}
-                  </span>
-                )}
               </button>
             )})}
           </nav>
@@ -343,7 +361,7 @@ export const Sidebar = () => {
                 <div 
                   key={notification.id} 
                   className="px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-700 border-b border-gray-100 dark:border-gray-700 cursor-pointer transition-colors duration-150"
-                  onClick={() => markAsRead(notification.id)}
+                  onClick={() => goToNotification(notification)}
                 >
                   <div className="flex items-start">
                     <div className="flex-shrink-0 mr-3">

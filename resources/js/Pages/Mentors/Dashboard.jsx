@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, Link, router, usePage } from '@inertiajs/react';
 import { motion } from 'framer-motion';
@@ -10,10 +10,20 @@ import {
     CheckCircleIcon,
     ClockIcon
 } from '@heroicons/react/24/outline';
+import MentorRequestsDropdown from '@/Components/Projects/MentorRequestsDropdown';
+import axios from 'axios';
 
 export default function MenteesDashboard({ mentees, stats }) {
     const { auth } = usePage().props;
     const [searchQuery, setSearchQuery] = useState('');
+    const [isMentorRequestsDropdownOpen, setIsMentorRequestsDropdownOpen] = useState(false);
+    const [pendingMentorRequests, setPendingMentorRequests] = useState([]);
+
+    useEffect(() => {
+        axios.get(route('mentor.pending'))
+            .then(res => setPendingMentorRequests(res.data || []))
+            .catch(() => {});
+    }, []);
     
     // Animation variants
     const containerVariants = {
@@ -71,14 +81,36 @@ export default function MenteesDashboard({ mentees, stats }) {
             <div className="py-12 min-h-screen">
                 <div className="max-w-7xl mx-auto sm:px-6 lg:px-8">
                     {/* Dashboard Header */}
-                    <div className="mb-8">
+                    <div className="mb-8 flex items-center justify-between">
                         <h1 className="text-3xl font-bold text-white flex items-center">
                             <UserGroupIcon className="h-8 w-8 text-indigo-400 mr-3" />
                             My Mentees
                         </h1>
-                        <p className="mt-2 text-gray-300">
-                            Manage and track your mentee relationships
-                        </p>
+                        <div className="relative">
+                            <motion.button
+                                onClick={() => setIsMentorRequestsDropdownOpen(!isMentorRequestsDropdownOpen)}
+                                whileHover={{ scale: 1.02 }}
+                                whileTap={{ scale: 0.98 }}
+                                className="inline-flex items-center px-4 py-2 bg-orange-100 hover:bg-orange-200 text-[#F37022] rounded-lg text-sm border border-orange-200 hover:border-orange-300 transition-all duration-200 font-medium shadow"
+                            >
+                                <span className="material-symbols-outlined text-sm mr-2">group_add</span>
+                                Mentor Requests
+                                {pendingMentorRequests.length > 0 && (
+                                    <span className="ml-2 bg-red-500/20 text-red-700 px-2 py-0.5 rounded-full text-xs">
+                                        {pendingMentorRequests.length}
+                                    </span>
+                                )}
+                            </motion.button>
+                            <MentorRequestsDropdown
+                                isOpen={isMentorRequestsDropdownOpen}
+                                onClose={() => setIsMentorRequestsDropdownOpen(false)}
+                                requests={pendingMentorRequests}
+                                onAccept={(id) => axios.post(route('mentor.accept', id)).then(() => axios.get(route('mentor.pending')).then(r=>setPendingMentorRequests(r.data||[]))) }
+                                onReject={(id) => axios.post(route('mentor.reject', id)).then(() => axios.get(route('mentor.pending')).then(r=>setPendingMentorRequests(r.data||[]))) }
+                                auth={auth}
+                                loadingStates={{}}
+                            />
+                        </div>
                     </div>
                 
                     {/* Stats Overview */}
@@ -221,19 +253,9 @@ export default function MenteesDashboard({ mentees, stats }) {
                                                 <td className="px-6 py-4 whitespace-nowrap">
                                                     <div className="flex items-center">
                                                         <div className="flex-shrink-0 h-10 w-10">
-                                                            {mentee.profile_photo_path ? (
-                                                                <img 
-                                                                    src={`/storage/${mentee.profile_photo_path}`}
-                                                                    alt={mentee.name}
-                                                                    className="h-10 w-10 rounded-full object-cover"
-                                                                />
-                                                            ) : (
-                                                                <div className="h-10 w-10 rounded-full bg-indigo-500 flex items-center justify-center">
-                                                                    <svg className="h-6 w-6 text-white" fill="currentColor" viewBox="0 0 20 20">
-                                                                        <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" />
-                                                                    </svg>
-                                                                </div>
-                                                            )}
+                                                            <div className="h-10 w-10 rounded-full bg-indigo-500 flex items-center justify-center text-white font-medium">
+                                                                {mentee.name?.charAt(0) || '?'}
+                                                            </div>
                                                         </div>
                                                         <div className="ml-4">
                                                             <div className="text-sm font-medium text-gray-900">{mentee.name}</div>

@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
 import { Head, router } from '@inertiajs/react';
-import Aurora from '@/Components/Aurora';
 import StudentForm from './ProfileForms/StudentForm';
 import LecturerForm from './ProfileForms/LecturerForm';
 import OrganizerForm from './ProfileForms/OrganizerForm';
@@ -52,7 +51,7 @@ const roleSteps = {
         { 
             id: 'academic', 
             title: 'Academic Details',
-            fields: ['faculty']
+            fields: ['faculty', 'university']
         },
         { 
             id: 'personal', 
@@ -125,10 +124,7 @@ export default function ProfileCompletion({ auth, role }) {
         }
     };
     
-    // Skip profile completion
-    const handleSkip = () => {
-        router.get(route('dashboard'));
-    };
+    // Skipping is disabled; users must complete required steps
     
     const onSuccess = (role) => {
         if (role === 'lecturer' || role === 'university') {
@@ -210,59 +206,27 @@ export default function ProfileCompletion({ auth, role }) {
         );
     };
 
-    // Fix for dropdown text color
-    useEffect(() => {
-        // Add a style element to fix dropdown text colors
-        const styleElement = document.createElement('style');
-        styleElement.textContent = `
-            select option {
-                background-color: #2A2A3A;
-                color: white;
-            }
-            select option:checked {
-                background-color: #635985;
-                color: white;
-            }
-            select {
-                color-scheme: dark;
-            }
-        `;
-        document.head.appendChild(styleElement);
-
-        // Cleanup on unmount
-        return () => {
-            document.head.removeChild(styleElement);
-        };
-    }, []);
+    // Remove legacy select color overrides to align with light theme
 
     return (
-        <div className="relative min-h-screen w-full bg-[#18122B] overflow-hidden">
-            {/* Aurora Background */}
-            <div className="absolute inset-0 w-full h-full">
-                <Aurora 
-                    colorStops={["#635985", "#443C68", "#393053"]}
-                    amplitude={1.5}
-                    blend={0.8}
-                />
-            </div>
-
+        <div className="relative min-h-screen w-full bg-gradient-to-b from-white via-orange-50 to-orange-100 overflow-hidden">
             {/* Content */}
-            <div className="relative z-10 min-h-screen py-12 px-4 sm:px-6 lg:px-8">
+            <div className="min-h-screen py-12 px-4 sm:px-6 lg:px-8">
                 <Head title="Complete Your Profile" />
                 
                 <div className="max-w-2xl mx-auto">
                     <div className="text-center mb-8">
-                        <h2 className="text-3xl font-bold text-white mb-2">Complete Your Profile</h2>
-                        <p className="text-lg text-gray-300">
+                        <h2 className="text-3xl font-bold text-gray-900 mb-2">Complete Your Profile</h2>
+                        <p className="text-lg text-gray-600">
                             Step {currentStep + 1} of {totalSteps}: {steps[currentStep]?.title}
                         </p>
                     </div>
                     
                     {/* Progress Bar */}
                     <div className="mb-8">
-                        <div className="w-full bg-white/10 rounded-full h-2.5">
+                        <div className="w-full bg-orange-200/50 rounded-full h-2.5">
                             <div 
-                                className="bg-[#635985] h-2.5 rounded-full transition-all duration-500 ease-in-out" 
+                                className="bg-[#F37022] h-2.5 rounded-full transition-all duration-500 ease-in-out" 
                                 style={{ width: `${((currentStep + 1) / totalSteps) * 100}%` }}
                             ></div>
                         </div>
@@ -271,7 +235,13 @@ export default function ProfileCompletion({ auth, role }) {
                             {steps.map((step, index) => (
                                 <div 
                                     key={step.id}
-                                    className={`text-xs ${index <= currentStep ? 'text-white' : 'text-gray-500'}`}
+                                    className={`text-xs ${
+                                        index < currentStep
+                                            ? 'text-orange-600'
+                                            : index === currentStep
+                                                ? 'text-gray-800 font-medium'
+                                                : 'text-gray-500'
+                                    }`}
                                 >
                                     {step.title}
                                 </div>
@@ -279,7 +249,7 @@ export default function ProfileCompletion({ auth, role }) {
                         </div>
                     </div>
                     
-                    <div className="bg-[#2A2A3A]/30 backdrop-blur-sm p-6 rounded-2xl border border-[#635985]/30">
+                    <div className="bg-white/80 backdrop-blur-sm p-6 rounded-2xl border border-orange-200/50">
                         {renderForm()}
                         
                         <div className="flex justify-between mt-8">
@@ -287,26 +257,20 @@ export default function ProfileCompletion({ auth, role }) {
                                 {currentStep > 0 ? (
                                     <button 
                                         onClick={prevStep}
-                                        className="px-4 py-2 text-white border border-[#635985]/50 rounded-lg
-                                            hover:bg-[#635985]/20 transition-colors"
+                                        className="px-4 py-2 text-gray-900 border border-orange-300 rounded-lg
+                                            hover:bg-orange-50 transition-colors"
                                     >
                                         Previous
                                     </button>
                                 ) : (
-                                    <button 
-                                        onClick={handleSkip}
-                                        className="px-4 py-2 text-gray-400 hover:text-white transition-colors"
-                                    >
-                                        Skip for now
-                                    </button>
+                                    <span className="px-4 py-2 text-transparent">placeholder</span>
                                 )}
                             </div>
                             
                             <button 
                                 onClick={nextStep}
-                                className="px-6 py-2 bg-[#635985] hover:bg-[#635985]/80 text-white rounded-lg 
-                                    transition-colors duration-300 focus:outline-none focus:ring-2 
-                                    focus:ring-[#635985] focus:ring-offset-2 focus:ring-offset-[#18122B]"
+                                className="px-6 py-2 bg-[#F37022] hover:bg-[#e3641a] text-white rounded-lg 
+                                    transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-[#F37022]"
                             >
                                 {currentStep === totalSteps - 1 ? 'Complete' : 'Next'}
                             </button>

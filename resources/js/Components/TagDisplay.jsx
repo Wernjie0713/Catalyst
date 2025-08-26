@@ -11,22 +11,22 @@ const TagDisplay = ({ tags, className = '', maxDisplay = 3, showCount = true }) 
     const getTagColor = (tag) => {
         // Skill Type tags
         if (['Technical Skills', 'Soft Skills', 'Critical Thinking', 'Research & Analysis', 'Creativity & Innovation', 'Business Acumen', 'Digital Literacy'].includes(tag)) {
-            return 'bg-blue-500/20 text-blue-300 border-blue-500/30';
+            return 'bg-blue-100 text-blue-700 border-blue-300';
         }
         // Learning Depth tags
         if (['Introductory', 'Intermediate', 'Advanced'].includes(tag)) {
-            return 'bg-green-500/20 text-green-300 border-green-500/30';
+            return 'bg-green-100 text-green-700 border-green-300';
         }
         // Event Format tags
         if (['Lecture', 'Workshop', 'Hackathon', 'Group Project', 'Mentorship', 'Panel', 'Networking'].includes(tag)) {
-            return 'bg-purple-500/20 text-purple-300 border-purple-500/30';
+            return 'bg-purple-100 text-purple-700 border-purple-300';
         }
         // Academic/Career tags
         if (['Career Exploration', 'Industry Exposure', 'Portfolio Development', 'Internship Pipeline', 'Capstone Prep'].includes(tag)) {
-            return 'bg-orange-500/20 text-orange-300 border-orange-500/30';
+            return 'bg-orange-100 text-orange-700 border-orange-300';
         }
         // Default
-        return 'bg-gray-500/20 text-gray-300 border-gray-500/30';
+        return 'bg-gray-100 text-gray-700 border-gray-300';
     };
 
     return (

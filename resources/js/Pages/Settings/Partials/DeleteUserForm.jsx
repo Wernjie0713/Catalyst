@@ -48,17 +48,17 @@ export default function DeleteUserForm({ className = '' }) {
     return (
         <section className={`space-y-6 ${className}`}>
             <div>
-                <h2 className="text-2xl font-semibold text-white mb-2">
+                <h2 className="text-2xl font-semibold text-gray-800 mb-2">
                     Delete Account
                 </h2>
-                <p className="text-gray-400 mb-6">
+                <p className="text-gray-600 mb-6">
                     Once your account is deleted, all of its resources and data will be permanently deleted. 
                     Before deleting your account, please download any data or information that you wish to retain.
                 </p>
 
                 <button
-                    className="px-6 py-2.5 bg-red-500/10 text-red-400 border border-red-500/30 rounded-xl 
-                        hover:bg-red-500/20 transform transition-all duration-200"
+                    className="px-6 py-2.5 bg-red-500 text-white border border-red-500/30 rounded-xl 
+                        hover:bg-white hover:text-red-500 transform transition-all duration-200"
                     onClick={confirmUserDeletion}
                 >
                     Delete Account

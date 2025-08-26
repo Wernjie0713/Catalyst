@@ -55,7 +55,7 @@ export default function BaseProfile({
                 <TabContent
                     activeTab={activeTab}
                     components={components}
-                    user={auth.user}
+                    user={profileUser ?? auth.user}
                 />
             </motion.div>
         </ProfileLayout>

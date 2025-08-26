@@ -51,15 +51,15 @@ export default function OrganizerForm({ data, onChange, visibleFields = [] }) {
     return (
         <div className="space-y-6">
             <div>
-                <h3 className="text-xl font-semibold text-white mb-4">{title}</h3>
-                <p className="text-gray-400 mb-6">{description}</p>
+                <h3 className="text-xl font-semibold text-gray-900 mb-2">{title}</h3>
+                <p className="text-gray-600 mb-6">{description}</p>
             </div>
             
             <div className="grid grid-cols-1 gap-6">
                 {/* Organization Name */}
                 {isVisible('organization_name') && (
                     <div>
-                        <label htmlFor="organization_name" className="block text-sm font-medium text-gray-300 mb-1">
+                        <label htmlFor="organization_name" className="block text-sm font-medium text-gray-700 mb-1">
                             Organization Name
                         </label>
                         <input
@@ -68,9 +68,9 @@ export default function OrganizerForm({ data, onChange, visibleFields = [] }) {
                             name="organization_name"
                             value={form.organization_name}
                             onChange={handleInputChange}
-                            className="w-full px-4 py-2 bg-white/5 border border-white/10 rounded-lg 
-                                text-white placeholder-gray-500 focus:border-[#635985] focus:ring-1 
-                                focus:ring-[#635985] transition-colors"
+                            className="w-full px-4 py-2 bg-white border border-gray-300 rounded-lg 
+                                text-gray-900 placeholder-gray-400 focus:border-orange-500 focus:ring-1 
+                                focus:ring-orange-500 transition-colors shadow-sm"
                             placeholder="Enter your organization name"
                         />
                     </div>
@@ -79,7 +79,7 @@ export default function OrganizerForm({ data, onChange, visibleFields = [] }) {
                 {/* Official Email */}
                 {isVisible('official_email') && (
                     <div>
-                        <label htmlFor="official_email" className="block text-sm font-medium text-gray-300 mb-1">
+                        <label htmlFor="official_email" className="block text-sm font-medium text-gray-700 mb-1">
                             Official Email
                         </label>
                         <input
@@ -88,9 +88,9 @@ export default function OrganizerForm({ data, onChange, visibleFields = [] }) {
                             name="official_email"
                             value={form.official_email}
                             onChange={handleInputChange}
-                            className="w-full px-4 py-2 bg-white/5 border border-white/10 rounded-lg 
-                                text-white placeholder-gray-500 focus:border-[#635985] focus:ring-1 
-                                focus:ring-[#635985] transition-colors"
+                            className="w-full px-4 py-2 bg-white border border-gray-300 rounded-lg 
+                                text-gray-900 placeholder-gray-400 focus:border-orange-500 focus:ring-1 
+                                focus:ring-orange-500 transition-colors shadow-sm"
                             placeholder="organization@example.com"
                         />
                     </div>
@@ -99,7 +99,7 @@ export default function OrganizerForm({ data, onChange, visibleFields = [] }) {
                 {/* Website */}
                 {isVisible('website') && (
                     <div>
-                        <label htmlFor="website" className="block text-sm font-medium text-gray-300 mb-1">
+                        <label htmlFor="website" className="block text-sm font-medium text-gray-700 mb-1">
                             Website
                         </label>
                         <input
@@ -108,9 +108,9 @@ export default function OrganizerForm({ data, onChange, visibleFields = [] }) {
                             name="website"
                             value={form.website}
                             onChange={handleInputChange}
-                            className="w-full px-4 py-2 bg-white/5 border border-white/10 rounded-lg 
-                                text-white placeholder-gray-500 focus:border-[#635985] focus:ring-1 
-                                focus:ring-[#635985] transition-colors"
+                            className="w-full px-4 py-2 bg-white border border-gray-300 rounded-lg 
+                                text-gray-900 placeholder-gray-400 focus:border-orange-500 focus:ring-1 
+                                focus:ring-orange-500 transition-colors shadow-sm"
                             placeholder="https://yourorganization.com"
                         />
                     </div>
@@ -119,7 +119,7 @@ export default function OrganizerForm({ data, onChange, visibleFields = [] }) {
                 {/* Contact Number */}
                 {isVisible('contact_number') && (
                     <div>
-                        <label htmlFor="contact_number" className="block text-sm font-medium text-gray-300 mb-1">
+                        <label htmlFor="contact_number" className="block text-sm font-medium text-gray-700 mb-1">
                             Contact Number
                         </label>
                         <input
@@ -128,9 +128,9 @@ export default function OrganizerForm({ data, onChange, visibleFields = [] }) {
                             name="contact_number"
                             value={form.contact_number}
                             onChange={handleInputChange}
-                            className="w-full px-4 py-2 bg-white/5 border border-white/10 rounded-lg 
-                                text-white placeholder-gray-500 focus:border-[#635985] focus:ring-1 
-                                focus:ring-[#635985] transition-colors"
+                            className="w-full px-4 py-2 bg-white border border-gray-300 rounded-lg 
+                                text-gray-900 placeholder-gray-400 focus:border-orange-500 focus:ring-1 
+                                focus:ring-orange-500 transition-colors shadow-sm"
                             placeholder="Enter contact number"
                         />
                     </div>
@@ -139,7 +139,7 @@ export default function OrganizerForm({ data, onChange, visibleFields = [] }) {
                 {/* LinkedIn */}
                 {isVisible('linkedin') && (
                     <div>
-                        <label htmlFor="linkedin" className="block text-sm font-medium text-gray-300 mb-1">
+                        <label htmlFor="linkedin" className="block text-sm font-medium text-gray-700 mb-1">
                             LinkedIn Profile
                         </label>
                         <input
@@ -148,9 +148,9 @@ export default function OrganizerForm({ data, onChange, visibleFields = [] }) {
                             name="linkedin"
                             value={form.linkedin}
                             onChange={handleInputChange}
-                            className="w-full px-4 py-2 bg-white/5 border border-white/10 rounded-lg 
-                                text-white placeholder-gray-500 focus:border-[#635985] focus:ring-1 
-                                focus:ring-[#635985] transition-colors"
+                            className="w-full px-4 py-2 bg-white border border-gray-300 rounded-lg 
+                                text-gray-900 placeholder-gray-400 focus:border-orange-500 focus:ring-1 
+                                focus:ring-orange-500 transition-colors shadow-sm"
                             placeholder="https://linkedin.com/company/yourcompany"
                         />
                     </div>
@@ -159,7 +159,7 @@ export default function OrganizerForm({ data, onChange, visibleFields = [] }) {
                 {/* Bio/Description */}
                 {isVisible('bio') && (
                     <div>
-                        <label htmlFor="bio" className="block text-sm font-medium text-gray-300 mb-1">
+                        <label htmlFor="bio" className="block text-sm font-medium text-gray-700 mb-1">
                             Organization Description
                         </label>
                         <textarea
@@ -168,9 +168,9 @@ export default function OrganizerForm({ data, onChange, visibleFields = [] }) {
                             rows="3"
                             value={form.bio}
                             onChange={handleInputChange}
-                            className="w-full px-4 py-2 bg-white/5 border border-white/10 rounded-lg 
-                                text-white placeholder-gray-500 focus:border-[#635985] focus:ring-1 
-                                focus:ring-[#635985] transition-colors"
+                            className="w-full px-4 py-2 bg-white border border-gray-300 rounded-lg 
+                                text-gray-900 placeholder-gray-400 focus:border-orange-500 focus:ring-1 
+                                focus:ring-orange-500 transition-colors shadow-sm"
                             placeholder="Tell us about your organization and its mission"
                         ></textarea>
                     </div>

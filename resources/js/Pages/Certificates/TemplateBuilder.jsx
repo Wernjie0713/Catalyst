@@ -114,14 +114,14 @@ export default function TemplateBuilder({ event, selectedUsers = [], selectedTea
             
             <div className="py-12">
                 <div className="max-w-7xl mx-auto sm:px-6 lg:px-8">       
-                    <div className="bg-[#18122B] overflow-hidden shadow-sm sm:rounded-lg p-6">
+                    <div className="bg-white overflow-hidden shadow-sm sm:rounded-lg p-6 border border-gray-200">
                         {/* Page Header with Certificate Type Indicator */}
                         <div className="mb-6 flex justify-between items-center">
-                            <h1 className="text-xl font-semibold text-white">
+                            <h1 className="text-xl font-semibold text-gray-800">
                                 {isParticipationCertificate ? 'Create Participation Certificates' : 'Create Winner Certificates'}
                                 {isTeamEvent && !isParticipationCertificate && ' for Teams'}
                             </h1>
-                            <div className="px-3 py-1 rounded-full text-sm font-medium bg-indigo-600/20 text-indigo-400">
+                            <div className="px-3 py-1 rounded-full text-sm font-medium bg-orange-100 text-orange-700 border border-orange-200">
                                 {isParticipationCertificate ? 'For All Participants' : 
                                  isTeamEvent ? 'For Selected Teams' : 'For Selected Winners'}
                             </div>
@@ -233,7 +233,7 @@ export default function TemplateBuilder({ event, selectedUsers = [], selectedTea
                             {/* Form Controls */}
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-300">
+                                    <label className="block text-sm font-medium text-gray-700">
                                         Title
                                     </label>
                                     <input
@@ -241,31 +241,31 @@ export default function TemplateBuilder({ event, selectedUsers = [], selectedTea
                                         value={data.title}
                                         onChange={e => setData('title', e.target.value)}
                                         placeholder={isParticipationCertificate ? "CERTIFICATE OF PARTICIPATION" : "CERTIFICATE OF ACHIEVEMENT"}
-                                        className="mt-1 block w-full rounded-md bg-[#242031] border-gray-700 text-white"
+                                        className="mt-1 block w-full rounded-md bg-orange-50 border-orange-300 text-gray-800 focus:border-orange-500 focus:ring-orange-500"
                                     />
                                 </div>
 
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-300">
+                                    <label className="block text-sm font-medium text-gray-700">
                                         Signature Image
                                     </label>
                                     <input
                                         type="file"
                                         onChange={e => handleFileChange('signature_image', e.target.files[0])}
-                                        className="mt-1 block w-full text-gray-300"
+                                        className="mt-1 block w-full text-gray-600"
                                         accept="image/*"
                                     />
                                 </div>
                                 
                                 <div className="md:col-span-2">
-                                    <label className="block text-sm font-medium text-gray-300">
+                                    <label className="block text-sm font-medium text-gray-700">
                                         Body Text
                                     </label>
                                     <textarea
                                         value={data.body_text}
                                         onChange={e => setData('body_text', e.target.value)}
                                         rows={4}
-                                        className="mt-1 block w-full rounded-md bg-[#242031] border-gray-700 text-white"
+                                        className="mt-1 block w-full rounded-md bg-orange-50 border-orange-300 text-gray-800 focus:border-orange-500 focus:ring-orange-500"
                                         placeholder={isParticipationCertificate ? 
                                             "for participating in the event" : 
                                             isTeamEvent ?
@@ -278,29 +278,29 @@ export default function TemplateBuilder({ event, selectedUsers = [], selectedTea
                             {/* Selected Winners (only show for winner certificates) */}
                             {!isParticipationCertificate && isTeamEvent && (
                                 <div className="mt-6">
-                                    <h3 className="text-lg font-medium text-gray-300 mb-2">
+                                    <h3 className="text-lg font-medium text-gray-700 mb-2">
                                         Selected Teams
                                     </h3>
-                                    <div className="bg-[#242031] rounded-lg p-4">
+                                    <div className="bg-orange-50 rounded-lg p-4 border border-orange-200">
                                         {uniqueTeams?.length > 0 ? (
                                             <ul className="space-y-3">
                                                 {uniqueTeams.map(team => (
-                                                    <li key={team.id || team.team_id} className="text-gray-300">
+                                                    <li key={team.id || team.team_id} className="text-gray-700">
                                                         <div className="flex justify-between">
                                                             <span className="font-medium">{team.name || team.team_name}</span>
                                                             {data.award_levels[team.id || team.team_id] && (
                                                                 <span className={`text-xs px-2 py-1 rounded-full ${
                                                                     data.award_levels[team.id || team.team_id] === 'gold' ? 
-                                                                        'bg-yellow-500/30 text-yellow-200' : 
+                                                                        'bg-yellow-100 text-yellow-700 border border-yellow-300' : 
                                                                     data.award_levels[team.id || team.team_id] === 'silver' ? 
-                                                                        'bg-gray-400/30 text-gray-200' : 
-                                                                        'bg-amber-700/30 text-amber-200'
+                                                                        'bg-gray-100 text-gray-700 border border-gray-300' : 
+                                                                        'bg-amber-100 text-amber-700 border border-amber-300'
                                                                 }`}>
                                                                     {data.award_levels[team.id || team.team_id].charAt(0).toUpperCase() + data.award_levels[team.id || team.team_id].slice(1)}
                                                                 </span>
                                                             )}
                                                         </div>
-                                                        <div className="mt-1 ml-4 text-sm text-gray-400">
+                                                        <div className="mt-1 ml-4 text-sm text-gray-600">
                                                             {team.members ? (
                                                                 <span>
                                                                     {team.members.map(member => member.name).join(', ')}
@@ -313,7 +313,7 @@ export default function TemplateBuilder({ event, selectedUsers = [], selectedTea
                                                 ))}
                                             </ul>
                                         ) : (
-                                            <p className="text-gray-400">No teams selected</p>
+                                            <p className="text-gray-500">No teams selected</p>
                                         )}
                                     </div>
                                 </div>
@@ -322,23 +322,23 @@ export default function TemplateBuilder({ event, selectedUsers = [], selectedTea
                             {/* Selected Winners (only show for winner certificates) */}
                             {!isParticipationCertificate && !isTeamEvent && (
                                 <div className="mt-6">
-                                    <h3 className="text-lg font-medium text-gray-300 mb-2">
+                                    <h3 className="text-lg font-medium text-gray-700 mb-2">
                                         Selected Winners
                                     </h3>
-                                    <div className="bg-[#242031] rounded-lg p-4">
+                                    <div className="bg-orange-50 rounded-lg p-4 border border-orange-200">
                                         {selectedUsers?.length > 0 ? (
                                             <ul className="space-y-2">
                                                 {selectedUsers.map(user => (
-                                                    <li key={user.id} className="text-gray-300">
+                                                    <li key={user.id} className="text-gray-700">
                                                         <div className="flex justify-between">
                                                             <span>{user.name}</span>
                                                             {data.award_levels[user.id] && (
                                                                 <span className={`text-xs px-2 py-1 rounded-full ${
                                                                     data.award_levels[user.id] === 'gold' ? 
-                                                                        'bg-yellow-500/30 text-yellow-200' : 
+                                                                        'bg-yellow-100 text-yellow-700 border border-yellow-300' : 
                                                                     data.award_levels[user.id] === 'silver' ? 
-                                                                        'bg-gray-400/30 text-gray-200' : 
-                                                                        'bg-amber-700/30 text-amber-200'
+                                                                        'bg-gray-100 text-gray-700 border border-gray-300' : 
+                                                                        'bg-amber-100 text-amber-700 border border-amber-300'
                                                                 }`}>
                                                                     {data.award_levels[user.id].charAt(0).toUpperCase() + data.award_levels[user.id].slice(1)}
                                                                 </span>
@@ -348,7 +348,7 @@ export default function TemplateBuilder({ event, selectedUsers = [], selectedTea
                                                 ))}
                                             </ul>
                                         ) : (
-                                            <p className="text-gray-400">No winners selected</p>
+                                            <p className="text-gray-500">No winners selected</p>
                                         )}
                                     </div>
                                 </div>
@@ -384,14 +384,14 @@ export default function TemplateBuilder({ event, selectedUsers = [], selectedTea
                             <div className="mt-6 flex justify-between">
                                 <a
                                     href={route('events.my-events')}
-                                    className="px-4 py-2 bg-gray-700 text-gray-300 rounded-md hover:bg-gray-600 transition-colors"
+                                    className="px-4 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 transition-colors"
                                 >
                                     Cancel
                                 </a>
                                 <button
                                     type="submit"
                                     disabled={processing}
-                                    className="px-4 py-2 bg-[#635985] text-white rounded-md hover:bg-[#443C68] transition-colors"
+                                    className="px-4 py-2 bg-orange-500 text-white rounded-md hover:bg-orange-600 transition-colors"
                                 >
                                     {processing ? 'Creating...' : `Create ${isParticipationCertificate ? 'Participation' : isTeamEvent ? 'Team Winner' : 'Winner'} Certificates`}
                                 </button>

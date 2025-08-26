@@ -1,7 +1,7 @@
 import { Head, Link, useForm } from '@inertiajs/react';
 import SubmitButton from '@/Components/Auth/SubmitButton';
 import { FaEnvelope, FaCheckCircle } from 'react-icons/fa';
-import LoginAuroraLayout from '@/Layouts/LoginAuroraLayout';
+import LoginLayout from '@/Layouts/LoginLayout';
 
 export default function VerifyEmail({ status }) {
     const { post, processing } = useForm({});
@@ -12,7 +12,7 @@ export default function VerifyEmail({ status }) {
     };
 
     return (
-        <LoginAuroraLayout>
+        <LoginLayout>
             <Head title="Email Verification" />
 
             {/* Logo */}
@@ -72,6 +72,6 @@ export default function VerifyEmail({ status }) {
             <div className="mt-8 text-center text-xs text-gray-500 animate-fade-in-up-slower">
                 Didn't receive the email? Check your spam folder or try resending.
             </div>
-        </LoginAuroraLayout>
+        </LoginLayout>
     );
 }

@@ -178,8 +178,12 @@ class UserRoleController extends Controller
                     break;
                     
                 case 'department_staff':
+                    // Enforce required university for new/updated submissions
+                    $request->validate([
+                        'university' => 'required|string|max:255',
+                    ]);
                     $user->department_staff()->update($request->only([
-                        'department', 'position', 'faculty',
+                        'department', 'position', 'faculty', 'university',
                         'contact_number', 'bio', 'linkedin'
                     ]));
                     break;

@@ -3,7 +3,7 @@ import InputError from '@/Components/InputError';
 import AuthInput from '@/Components/Auth/AuthInput';
 import SubmitButton from '@/Components/Auth/SubmitButton';
 import { FaApple, FaGoogle, FaEnvelope, FaLock } from 'react-icons/fa';
-import LoginAuroraLayout from '@/Layouts/LoginAuroraLayout';
+import LoginLayout from '@/Layouts/LoginLayout';
 
 export default function Login({ status, canResetPassword }) {
     const { data, setData, post, processing, errors, reset } = useForm({
@@ -20,29 +20,29 @@ export default function Login({ status, canResetPassword }) {
     };
 
     return (
-        <LoginAuroraLayout>
+        <LoginLayout>
             <Head title="Log in" />
 
             {/* Logo */}
             <div className="text-center mb-8 animate-fade-in-up">
                 <span className="text-2xl px-4 py-2 rounded-full 
-                bg-black/30 border border-gray-700/50 
-                text-white font-space font-bold tracking-wide">
+                bg-orange-50 border border-orange-200 
+                text-[#F37022] font-space font-bold tracking-wide">
                     Catalyst
                 </span>
             </div>
 
             {/* Header */}
-            <h1 className="text-3xl font-outfit font-semibold mb-2 text-white tracking-tight text-center
+            <h1 className="text-3xl font-outfit font-semibold mb-2 text-gray-900 tracking-tight text-center
                 animate-fade-in-up-slow">
                 Welcome back
             </h1>
-            <p className="text-gray-400 mb-8 font-outfit text-center animate-fade-in-up-slow">
+            <p className="text-gray-600 mb-8 font-outfit text-center animate-fade-in-up-slow">
                 Please enter your details to sign in
             </p>
 
             {status && (
-                <div className="mb-4 text-sm font-medium text-[#8B7FD3] text-center animate-fade-in">
+                <div className="mb-4 text-sm font-medium text-[#F37022] text-center animate-fade-in">
                     {status}
                 </div>
             )}
@@ -85,16 +85,16 @@ export default function Login({ status, canResetPassword }) {
                             name="remember"
                             checked={data.remember}
                             onChange={(e) => setData('remember', e.target.checked)}
-                            className="rounded border-[#635985] bg-white/10 text-[#8B7FD3] 
-                            focus:ring-[#8B7FD3] focus:ring-offset-0"
+                            className="rounded border-orange-300 bg-white text-[#F37022] 
+                            focus:ring-[#F37022] focus:ring-offset-0"
                         />
-                        <span className="ms-2 text-sm text-gray-300">Remember me</span>
+                        <span className="ms-2 text-sm text-gray-600">Remember me</span>
                     </label>
 
                     {canResetPassword && (
                         <Link
                             href={route('password.request')}
-                            className="text-[#8B7FD3] hover:text-[#9D93DD] text-sm 
+                            className="text-[#F37022] hover:text-[#e3641a] text-sm 
                             transition-colors duration-200 
                             hover:underline decoration-2 underline-offset-4"
                         >
@@ -107,11 +107,11 @@ export default function Login({ status, canResetPassword }) {
                     Sign in
                 </SubmitButton>
 
-                <div className="text-center text-sm text-gray-300">
+                <div className="text-center text-sm text-gray-600">
                     Don't have an account?{' '}
                     <Link
                         href={route('register')}
-                        className="text-[#8B7FD3] hover:text-[#9D93DD] font-medium 
+                        className="text-[#F37022] hover:text-[#e3641a] font-medium 
                         transition-colors duration-200 
                         hover:underline decoration-2 underline-offset-4"
                     >
@@ -119,6 +119,6 @@ export default function Login({ status, canResetPassword }) {
                     </Link>
                 </div>
             </form>
-        </LoginAuroraLayout>
+        </LoginLayout>
     );
 }

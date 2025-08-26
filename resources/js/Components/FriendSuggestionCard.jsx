@@ -15,41 +15,43 @@ const FriendSuggestionCard = ({ user, index }) => {
         >
             <Link
                 href={route('profile.view', user.id)}
-                className="group relative overflow-hidden block h-[200px]"
+                className="group relative block h-[220px]"
             >
-                <div className="friend-card relative h-full p-6 bg-gradient-to-br from-gray-800/90 via-gray-900/95 to-gray-950/98 rounded-2xl backdrop-blur-md border border-white/5 hover:border-white/10 transition-all duration-300 shadow-xl hover:shadow-purple-500/10">
-                    {/* Background Pattern Effect */}
-                    <div className="absolute inset-0 bg-grid-white/[0.02] bg-[size:20px_20px]" />
-                    <div className="absolute inset-0 bg-gradient-to-br from-purple-500/10 via-transparent to-blue-500/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-                    
-                    {/* Content */}
-                    <div className="relative flex items-center space-x-6 h-full">
-                        {/* Profile Photo */}
-                        <div className="relative flex-shrink-0">
-                            <div className="absolute -inset-1 bg-gradient-to-br from-purple-500/20 to-blue-500/20 rounded-full blur-sm opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                            <div className="relative w-32 h-32 rounded-full overflow-hidden ring-2 ring-white/10 group-hover:ring-white/20 transition-all duration-300">
-                                <DisplayProfilePhoto profilePhotoPath={user.profile_picture} />
-                            </div>
-                        </div>
-
-                        {/* User Info */}
-                        <div className="flex-1">
-                            <h3 className="text-2xl font-medium text-white group-hover:text-purple-200 transition-colors duration-300 mb-3">
-                                {user.name}
-                            </h3>
-                            <div className="flex items-center text-gray-400 group-hover:text-gray-300 transition-colors duration-300">
-                                <span className="material-symbols-outlined text-base mr-2 text-purple-400/70 group-hover:text-purple-400">
-                                    person
-                                </span>
-                                <span className="group-hover:bg-gradient-to-r group-hover:from-purple-200 group-hover:to-blue-200 group-hover:bg-clip-text group-hover:text-transparent transition-all duration-300">
-                                    View Profile
-                                </span>
-                                <span className="material-symbols-outlined text-purple-400 ml-2 opacity-0 group-hover:opacity-100 group-hover:translate-x-1 transition-all duration-300">
-                                    arrow_forward
-                                </span>
+                <div className="relative h-full rounded-3xl border border-orange-100 bg-white shadow-[0_8px_30px_rgba(243,112,34,0.06)] overflow-hidden transition-all duration-300 hover:shadow-[0_12px_36px_rgba(243,112,34,0.12)]">
+                    {/* Top banner area (orange tint) with avatar centered */}
+                    <div className="relative h-[110px] bg-gradient-to-br from-orange-100 to-white">
+                        <div className="absolute inset-0 opacity-30 pointer-events-none bg-[radial-gradient(circle_at_30%_30%,rgba(243,112,34,.15),transparent_40%)]" />
+                        <div className="absolute left-6 top-1/2 -translate-y-1/2">
+                            <div className="transform-gpu transition-transform duration-500 ease-out group-hover:scale-110 group-hover:-translate-y-0.5">
+                                <DisplayProfilePhoto profilePhotoPath={user.profile_picture} size={84} simple className="ring-2 ring-orange-200 shadow-md" />
                             </div>
                         </div>
                     </div>
+
+                    {/* Body */}
+                    <div className="flex items-center justify-between px-6 py-4">
+                        <div className="min-w-0">
+                            <h3 className="text-xl md:text-2xl font-semibold text-gray-900 truncate">
+                                {user.name}
+                            </h3>
+                            <div className="mt-2 inline-flex items-center gap-2 text-[#F37022]">
+                                <span className="material-symbols-outlined text-base">person</span>
+                                <span className="font-medium relative">
+                                    View Profile
+                                    <span className="absolute left-0 -bottom-0.5 w-0 group-hover:w-full h-[2px] bg-[#F37022] transition-all duration-300" />
+                                </span>
+                                <span className="material-symbols-outlined text-base translate-x-0 group-hover:translate-x-1 transition-transform duration-300">arrow_forward</span>
+                            </div>
+                        </div>
+                        <div className="shrink-0">
+                            <span className="inline-flex items-center justify-center w-9 h-9 rounded-full bg-[#F37022]/10 text-[#F37022] group-hover:bg-[#F37022]/15 transition-colors">
+                                <span className="material-symbols-outlined">add</span>
+                            </span>
+                        </div>
+                    </div>
+
+                    {/* Bottom accent bar */}
+                    <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-[#F37022]/30 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                 </div>
             </Link>
         </motion.div>

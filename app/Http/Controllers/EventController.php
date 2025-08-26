@@ -108,6 +108,7 @@ class EventController extends Controller
             'organizer_website' => $validated['organizer_website'] ?? null,
             'is_team_event' => $validated['is_team_event'],
             'label_tags' => $validated['label_tags'],
+            'share_token' => Str::random(32),
         ];
 
         // Add non-external event specific fields
@@ -128,12 +129,92 @@ class EventController extends Controller
             ->with('message', 'Event created successfully');
     }
 
-    public function index()
+    public function index(Request $request)
     {
         $user = auth()->user();
         
-        $events = Event::with(['creator'])
-            ->latest()
+        $query = Event::with(['creator']);
+        
+        // Apply filters before pagination
+        if ($request->filled('search')) {
+            $search = $request->get('search');
+            $query->where(function($q) use ($search) {
+                $q->where('title', 'like', "%{$search}%")
+                  ->orWhere('description', 'like', "%{$search}%")
+                  ->orWhere('location', 'like', "%{$search}%")
+                  ->orWhereHas('creator', function($creatorQuery) use ($search) {
+                      $creatorQuery->where('name', 'like', "%{$search}%");
+                  });
+            });
+        }
+        
+        // Event type filter (individual, team, external)
+        if ($request->filled('eventFilter')) {
+            switch ($request->get('eventFilter')) {
+                case 'individual':
+                    $query->where('is_team_event', false)->where('is_external', false);
+                    break;
+                case 'team':
+                    $query->where('is_team_event', true)->where('is_external', false);
+                    break;
+                case 'external':
+                    $query->where('is_external', true);
+                    break;
+            }
+        }
+        
+        // Status filter
+        if ($request->filled('statusFilter') && $request->get('statusFilter') !== 'all') {
+            $status = $request->get('statusFilter');
+            $today = Carbon::now()->startOfDay();
+            
+            switch ($status) {
+                case 'Upcoming':
+                    $query->where('date', '>', $today);
+                    break;
+                case 'Ongoing':
+                    $query->where('date', '=', $today);
+                    break;
+                case 'Completed':
+                    $query->where('date', '<', $today);
+                    break;
+            }
+        }
+        
+        // Event type filter (Workshop, Competition, Seminar)
+        if ($request->filled('eventTypeFilter') && $request->get('eventTypeFilter') !== 'all') {
+            $query->where('event_type', $request->get('eventTypeFilter'));
+        }
+        
+        // Date filter
+        if ($request->filled('dateFilter') && $request->get('dateFilter') !== 'all') {
+            $today = Carbon::now()->startOfDay();
+            
+            switch ($request->get('dateFilter')) {
+                case 'today':
+                    $query->where('date', '=', $today);
+                    break;
+                case 'tomorrow':
+                    $tomorrow = $today->copy()->addDay();
+                    $query->where('date', '=', $tomorrow);
+                    break;
+                case 'this_week':
+                    $weekFromNow = $today->copy()->addWeek();
+                    $query->where('date', '>=', $today)->where('date', '<=', $weekFromNow);
+                    break;
+                case 'this_month':
+                    $query->whereYear('date', $today->year)->whereMonth('date', $today->month);
+                    break;
+                case 'upcoming':
+                    $query->where('date', '>=', $today);
+                    break;
+                case 'past':
+                    $query->where('date', '<', $today);
+                    break;
+            }
+        }
+        
+        $events = $query->latest()
             ->paginate(12)
             ->through(function ($event) use ($user) {
                 $event->is_enrolled = Enrollment::where('user_id', $user->id)
@@ -145,6 +226,8 @@ class EventController extends Controller
                 if ($event->is_team_event) {
                     $event->enrolled_team = $event->userEnrolledTeam();
                 }
+                // Add share URL
+                $event->share_url = $event->getShareUrl();
                 return $event;
             });
 
@@ -174,6 +257,8 @@ class EventController extends Controller
                 } else {
                     $event->enrolled_count = $event->enrolledUsers()->count();
                 }
+                // Add share URL
+                $event->share_url = $event->getShareUrl();
                 return $event;
             });
         
@@ -188,6 +273,8 @@ class EventController extends Controller
                 if ($event->is_team_event) {
                     $event->enrolled_team = $event->userEnrolledTeam();
                 }
+                // Add share URL
+                $event->share_url = $event->getShareUrl();
                 return $event;
             });
         
@@ -403,6 +490,74 @@ class EventController extends Controller
         return response()->json([
             'is_team_event' => false,
             'users' => $enrolledUsers
+        ]);
+    }
+
+    // Public shared event page
+    public function showShared($token)
+    {
+        $event = Event::findByShareToken($token);
+        
+        if (!$event) {
+            abort(404, 'Event not found');
+        }
+
+        // Format the event data for the view
+        $event->formatted_time = Carbon::parse($event->time)->format('g:i A');
+        $event->creator_name = $event->creator->name ?? 'Unknown Organizer';
+        
+        return Inertia::render('Events/Shared', [
+            'event' => $event,
+            'isShared' => true
+        ]);
+    }
+
+    // Generate new share token
+    public function regenerateShareToken(Event $event)
+    {
+        if ($event->creator_id !== auth()->id()) {
+            abort(403);
+        }
+
+        $event->share_token = Str::random(32);
+        $event->save();
+
+        return response()->json([
+            'share_url' => $event->getShareUrl()
+        ]);
+    }
+
+    // Get participants for an event
+    public function getParticipants(Event $event)
+    {
+        // Only allow event creator to view participants
+        if ($event->creator_id !== auth()->id()) {
+            abort(403, 'Unauthorized - Only event creator can view participants');
+        }
+
+        $participants = $event->enrollments()
+            ->with(['user.student'])
+            ->get()
+            ->map(function ($enrollment) {
+                $user = $enrollment->user;
+                $student = $user->student;
+                
+                return [
+                    'id' => $enrollment->enrollment_id,
+                    'name' => $user->name,
+                    'email' => $user->email,
+                    'faculty' => $student->faculty ?? null,
+                    'university' => $student->university ?? null,
+                    'enrolled_at' => $enrollment->created_at,
+                    'status' => $enrollment->status ?? 'enrolled',
+                    'matric_no' => $student->matric_no ?? null,
+                    'level' => $student->level ?? null,
+                ];
+            });
+
+        return response()->json([
+            'participants' => $participants,
+            'total' => $participants->count(),
         ]);
     }
 } 

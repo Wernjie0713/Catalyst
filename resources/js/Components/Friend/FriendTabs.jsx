@@ -7,8 +7,8 @@ export default function FriendTabs({ activeTab, onTabChange, userRelations }) {
                 onClick={() => onTabChange('all')}
                 className={`px-4 py-2 rounded-lg transition-all duration-200 ${
                     activeTab === 'all' 
-                        ? 'bg-blue-500/20 text-blue-400 border border-blue-500/30' 
-                        : 'text-gray-400 hover:text-gray-300'
+                        ? 'bg-orange-500 text-white border border-orange-500 shadow-lg' 
+                        : 'text-gray-600 hover:text-orange-600 hover:bg-orange-50'
                 }`}
             >
                 All Friends
@@ -18,8 +18,8 @@ export default function FriendTabs({ activeTab, onTabChange, userRelations }) {
                     onClick={() => onTabChange('mentors')}
                     className={`px-4 py-2 rounded-lg transition-all duration-200 ${
                         activeTab === 'mentors' 
-                            ? 'bg-green-500/20 text-green-400 border border-green-500/30' 
-                            : 'text-gray-400 hover:text-gray-300'
+                            ? 'bg-orange-500 text-white border border-orange-500 shadow-lg' 
+                            : 'text-gray-600 hover:text-orange-600 hover:bg-orange-50'
                     }`}
                 >
                     Find Mentors
@@ -29,8 +29,8 @@ export default function FriendTabs({ activeTab, onTabChange, userRelations }) {
                 onClick={() => onTabChange('teams')}
                 className={`px-4 py-2 rounded-lg transition-all duration-200 ${
                     activeTab === 'teams' 
-                        ? 'bg-purple-500/20 text-purple-400 border border-purple-500/30' 
-                        : 'text-gray-400 hover:text-gray-300'
+                        ? 'bg-orange-500 text-white border border-orange-500 shadow-lg' 
+                        : 'text-gray-600 hover:text-orange-600 hover:bg-orange-50'
                 }`}
             >
                 Teams

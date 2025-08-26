@@ -127,6 +127,10 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/search-users', [DashboardController::class, 'searchUsers'])
         ->name('search.users')
         ->middleware('auth');
+
+    // Teams for any user (view-only)
+    Route::get('/users/{user}/teams', [TeamController::class, 'userTeams'])
+        ->name('users.teams');
 });
 
 Route::middleware(['can:team_grouping'])->group(function () {
@@ -176,7 +180,14 @@ Route::middleware(['auth'])->group(function () {
         ->name('events.enrolled-users');
     Route::get('/events/{event}/available-teams', [EnrollmentController::class, 'getAvailableTeams'])
         ->name('events.available-teams');
+    Route::post('/events/{event}/regenerate-share-token', [EventController::class, 'regenerateShareToken'])
+        ->name('events.regenerate-share-token');
+    Route::get('/events/{event}/participants', [EventController::class, 'getParticipants'])
+        ->name('events.participants');
 });
+
+// Public shared event route (no auth required)
+Route::get('/events/share/{token}', [EventController::class, 'showShared'])->name('events.shared');
 
 Route::get('/view/{user}',[ViewProfileController::class,'show'])
     ->name('profile.view')
@@ -272,6 +283,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/lecturer/dashboard', [ProjectController::class, 'lecturerDashboard'])
         ->name('lecturer.dashboard')
         ->middleware('can:view-lecturer-dashboard');
+    
+    // Lecturer faculty students directory
+    Route::get('/lecturer/students', [\App\Http\Controllers\LecturerController::class, 'facultyStudents'])
+        ->name('lecturer.students')
+        ->middleware('can:view-faculty-students');
         
     Route::get('/projects/{project}/analytics', [ProjectController::class, 'projectAnalytics'])
         ->name('projects.analytics')

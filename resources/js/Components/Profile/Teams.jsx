@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
+import { createPortal } from 'react-dom';
 
 export default function Teams({ user }) {
     const [teams, setTeams] = useState([]);
@@ -11,13 +12,9 @@ export default function Teams({ user }) {
     useEffect(() => {
         const fetchTeams = async () => {
             try {
-                const response = await axios.get(route('teams.index'));
-                setTeams(response.data.teams.filter(team => {
-                    return team.members.some(member => 
-                        member.user_id === user.id && 
-                        member.status === 'accepted'
-                    );
-                }));
+                // Fetch teams for the viewed user directly from backend
+                const response = await axios.get(route('users.teams', user.id));
+                setTeams(response.data.teams || []);
                 setLoading(false);
             } catch (err) {
                 console.error('Error fetching teams:', err);
@@ -40,37 +37,37 @@ export default function Teams({ user }) {
 
         return (
             <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-                <div className="bg-[#0f1120] rounded-2xl p-8 max-w-lg w-full mx-4 relative">
-                    <h2 className="text-2xl font-bold text-white mb-6">Team Details</h2>
+                <div className="bg-white rounded-2xl p-8 max-w-lg w-full mx-4 relative shadow-xl border border-orange-100">
+                    <h2 className="text-2xl font-bold text-gray-800 mb-6">Team Details</h2>
                     
                     {/* Team Name */}
                     <div className="mb-6">
-                        <h3 className="text-gray-400 mb-2">Team Name</h3>
-                        <p className="text-xl text-white">{team.name}</p>
+                        <h3 className="text-gray-600 mb-2">Team Name</h3>
+                        <p className="text-xl text-gray-800">{team.name}</p>
                     </div>
 
                     {/* Total Members */}
                     <div className="mb-6">
-                        <h3 className="text-gray-400 mb-2">Total Members: {team.member_count}</h3>
+                        <h3 className="text-gray-600 mb-2">Total Members: {team.member_count}</h3>
                     </div>
 
                     {/* Team Leader */}
                     <div className="mb-6">
-                        <h3 className="text-gray-400 mb-2">Team Leader</h3>
+                        <h3 className="text-gray-600 mb-2">Team Leader</h3>
                         <div className="flex items-center gap-2">
-                            <span className="material-symbols-outlined text-yellow-400">military_tech</span>
-                            <p className="text-white">{team.creator.name}</p>
+                            <span className="material-symbols-outlined text-orange-500">military_tech</span>
+                            <p className="text-gray-800">{team.creator.name}</p>
                         </div>
                     </div>
 
                     {/* Team Members */}
                     <div className="mb-6">
-                        <h3 className="text-gray-400 mb-2">Team Members ({team.members.length - 1})</h3>
+                        <h3 className="text-gray-600 mb-2">Team Members ({team.members.length - 1})</h3>
                         <div className="space-y-2">
                             {team.members
                                 .filter(member => member.user_id !== team.creator_id)
                                 .map(member => (
-                                    <div key={member.id} className="text-white">
+                                    <div key={member.id} className="text-gray-800">
                                         {member.user.name}
                                     </div>
                                 ))}
@@ -80,7 +77,7 @@ export default function Teams({ user }) {
                     {/* Close Button */}
                     <button
                         onClick={onClose}
-                        className="absolute top-4 right-4 text-gray-400 hover:text-white"
+                        className="absolute top-4 right-4 text-gray-400 hover:text-orange-500"
                     >
                         <span className="material-symbols-outlined">close</span>
                     </button>
@@ -93,8 +90,8 @@ export default function Teams({ user }) {
         return (
             <div className="min-h-[200px] flex items-center justify-center">
                 <div className="flex items-center gap-2">
-                    <div className="w-6 h-6 border-2 border-purple-500 border-t-transparent rounded-full animate-spin"></div>
-                    <span className="text-gray-400">Loading teams...</span>
+                    <div className="w-6 h-6 border-2 border-orange-500 border-t-transparent rounded-full animate-spin"></div>
+                    <span className="text-gray-600">Loading teams...</span>
                 </div>
             </div>
         );
@@ -102,80 +99,74 @@ export default function Teams({ user }) {
 
     if (error) {
         return (
-            <div className="min-h-[200px] flex items-center justify-center text-red-400">
-                {error}
+            <div className="min-h-[200px] flex items-center justify-center">
+                <div className="text-center">
+                    <div className="text-red-500 mb-2">
+                        <span className="material-symbols-outlined text-4xl">error</span>
+                    </div>
+                    <p className="text-gray-600">{error}</p>
+                </div>
             </div>
         );
     }
 
     if (teams.length === 0) {
         return (
-            <div className="min-h-[200px] flex flex-col items-center justify-center gap-4">
-                <span className="material-symbols-outlined text-4xl text-gray-400">group_off</span>
-                <p className="text-gray-400">No teams found</p>
+            <div className="min-h-[200px] flex items-center justify-center">
+                <div className="text-center">
+                    <div className="text-orange-500 mb-2">
+                        <span className="material-symbols-outlined text-4xl">group</span>
+                    </div>
+                    <p className="text-gray-600">No teams found</p>
+                    <p className="text-gray-500 text-sm">This user hasn't joined any teams yet.</p>
+                </div>
             </div>
         );
     }
 
     return (
-        <div className="space-y-4">
-            {/* Teams Grid */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                {teams.map((team) => (
-                    <div 
-                        key={team.id} 
-                        className="bg-[#1e1b4b]/50 backdrop-blur-sm rounded-2xl p-6 border border-purple-500/20"
-                    >
-                        {/* Header with Role and Date */}
-                        <div className="flex justify-between items-center mb-4">
-                            <div className="flex items-center gap-2">
-                                <span className="material-symbols-outlined text-purple-400">
-                                    {team.creator_id === user.id ? 'military_tech' : 'group'}
-                                </span>
-                                <span className="text-gray-300">
-                                    {team.creator_id === user.id ? 'Leader' : 'Member'}
-                                </span>
-                            </div>
-                            <span className="text-gray-400 text-sm">
-                                {team.created_at ? new Date(team.created_at).toLocaleDateString() : ''}
-                            </span>
-                        </div>
-
-                        {/* Team Name */}
-                        <h3 className="text-xl font-semibold text-white mb-1">
-                            {team.name}
-                        </h3>
-
-                        {/* Team Stats */}
-                        <div className="flex items-center justify-between mb-6 text-sm text-gray-400">
-                            <div className="flex items-center gap-1">
-                                <span className="material-symbols-outlined text-base">group</span>
-                                <span>{team.member_count}</span>
-                            </div>
-                        </div>
-
-                        {/* View Team Button */}
-                        <button
+        <>
+            <div className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {teams.map((team) => (
+                        <div
+                            key={team.id}
                             onClick={() => handleTeamClick(team)}
-                            className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-white/10 hover:bg-white/20 text-white rounded-xl transition-all duration-200"
+                            className="bg-gradient-to-br from-orange-50 to-white rounded-xl p-6 border border-orange-100 shadow-sm hover:shadow-md transition-all duration-200 cursor-pointer hover:scale-105"
                         >
-                            <span className="material-symbols-outlined text-base">visibility</span>
-                            View Team
-                        </button>
-                    </div>
-                ))}
+                            <div className="flex items-center justify-between mb-4">
+                                <h3 className="text-lg font-semibold text-gray-800">{team.name}</h3>
+                                <span className="material-symbols-outlined text-orange-500">group</span>
+                            </div>
+                            
+                            <div className="space-y-3">
+                                <div className="flex items-center gap-2">
+                                    <span className="material-symbols-outlined text-gray-500 text-sm">person</span>
+                                    <span className="text-sm text-gray-600">{team.members.length} members</span>
+                                </div>
+                                
+                                <div className="flex items-center gap-2">
+                                    <span className="material-symbols-outlined text-gray-500 text-sm">military_tech</span>
+                                    <span className="text-sm text-gray-600">Leader: {team.creator.name}</span>
+                                </div>
+                            </div>
+                            
+                            <div className="mt-4 pt-4 border-t border-orange-100">
+                                <p className="text-xs text-gray-500">Click to view details</p>
+                            </div>
+                        </div>
+                    ))}
+                </div>
             </div>
 
-            {/* Team Details Modal */}
-            {showModal && (
-                <TeamDetailsModal 
-                    team={selectedTeam} 
-                    onClose={() => {
-                        setShowModal(false);
-                        setSelectedTeam(null);
-                    }} 
-                />
+            {/* Modal rendered outside the main container using portal */}
+            {showModal && createPortal(
+                <TeamDetailsModal
+                    team={selectedTeam}
+                    onClose={() => setShowModal(false)}
+                />,
+                document.body
             )}
-        </div>
+        </>
     );
 }

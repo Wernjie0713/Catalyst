@@ -38,22 +38,22 @@ export default function TeamDetailsModal({ isOpen, onClose, team, onDelete, onRe
                             leaveFrom="opacity-100 scale-100"
                             leaveTo="opacity-0 scale-95"
                         >
-                            <Dialog.Panel className="w-full max-w-md transform overflow-hidden rounded-2xl bg-gradient-to-br from-gray-800/80 via-gray-900/90 to-gray-950/95 p-6 text-left align-middle shadow-xl transition-all border border-white/10">
+                            <Dialog.Panel className="w-full max-w-md transform overflow-hidden rounded-2xl bg-white p-6 text-left align-middle shadow-xl transition-all border border-orange-200">
                                 {/* Header with Delete Button */}
                                 <div className="flex justify-between items-center mb-6">
-                                    <h2 className="text-xl font-semibold text-white">Team Details</h2>
+                                    <h2 className="text-xl font-semibold text-gray-800">Team Details</h2>
                                     {team?.creator_id === auth.user.id && (
                                         <div className="flex items-center gap-3">
                                             <button
                                                 onClick={() => onAddMember(team)}
-                                                className="text-emerald-400 hover:text-emerald-300 transition-colors"
+                                                className="text-orange-600 hover:text-orange-700 transition-colors"
                                                 title="Add Member"
                                             >
                                                 <span className="material-symbols-outlined">person_add</span>
                                             </button>
                                             <button
                                                 onClick={() => onDelete(team.id)}
-                                                className="text-red-400 hover:text-red-300 transition-colors"
+                                                className="text-red-600 hover:text-red-700 transition-colors"
                                                 title="Delete Team"
                                             >
                                                 <span className="material-symbols-outlined">delete</span>
@@ -65,41 +65,41 @@ export default function TeamDetailsModal({ isOpen, onClose, team, onDelete, onRe
                                 <div className="space-y-6">
                                     {/* Team Name and Total Members */}
                                     <div>
-                                        <h4 className="text-sm font-medium text-gray-400 mb-2">Team Name</h4>
-                                        <div className="bg-gradient-to-r from-gray-800/50 to-gray-900/50 p-3 rounded-lg border border-white/5">
-                                            <p className="text-lg text-white font-medium">{team.name}</p>
+                                        <h4 className="text-sm font-medium text-gray-700 mb-2">Team Name</h4>
+                                        <div className="bg-orange-50 p-3 rounded-lg border border-orange-200">
+                                            <p className="text-lg text-gray-800 font-medium">{team.name}</p>
                                         </div>
-                                        <div className="mt-2 text-sm text-gray-400 flex items-center">
-                                            <span className="material-symbols-outlined text-sm mr-1">group</span>
+                                        <div className="mt-2 text-sm text-gray-600 flex items-center">
+                                            <span className="material-symbols-outlined text-sm mr-1 text-orange-600">group</span>
                                             Total Members: {totalMembers}
                                         </div>
                                     </div>
 
                                     {/* Team Leader Section */}
                                     <div>
-                                        <h4 className="text-sm font-medium text-gray-400 mb-2">Team Leader</h4>
-                                        <div className="bg-gradient-to-r from-gray-800/50 to-gray-900/50 p-3 rounded-lg border border-white/5">
+                                        <h4 className="text-sm font-medium text-gray-700 mb-2">Team Leader</h4>
+                                        <div className="bg-orange-50 p-3 rounded-lg border border-orange-200">
                                             <div className="flex items-center space-x-2">
-                                                <span className="material-symbols-outlined text-yellow-500">
+                                                <span className="material-symbols-outlined text-orange-600">
                                                     star
                                                 </span>
-                                                <p className="text-white">{team.creator.name}</p>
+                                                <p className="text-gray-800">{team.creator.name}</p>
                                             </div>
                                         </div>
                                     </div>
 
                                     {/* Team Members Section */}
                                     <div>
-                                        <h4 className="text-sm font-medium text-gray-400 mb-2">
+                                        <h4 className="text-sm font-medium text-gray-700 mb-2">
                                             Team Members ({acceptedMembers.length})
                                         </h4>
                                         <div className="space-y-2 max-h-48 overflow-y-auto pr-2 custom-scrollbar">
                                             {acceptedMembers.map((member) => (
                                                 <div 
                                                     key={member.id} 
-                                                    className="bg-gradient-to-r from-gray-800/50 to-gray-900/50 p-3 rounded-lg border border-white/5 flex items-center justify-between"
+                                                    className="bg-orange-50 p-3 rounded-lg border border-orange-200 flex items-center justify-between"
                                                 >
-                                                    <span className="text-white">{member.user.name}</span>
+                                                    <span className="text-gray-800">{member.user.name}</span>
                                                     {team.creator_id === auth?.user?.id && member.user_id !== team.creator_id && (
                                                         <button
                                                             onClick={() => {
@@ -107,7 +107,7 @@ export default function TeamDetailsModal({ isOpen, onClose, team, onDelete, onRe
                                                                     onRemoveMember(team.id, member.user_id);
                                                                 }
                                                             }}
-                                                            className="text-red-400 hover:text-red-500 transition-colors"
+                                                            className="text-red-600 hover:text-red-700 transition-colors"
                                                         >
                                                             <span className="material-symbols-outlined text-sm">
                                                                 remove_circle
@@ -124,7 +124,7 @@ export default function TeamDetailsModal({ isOpen, onClose, team, onDelete, onRe
                                 <div className="mt-6 flex justify-end">
                                     <button
                                         type="button"
-                                        className="px-4 py-2 rounded-lg bg-white/5 hover:bg-white/10 text-white text-sm font-medium transition-colors duration-200 border border-white/10"
+                                        className="px-4 py-2 rounded-lg bg-orange-100 hover:bg-orange-200 text-orange-700 text-sm font-medium transition-colors duration-200 border border-orange-200"
                                         onClick={onClose}
                                     >
                                         Close

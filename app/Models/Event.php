@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Carbon\Carbon;
+use Illuminate\Support\Str;
 
 class Event extends Model
 {
@@ -35,6 +36,7 @@ class Event extends Model
         'min_team_members',
         'max_team_members',
         'label_tags',
+        'share_token',
     ];
 
     protected $appends = ['enrolled_count', 'is_enrolled', 'enrolled_teams_count'];
@@ -224,5 +226,36 @@ class Event extends Model
     public function certificateTemplates()
     {
         return $this->hasMany(CertificateTemplate::class, 'event_id', 'event_id');
+    }
+
+    // Generate a unique share token for the event
+    public function generateShareToken()
+    {
+        if (!$this->share_token) {
+            $this->share_token = Str::random(32);
+            $this->saveQuietly();
+        }
+        return $this->share_token;
+    }
+
+    // Get the shareable URL for the event
+    public function getShareUrl()
+    {
+        $token = $this->generateShareToken();
+        return url("/events/share/{$token}");
+    }
+
+    // Find event by share token
+    public static function findByShareToken($token)
+    {
+        return static::where('share_token', $token)->first();
+    }
+
+    // Track share click
+    public function trackShareClick()
+    {
+        // You could implement analytics tracking here
+        // For now, we'll just log it
+        \Log::info("Event shared: {$this->title} (ID: {$this->event_id})");
     }
 }

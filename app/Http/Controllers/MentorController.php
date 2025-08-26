@@ -272,7 +272,6 @@ class MentorController extends Controller
                 'contact' => $student->student->contact_number ?? 'N/A',
                 'year' => $student->student->year ?? 'N/A',
                 'faculty' => $student->student->faculty ?? 'N/A',
-                'profile_photo_path' => $student->student->profile_photo_path ?? null,
                 'mentorship_started' => $mentor->updated_at->format('M d, Y'),
                 'mentorship_duration' => $mentor->updated_at->diffForHumans(),
                 'total_events_joined' => $completedEventsCount,

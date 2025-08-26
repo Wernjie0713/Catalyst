@@ -57,37 +57,37 @@ export default function AddToTeamModal({ isOpen, onClose, team, onSuccess }) {
 
     return (
         <Modal show={isOpen} onClose={onClose} maxWidth="sm">
-            <div className="bg-[#1a1f2e] rounded-lg">
+            <div className="bg-white rounded-lg border border-orange-200">
                 <div className="p-4">
                     {/* Header */}
                     <div className="flex justify-between items-center mb-4">
-                        <h2 className="text-lg font-semibold text-white">Add to Team</h2>
+                        <h2 className="text-lg font-semibold text-gray-800">Add to Team</h2>
                     </div>
 
                     {/* Team Name */}
                     <div className="mb-4">
-                        <label className="block text-sm text-gray-400 mb-1">Team Name</label>
-                        <div className="bg-[#12151f] p-2.5 rounded-md">
-                            <p className="text-white">{team?.name}</p>
+                        <label className="block text-sm text-gray-700 mb-1">Team Name</label>
+                        <div className="bg-orange-50 p-2.5 rounded-md border border-orange-200">
+                            <p className="text-gray-800">{team?.name}</p>
                         </div>
                     </div>
 
                     {/* Select Friend Section */}
                     <div className="mb-4">
-                        <label className="block text-sm text-gray-400 mb-1">Select Friend</label>
+                        <label className="block text-sm text-gray-700 mb-1">Select Friend</label>
                         <div className="relative">
                             <select
                                 value={selectedFriend}
                                 onChange={(e) => setSelectedFriend(e.target.value)}
-                                className="w-full bg-[#12151f] text-white p-2.5 rounded-md border border-gray-700/50 focus:border-blue-500/50 focus:ring-0"
+                                className="w-full bg-white text-gray-800 p-2.5 rounded-md border border-orange-200 focus:border-orange-500 focus:ring-0"
                                 required
                             >
-                                <option value="" className="bg-[#12151f]">Choose a friend</option>
+                                <option value="" className="bg-white">Choose a friend</option>
                                 {availableFriends.map((friend) => (
                                     <option 
                                         key={friend.id} 
                                         value={friend.id}
-                                        className="bg-[#12151f]"
+                                        className="bg-white"
                                     >
                                         {friend.name}
                                     </option>
@@ -97,7 +97,7 @@ export default function AddToTeamModal({ isOpen, onClose, team, onSuccess }) {
                     </div>
 
                     {error && (
-                        <div className="mb-4 text-sm text-red-400 bg-red-500/10 p-2 rounded-md">
+                        <div className="mb-4 text-sm text-red-600 bg-red-50 p-2 rounded-md border border-red-200">
                             {error}
                         </div>
                     )}
@@ -109,7 +109,7 @@ export default function AddToTeamModal({ isOpen, onClose, team, onSuccess }) {
                             onClick={onClose}
                             whileHover={{ scale: 1.02 }}
                             whileTap={{ scale: 0.98 }}
-                            className="px-4 py-2 bg-[#12151f] text-white rounded-md hover:bg-[#1a1f2e] transition-colors"
+                            className="px-4 py-2 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 transition-colors"
                         >
                             Close
                         </motion.button>
@@ -118,7 +118,7 @@ export default function AddToTeamModal({ isOpen, onClose, team, onSuccess }) {
                             disabled={isLoading || !selectedFriend}
                             whileHover={{ scale: 1.02 }}
                             whileTap={{ scale: 0.98 }}
-                            className={`px-4 py-2 bg-[#12151f] text-white rounded-md hover:bg-[#1a1f2e] transition-colors ${
+                            className={`px-4 py-2 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white rounded-md transition-colors shadow-md ${
                                 isLoading || !selectedFriend ? 'opacity-50 cursor-not-allowed' : ''
                             }`}
                         >

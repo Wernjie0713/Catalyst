@@ -114,8 +114,50 @@ class FriendController extends Controller
                     'friend.student', 'friend.lecturer', 'friend.department_staff', 'friend.organizer'])
             ->get();
 
+        // Friend suggestions (moved from Dashboard)
+        $authUser = auth()->user();
+        $role = $authUser->roles()->first()?->name;
+
+        $friendSuggestions = collect();
+        if ($role === 'student') {
+            $existingFriendIds = Friend::where(function($query) use ($authUser) {
+                $query->where(function($q) use ($authUser) {
+                    $q->where('user_id', $authUser->id)
+                      ->orWhere('friend_id', $authUser->id);
+                })
+                ->where('status', 'accepted');
+            })
+            ->get()
+            ->map(function($friend) use ($authUser) {
+                return $friend->user_id == $authUser->id ? $friend->friend_id : $friend->user_id;
+            })
+            ->toArray();
+
+            $friendSuggestions = User::where('id', '!=', $authUser->id)
+                ->whereNotIn('id', $existingFriendIds)
+                ->whereHas('roles', function ($query) {
+                    $query->where('name', 'student');
+                })
+                ->with(['roles', 'student'])
+                ->inRandomOrder()
+                ->take(3)
+                ->get()
+                ->map(function ($user) {
+                    $profilePhotoPath = null;
+                    if ($user->student && $user->student->profile_photo_path) {
+                        $profilePhotoPath = $user->student->profile_photo_path;
+                    }
+                    return [
+                        'id' => $user->id,
+                        'name' => $user->name,
+                        'profile_picture' => $profilePhotoPath
+                    ];
+                });
+        }
+
         return Inertia::render('Friend/list', [
             'friends' => $friends,
+            'friendSuggestions' => $friendSuggestions,
             'userRelations' => [
                 'isStudent' => auth()->user()->student !== null,
                 'isLecturer' => auth()->user()->lecturer !== null,

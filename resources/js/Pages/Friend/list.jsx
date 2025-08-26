@@ -17,8 +17,9 @@ import TeamInvitationsDropdown from '@/Components/Friend/TeamInvitationsDropdown
 import AddToTeamModal from '@/Components/Friend/AddToTeamModal';
 import LecturerCard from '@/Components/Friend/LecturerCard';
 import MentorRequestModal from '@/Components/Friend/MentorRequestModal';
+import FriendSuggestionCard from '@/Components/FriendSuggestionCard';
 
-export default function FriendsList({ auth, friends = [], teams: initialTeams = [], pendingInvitations = [], can, userRelations }) {
+export default function FriendsList({ auth, friends = [], teams: initialTeams = [], pendingInvitations = [], can, userRelations, friendSuggestions = [] }) {
     const [activeTab, setActiveTab] = useState(() => {
         // If user tries to access teams tab without permission, default to 'all'
         const urlTab = new URL(window.location.href).searchParams.get('tab') || 'all';
@@ -448,14 +449,14 @@ export default function FriendsList({ auth, friends = [], teams: initialTeams = 
         <AuthenticatedLayout user={auth.user}>
             <Head title="Connections" />
             <motion.div 
-                className="py-12"
+                className="py-12 bg-white"
                 initial="initial"
                 animate="animate"
                 variants={pageVariants}
             >
                 <div className="max-w-7xl mx-auto sm:px-6 lg:px-8">
                     <motion.div 
-                        className="bg-gradient-to-br from-gray-800/50 via-gray-900/50 to-gray-950/50 rounded-2xl backdrop-blur-sm border border-white/5"
+                        className="bg-white rounded-2xl shadow-xl border border-orange-200"
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ duration: 0.5 }}
@@ -466,6 +467,7 @@ export default function FriendsList({ auth, friends = [], teams: initialTeams = 
                                 onTabChange={setActiveTab}
                                 userRelations={userRelations}
                             />
+                            {/* Friend suggestions moved below All Friends section */}
                             
                             {/* SearchBar for non-teams tabs */}
                             {activeTab !== 'teams' && activeTab !== 'mentors' && (
@@ -487,7 +489,7 @@ export default function FriendsList({ auth, friends = [], teams: initialTeams = 
                                             onClick={() => setIsRequestsDropdownOpen(!isRequestsDropdownOpen)}
                                             whileHover={{ scale: 1.02 }}
                                             whileTap={{ scale: 0.98 }}
-                                            className="inline-flex items-center px-4 py-2 bg-gradient-to-r from-blue-500/20 to-purple-600/20 hover:from-blue-500/30 hover:to-purple-600/30 text-white rounded-lg text-sm border border-white/10 hover:border-white/20 transition-all duration-200"
+                                            className="inline-flex items-center px-4 py-2 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white rounded-lg text-sm border border-orange-500 transition-all duration-200 shadow-lg"
                                         >
                                             <span className="material-symbols-outlined text-sm mr-2">
                                                 person_add
@@ -495,7 +497,7 @@ export default function FriendsList({ auth, friends = [], teams: initialTeams = 
                                             Friend Requests
                                             {incomingRequests.length > 0 && (
                                                 <motion.span 
-                                                    className="ml-2 bg-red-500/30 px-2 py-0.5 rounded-full text-xs"
+                                                    className="ml-2 bg-red-500 px-2 py-0.5 rounded-full text-xs text-white"
                                                     initial={{ scale: 0 }}
                                                     animate={{ scale: 1 }}
                                                     transition={{ 
@@ -619,7 +621,7 @@ export default function FriendsList({ auth, friends = [], teams: initialTeams = 
                                                         whileHover="hover"
                                                         whileTap="tap"
                                                         variants={buttonVariants}
-                                                        className="inline-flex items-center px-4 py-2 bg-gradient-to-r from-orange-500/20 to-red-600/20 hover:from-orange-500/30 hover:to-red-600/30 text-white rounded-lg text-sm border border-white/10 hover:border-white/20 transition-all duration-200"
+                                                        className="inline-flex items-center px-4 py-2 bg-gradient-to-r from-orange-400 to-orange-500 hover:from-orange-500 hover:to-orange-600 text-white rounded-lg text-sm border border-orange-400 hover:border-orange-500 transition-all duration-200 shadow-lg"
                                                     >
                                                         <span className="material-symbols-outlined text-sm mr-2">
                                                             mail
@@ -627,7 +629,7 @@ export default function FriendsList({ auth, friends = [], teams: initialTeams = 
                                                         Team Invitations
                                                         {pendingTeamInvitations.length > 0 && (
                                                             <motion.span 
-                                                                className="ml-2 bg-red-500/30 px-2 py-0.5 rounded-full text-xs"
+                                                                className="ml-2 bg-red-500 px-2 py-0.5 rounded-full text-xs text-white"
                                                                 initial={{ scale: 0 }}
                                                                 animate={{ scale: 1 }}
                                                                 transition={{ 
@@ -659,7 +661,7 @@ export default function FriendsList({ auth, friends = [], teams: initialTeams = 
                                                     whileHover="hover"
                                                     whileTap="tap"
                                                     variants={buttonVariants}
-                                                    className="inline-flex items-center px-4 py-2 bg-gradient-to-r from-blue-500/20 to-purple-600/20 hover:from-blue-500/30 hover:to-purple-600/30 text-white rounded-lg text-sm border border-white/10 hover:border-white/20 transition-all duration-200"
+                                                    className="inline-flex items-center px-4 py-2 bg-gradient-to-r from-orange-400 to-orange-500 hover:from-orange-500 hover:to-orange-600 text-white rounded-lg text-sm border border-orange-400 hover:border-orange-500 transition-all duration-200 shadow-lg"
                                                 >
                                                     <span className="material-symbols-outlined text-sm mr-2">
                                                         group_add
@@ -795,7 +797,7 @@ export default function FriendsList({ auth, friends = [], teams: initialTeams = 
                                                     variants={emptyStateVariants}
                                                 >
                                                     <motion.div 
-                                                        className="bg-gradient-to-br from-gray-800/30 via-gray-900/30 to-gray-950/30 rounded-xl p-6 text-center"
+                                                        className="bg-gradient-to-br from-orange-50 via-white to-orange-50 rounded-xl p-6 text-center border border-orange-200"
                                                         initial={{ opacity: 0, y: 20 }}
                                                         animate={{ opacity: 1, y: 0 }}
                                                         transition={{ delay: 0.2, duration: 0.5 }}
@@ -812,7 +814,7 @@ export default function FriendsList({ auth, friends = [], teams: initialTeams = 
                                                             }}
                                                         >
                                                             <motion.span 
-                                                                className="material-symbols-outlined text-4xl text-gray-500 mb-2"
+                                                                className="material-symbols-outlined text-4xl text-orange-500 mb-2"
                                                                 initial={{ rotateY: 90 }}
                                                                 animate={{ rotateY: 0 }}
                                                                 transition={{ 
@@ -824,7 +826,7 @@ export default function FriendsList({ auth, friends = [], teams: initialTeams = 
                                                                 group
                                                             </motion.span>
                                                             <motion.p 
-                                                                className="text-gray-400"
+                                                                className="text-orange-700"
                                                                 initial={{ opacity: 0 }}
                                                                 animate={{ opacity: 1 }}
                                                                 transition={{ delay: 0.5, duration: 0.5 }}
@@ -832,7 +834,7 @@ export default function FriendsList({ auth, friends = [], teams: initialTeams = 
                                                                 No friends added yet
                                                             </motion.p>
                                                             <motion.p 
-                                                                className="text-gray-500 text-sm"
+                                                                className="text-orange-600 text-sm"
                                                                 initial={{ opacity: 0 }}
                                                                 animate={{ opacity: 1 }}
                                                                 transition={{ delay: 0.6, duration: 0.5 }}
@@ -844,6 +846,25 @@ export default function FriendsList({ auth, friends = [], teams: initialTeams = 
                                                 </motion.div>
                                             )}
                                         </motion.div>
+                                        {activeTab === 'all' && userRelations?.isStudent && friendSuggestions.length > 0 && (
+                                            <motion.div
+                                                style={{ opacity: 0 }}
+                                                animate={{ opacity: 1 }}
+                                                transition={{ delay: 0.2, duration: 0.5 }}
+                                                className="mt-6 col-span-full"
+                                            >
+                                                <h3 className="text-lg font-semibold text-orange-600 mb-3">Suggested Friends</h3>
+                                                <div className="friend-suggestions grid grid-cols-1 md:grid-cols-3 gap-4">
+                                                    {friendSuggestions.map((user, index) => (
+                                                        <FriendSuggestionCard
+                                                            key={user.id}
+                                                            user={user}
+                                                            index={index}
+                                                        />
+                                                    ))}
+                                                </div>
+                                            </motion.div>
+                                        )}
                                     </motion.div>
                                 )}
                             </AnimatePresence>

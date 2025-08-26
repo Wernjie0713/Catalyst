@@ -310,6 +310,25 @@ class ReportController extends BaseController
                 'events_participated' => $eventsParticipated
             ]);
 
+            // Build students list (same faculty)
+            $students = Student::with(['user:id,name'])
+                ->where('faculty', $facultyName)
+                ->withCount(['projects', 'certificates'])
+                ->get()
+                ->map(function ($s) {
+                    return [
+                        'user_id' => $s->user_id,
+                        'name' => optional($s->user)->name,
+                        'matric_no' => $s->matric_no,
+                        'faculty' => $s->faculty,
+                        'university' => $s->university_name ?? $s->university,
+                        'projects_count' => $s->projects_count ?? 0,
+                        'certificates_count' => $s->certificates_count ?? 0,
+                        'is_active' => optional($s->user)->enrolledEvents()->exists(),
+                        'updated_at' => $s->updated_at,
+                    ];
+                });
+
             return [
                 'data' => [
                     'name' => $facultyName,
@@ -322,7 +341,8 @@ class ReportController extends BaseController
                     ],
                     'department_metrics' => [
                         'event_participation' => $eventParticipationComplete
-                    ]
+                    ],
+                    'students' => $students,
                 ]
             ];
 
@@ -399,6 +419,25 @@ class ReportController extends BaseController
                 ->orderBy('month_number')
                 ->get();
 
+            // Build student list scoped to this faculty (and implicitly same university via staff record if needed later)
+            $students = Student::with(['user:id,name'])
+                ->where('faculty', $facultyName)
+                ->withCount(['projects', 'certificates'])
+                ->get()
+                ->map(function ($s) {
+                    return [
+                        'user_id' => $s->user_id,
+                        'name' => optional($s->user)->name,
+                        'matric_no' => $s->matric_no,
+                        'faculty' => $s->faculty,
+                        'university' => $s->university_name ?? $s->university,
+                        'projects_count' => $s->projects_count ?? 0,
+                        'certificates_count' => $s->certificates_count ?? 0,
+                        'is_active' => optional($s->user)->enrolledEvents()->exists(),
+                        'updated_at' => $s->updated_at,
+                    ];
+                });
+
             return Inertia::render('Reports/Department/Index', [
                 'report' => [
                     'data' => [
@@ -416,8 +455,9 @@ class ReportController extends BaseController
                             })->count(),
                         ],
                         'department_metrics' => [
-                            'event_participation' => $eventParticipation
-                        ]
+                            'event_participation' => $eventParticipation,
+                        ],
+                        'students' => $students,
                     ]
                 ]
             ]);

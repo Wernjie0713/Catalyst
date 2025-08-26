@@ -2,14 +2,14 @@ import { motion } from 'framer-motion';
 
 export default function EmptyState({ icon = "group", message, description }) {
     return (
-        <div className="bg-gradient-to-br from-gray-800/30 via-gray-900/30 to-gray-950/30 rounded-xl p-6 text-center">
+        <div className="bg-white border border-orange-200 rounded-xl p-6 text-center shadow-lg">
             <div className="flex flex-col items-center justify-center">
-                <span className="material-symbols-outlined text-4xl text-gray-500 mb-2">
+                <span className="material-symbols-outlined text-4xl text-orange-500 mb-2">
                     {icon}
                 </span>
-                <p className="text-gray-400">{message}</p>
+                <p className="text-gray-700 font-medium">{message}</p>
                 {description && (
-                    <p className="text-gray-500 text-sm">
+                    <p className="text-gray-600 text-sm mt-1">
                         {description}
                     </p>
                 )}

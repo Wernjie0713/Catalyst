@@ -123,15 +123,15 @@ export default function StudentForm({ data, onChange, visibleFields = [] }) {
     return (
         <div className="space-y-6">
             <div>
-                <h3 className="text-xl font-semibold text-white mb-4">{title}</h3>
-                <p className="text-gray-400 mb-6">{description}</p>
+                <h3 className="text-xl font-semibold text-gray-900 mb-2">{title}</h3>
+                <p className="text-gray-600 mb-6">{description}</p>
             </div>
             
             <div className="grid grid-cols-1 gap-6">
                 {/* Matric Number */}
                 {isVisible('matric_no') && (
                     <div>
-                        <label htmlFor="matric_no" className="block text-sm font-medium text-gray-300 mb-1">
+                        <label htmlFor="matric_no" className="block text-sm font-medium text-gray-700 mb-1">
                             Matric Number
                         </label>
                         <input
@@ -140,9 +140,9 @@ export default function StudentForm({ data, onChange, visibleFields = [] }) {
                             name="matric_no"
                             value={form.matric_no}
                             onChange={handleInputChange}
-                            className="w-full px-4 py-2 bg-white/5 border border-white/10 rounded-lg 
-                                text-white placeholder-gray-500 focus:border-[#635985] focus:ring-1 
-                                focus:ring-[#635985] transition-colors"
+                            className="w-full px-4 py-2 bg-white border border-gray-300 rounded-lg 
+                                text-gray-900 placeholder-gray-400 focus:border-orange-500 focus:ring-1 
+                                focus:ring-orange-500 transition-colors shadow-sm"
                             placeholder="Enter your matric number"
                         />
                     </div>
@@ -151,7 +151,7 @@ export default function StudentForm({ data, onChange, visibleFields = [] }) {
                 {/* Year */}
                 {isVisible('year') && (
                     <div>
-                        <label htmlFor="year" className="block text-sm font-medium text-gray-300 mb-1">
+                        <label htmlFor="year" className="block text-sm font-medium text-gray-700 mb-1">
                             Current Year
                         </label>
                         <select
@@ -159,10 +159,9 @@ export default function StudentForm({ data, onChange, visibleFields = [] }) {
                             name="year"
                             value={form.year}
                             onChange={handleInputChange}
-                            className="w-full px-4 py-2 bg-white/5 border border-white/10 rounded-lg 
-                                text-white placeholder-gray-500 focus:border-[#635985] focus:ring-1 
-                                focus:ring-[#635985] transition-colors appearance-none"
-                            style={{ colorScheme: 'dark' }}
+                            className="w-full px-4 py-2 bg-white border border-gray-300 rounded-lg 
+                                text-gray-900 placeholder-gray-400 focus:border-orange-500 focus:ring-1 
+                                focus:ring-orange-500 transition-colors appearance-none shadow-sm"
                         >
                             <option value="">Select year</option>
                             {[1, 2, 3, 4, 5, 6].map(year => (
@@ -175,7 +174,7 @@ export default function StudentForm({ data, onChange, visibleFields = [] }) {
                 {/* Level */}
                 {isVisible('level') && (
                     <div>
-                        <label htmlFor="level" className="block text-sm font-medium text-gray-300 mb-1">
+                        <label htmlFor="level" className="block text-sm font-medium text-gray-700 mb-1">
                             Level
                         </label>
                         <select
@@ -183,10 +182,9 @@ export default function StudentForm({ data, onChange, visibleFields = [] }) {
                             name="level"
                             value={form.level}
                             onChange={handleInputChange}
-                            className="w-full px-4 py-2 bg-white/5 border border-white/10 rounded-lg 
-                                text-white placeholder-gray-500 focus:border-[#635985] focus:ring-1 
-                                focus:ring-[#635985] transition-colors appearance-none"
-                            style={{ colorScheme: 'dark' }}
+                            className="w-full px-4 py-2 bg-white border border-gray-300 rounded-lg 
+                                text-gray-900 placeholder-gray-400 focus:border-orange-500 focus:ring-1 
+                                focus:ring-orange-500 transition-colors appearance-none shadow-sm"
                         >
                             <option value="">Select level</option>
                             {LEVELS.map(level => (
@@ -199,7 +197,7 @@ export default function StudentForm({ data, onChange, visibleFields = [] }) {
                 {/* Faculty */}
                 {isVisible('faculty') && (
                     <div>
-                        <label htmlFor="faculty" className="block text-sm font-medium text-gray-300 mb-1">
+                        <label htmlFor="faculty" className="block text-sm font-medium text-gray-700 mb-1">
                             Faculty
                         </label>
                         <select
@@ -207,10 +205,9 @@ export default function StudentForm({ data, onChange, visibleFields = [] }) {
                             name="faculty"
                             value={form.faculty}
                             onChange={handleInputChange}
-                            className="w-full px-4 py-2 bg-white/5 border border-white/10 rounded-lg 
-                                text-white placeholder-gray-500 focus:border-[#635985] focus:ring-1 
-                                focus:ring-[#635985] transition-colors appearance-none"
-                            style={{ colorScheme: 'dark' }}
+                            className="w-full px-4 py-2 bg-white border border-gray-300 rounded-lg 
+                                text-gray-900 placeholder-gray-400 focus:border-orange-500 focus:ring-1 
+                                focus:ring-orange-500 transition-colors appearance-none shadow-sm"
                         >
                             <option value="">Select faculty</option>
                             {FACULTIES.map(faculty => (
@@ -223,7 +220,7 @@ export default function StudentForm({ data, onChange, visibleFields = [] }) {
                 {/* University */}
                 {isVisible('university') && (
                     <div>
-                        <label htmlFor="university" className="block text-sm font-medium text-gray-300 mb-1">
+                        <label htmlFor="university" className="block text-sm font-medium text-gray-700 mb-1">
                             University
                         </label>
                         <select
@@ -231,10 +228,9 @@ export default function StudentForm({ data, onChange, visibleFields = [] }) {
                             name="university"
                             value={form.university}
                             onChange={handleInputChange}
-                            className="w-full px-4 py-2 bg-white/5 border border-white/10 rounded-lg 
-                                text-white placeholder-gray-500 focus:border-[#635985] focus:ring-1 
-                                focus:ring-[#635985] transition-colors appearance-none"
-                            style={{ colorScheme: 'dark' }}
+                            className="w-full px-4 py-2 bg-white border border-gray-300 rounded-lg 
+                                text-gray-900 placeholder-gray-400 focus:border-orange-500 focus:ring-1 
+                                focus:ring-orange-500 transition-colors appearance-none shadow-sm"
                         >
                             <option value="">Select university</option>
                             {UNIVERSITIES.map(university => (
@@ -247,7 +243,7 @@ export default function StudentForm({ data, onChange, visibleFields = [] }) {
                 {/* Programme */}
                 {isVisible('programme') && (
                     <div>
-                        <label htmlFor="programme" className="block text-sm font-medium text-gray-300 mb-1">
+                        <label htmlFor="programme" className="block text-sm font-medium text-gray-700 mb-1">
                             Programme
                         </label>
                         <input
@@ -256,9 +252,9 @@ export default function StudentForm({ data, onChange, visibleFields = [] }) {
                             name="programme"
                             value={form.programme}
                             onChange={handleInputChange}
-                            className="w-full px-4 py-2 bg-white/5 border border-white/10 rounded-lg 
-                                text-white placeholder-gray-500 focus:border-[#635985] focus:ring-1 
-                                focus:ring-[#635985] transition-colors"
+                            className="w-full px-4 py-2 bg-white border border-gray-300 rounded-lg 
+                                text-gray-900 placeholder-gray-400 focus:border-orange-500 focus:ring-1 
+                                focus:ring-orange-500 transition-colors shadow-sm"
                             placeholder="e.g., Bachelor of Computer Science, Master of Engineering"
                         />
                     </div>
@@ -267,7 +263,7 @@ export default function StudentForm({ data, onChange, visibleFields = [] }) {
                 {/* Expected Graduate Year */}
                 {isVisible('expected_graduate') && (
                     <div>
-                        <label htmlFor="expected_graduate" className="block text-sm font-medium text-gray-300 mb-1">
+                        <label htmlFor="expected_graduate" className="block text-sm font-medium text-gray-700 mb-1">
                             Expected Graduation Year
                         </label>
                         <select
@@ -275,10 +271,9 @@ export default function StudentForm({ data, onChange, visibleFields = [] }) {
                             name="expected_graduate"
                             value={form.expected_graduate}
                             onChange={handleInputChange}
-                            className="w-full px-4 py-2 bg-white/5 border border-white/10 rounded-lg 
-                                text-white placeholder-gray-500 focus:border-[#635985] focus:ring-1 
-                                focus:ring-[#635985] transition-colors appearance-none"
-                            style={{ colorScheme: 'dark' }}
+                            className="w-full px-4 py-2 bg-white border border-gray-300 rounded-lg 
+                                text-gray-900 placeholder-gray-400 focus:border-orange-500 focus:ring-1 
+                                focus:ring-orange-500 transition-colors appearance-none shadow-sm"
                         >
                             <option value="">Select year</option>
                             {yearOptions.map(year => (
@@ -291,7 +286,7 @@ export default function StudentForm({ data, onChange, visibleFields = [] }) {
                 {/* Contact Number */}
                 {isVisible('contact_number') && (
                     <div>
-                        <label htmlFor="contact_number" className="block text-sm font-medium text-gray-300 mb-1">
+                        <label htmlFor="contact_number" className="block text-sm font-medium text-gray-700 mb-1">
                             Contact Number
                         </label>
                         <input
@@ -300,9 +295,9 @@ export default function StudentForm({ data, onChange, visibleFields = [] }) {
                             name="contact_number"
                             value={form.contact_number}
                             onChange={handleInputChange}
-                            className="w-full px-4 py-2 bg-white/5 border border-white/10 rounded-lg 
-                                text-white placeholder-gray-500 focus:border-[#635985] focus:ring-1 
-                                focus:ring-[#635985] transition-colors"
+                            className="w-full px-4 py-2 bg-white border border-gray-300 rounded-lg 
+                                text-gray-900 placeholder-gray-400 focus:border-orange-500 focus:ring-1 
+                                focus:ring-orange-500 transition-colors shadow-sm"
                             placeholder="Enter your contact number"
                         />
                     </div>
@@ -311,7 +306,7 @@ export default function StudentForm({ data, onChange, visibleFields = [] }) {
                 {/* Bio */}
                 {isVisible('bio') && (
                     <div>
-                        <label htmlFor="bio" className="block text-sm font-medium text-gray-300 mb-1">
+                        <label htmlFor="bio" className="block text-sm font-medium text-gray-700 mb-1">
                             Bio
                         </label>
                         <textarea
@@ -320,9 +315,9 @@ export default function StudentForm({ data, onChange, visibleFields = [] }) {
                             rows="3"
                             value={form.bio}
                             onChange={handleInputChange}
-                            className="w-full px-4 py-2 bg-white/5 border border-white/10 rounded-lg 
-                                text-white placeholder-gray-500 focus:border-[#635985] focus:ring-1 
-                                focus:ring-[#635985] transition-colors"
+                            className="w-full px-4 py-2 bg-white border border-gray-300 rounded-lg 
+                                text-gray-900 placeholder-gray-400 focus:border-orange-500 focus:ring-1 
+                                focus:ring-orange-500 transition-colors shadow-sm"
                             placeholder="Tell us a bit about yourself"
                         ></textarea>
                     </div>

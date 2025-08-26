@@ -94,7 +94,7 @@ export default function Certificates({ user, authUserId }) {
     if (loading) {
         return (
             <div className="min-h-[200px] flex items-center justify-center">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white"></div>
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-500"></div>
             </div>
         );
     }
@@ -104,13 +104,13 @@ export default function Certificates({ user, authUserId }) {
             {/* Toggle Switch */}
             <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-3">
-                    <span className={`text-sm font-medium ${activeTab === 'internal' ? 'text-white' : 'text-gray-400'}`}>
+                    <span className={`text-sm font-medium ${activeTab === 'internal' ? 'text-gray-800' : 'text-gray-600'}`}>
                         Internal
                     </span>
                     <button
                         onClick={() => setActiveTab(activeTab === 'internal' ? 'external' : 'internal')}
-                        className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-[#635985] focus:ring-offset-2 focus:ring-offset-gray-800 ${
-                            activeTab === 'external' ? 'bg-[#635985]' : 'bg-gray-600'
+                        className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 focus:ring-offset-white ${
+                            activeTab === 'external' ? 'bg-orange-500' : 'bg-gray-300'
                         }`}
                     >
                         <span
@@ -119,7 +119,7 @@ export default function Certificates({ user, authUserId }) {
                             }`}
                         />
                     </button>
-                    <span className={`text-sm font-medium ${activeTab === 'external' ? 'text-white' : 'text-gray-400'}`}>
+                    <span className={`text-sm font-medium ${activeTab === 'external' ? 'text-gray-800' : 'text-gray-600'}`}>
                         External
                     </span>
                 </div>
@@ -128,7 +128,7 @@ export default function Certificates({ user, authUserId }) {
                 {activeTab === 'external' && user.id === authUserId && (
                     <button
                         onClick={() => setIsModalOpen(true)}
-                        className="px-4 py-2 bg-[#635985] text-white rounded-lg hover:bg-[#635985]/80 transition-colors flex items-center gap-2"
+                        className="px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors flex items-center gap-2"
                     >
                         <span className="material-symbols-outlined">add</span>
                         Add Certificate
@@ -138,8 +138,8 @@ export default function Certificates({ user, authUserId }) {
 
             {/* Certificates Grid */}
             {filteredCertificates.length === 0 ? (
-                <div className="min-h-[200px] flex flex-col items-center justify-center text-gray-400">
-                    <span className="material-symbols-outlined text-4xl mb-2">
+                <div className="min-h-[200px] flex flex-col items-center justify-center text-gray-600">
+                    <span className="material-symbols-outlined text-4xl mb-2 text-orange-500">
                         workspace_premium
                     </span>
                     <p>
@@ -154,42 +154,42 @@ export default function Certificates({ user, authUserId }) {
                     {filteredCertificates.map((certificate) => (
                         <div 
                             key={certificate.certificate_id} 
-                            className="bg-white/5 backdrop-blur-md rounded-xl p-6 border border-white/10 hover:border-[#635985]/50 transition-all duration-200"
+                            className="bg-gradient-to-br from-orange-50 to-white rounded-xl p-6 border border-orange-100 shadow-sm hover:shadow-md transition-all duration-200"
                         >
                             <div className="flex flex-col h-full">
                                 {/* Certificate Header */}
                                 <div className="flex items-center justify-between mb-4">
                                     <div className="flex items-center space-x-3">
-                                        <span className="material-symbols-outlined text-[#635985]">
+                                        <span className="material-symbols-outlined text-orange-500">
                                             {certificate.type === 'external' 
                                                 ? (certificate.certificate_type === 'Participant' ? 'workspace_premium' : 'military_tech')
                                                 : (certificate.template.is_participant_template ? 'workspace_premium' : 'military_tech')
                                             }
                                         </span>
-                                        <span className="text-white font-medium">
+                                        <span className="text-gray-800 font-medium">
                                             {certificate.type === 'external'
                                                 ? certificate.certificate_type
                                                 : (certificate.template.is_participant_template ? 'Participant' : 'Winner')
                                             }
                                         </span>
                                     </div>
-                                    <span className="text-xs text-gray-400">
+                                    <span className="text-xs text-gray-500">
                                         {new Date(certificate.issue_date).toLocaleDateString()}
                                     </span>
                                 </div>
 
                                 {/* Certificate Content */}
                                 <div className="flex-grow">
-                                    <h3 className="text-lg font-semibold text-white mb-2">
+                                    <h3 className="text-lg font-semibold text-gray-800 mb-2">
                                         {certificate.title}
                                     </h3>
                                     {certificate.type !== 'external' && (
-                                        <p className="text-sm text-gray-400 mb-4">
+                                        <p className="text-sm text-gray-600 mb-4">
                                             {certificate.event.title}
                                         </p>
                                     )}
                                     {certificate.description && (
-                                        <p className="text-sm text-gray-400 mb-4">
+                                        <p className="text-sm text-gray-600 mb-4">
                                             {certificate.description}
                                         </p>
                                     )}
@@ -200,25 +200,29 @@ export default function Certificates({ user, authUserId }) {
                                     )}
                                 </div>
 
-                                {/* Download Button */}
+                                {/* Download/View actions */}
                                 {certificate.type === 'external' ? (
-                                    <a
-                                        href={`/${certificate.certificate_image}`}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        className="w-full px-4 py-2 bg-[#635985] text-white rounded-lg hover:bg-[#635985]/80 transition-colors flex items-center justify-center gap-2"
-                                    >
-                                        <span className="material-symbols-outlined text-sm">visibility</span>
-                                        View Certificate
-                                    </a>
+                                    user.id === authUserId && (
+                                        <a
+                                            href={`/${certificate.certificate_image}`}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="w-full px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors flex items-center justify-center gap-2"
+                                        >
+                                            <span className="material-symbols-outlined text-sm">visibility</span>
+                                            View Certificate
+                                        </a>
+                                    )
                                 ) : (
-                                    <button
-                                        onClick={() => window.open(route('certificates.download', certificate.certificate_id))}
-                                        className="w-full px-4 py-2 bg-[#635985] text-white rounded-lg hover:bg-[#635985]/80 transition-colors flex items-center justify-center gap-2"
-                                    >
-                                        <span className="material-symbols-outlined text-sm">download</span>
-                                        Download Certificate
-                                    </button>
+                                    user.id === authUserId && (
+                                        <button
+                                            onClick={() => window.open(route('certificates.download', certificate.certificate_id))}
+                                            className="w-full px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors flex items-center justify-center gap-2"
+                                        >
+                                            <span className="material-symbols-outlined text-sm">download</span>
+                                            Download Certificate
+                                        </button>
+                                    )
                                 )}
                             </div>
                         </div>
@@ -235,22 +239,22 @@ export default function Certificates({ user, authUserId }) {
                 <div className="fixed inset-0 bg-black/30 backdrop-blur-sm" aria-hidden="true" />
 
                 <div className="fixed inset-0 flex items-center justify-center p-4">
-                    <Dialog.Panel className="mx-auto max-w-md rounded-xl bg-[#1a1a1a] p-6 border border-white/10">
-                        <Dialog.Title className="text-xl font-semibold text-white mb-4">
+                    <Dialog.Panel className="mx-auto max-w-md rounded-xl bg-white p-6 border border-orange-100 shadow-xl">
+                        <Dialog.Title className="text-xl font-semibold text-gray-800 mb-4">
                             Add External Certificate
                         </Dialog.Title>
 
                         <form onSubmit={handleSubmit} className="space-y-4">
                             {/* Certificate Type */}
                             <div>
-                                <label className="block text-sm font-medium text-gray-300 mb-1">
+                                <label className="block text-sm font-medium text-gray-700 mb-1">
                                     Certificate Type
                                 </label>
                                 <select
                                     name="type"
                                     value={formData.type}
                                     onChange={handleInputChange}
-                                    className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-white focus:outline-none focus:border-[#635985]"
+                                    className="w-full px-3 py-2 bg-white border border-orange-200 rounded-lg text-gray-800 focus:outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500"
                                     required
                                 >
                                     <option value="Participant">Participant</option>
@@ -260,7 +264,7 @@ export default function Certificates({ user, authUserId }) {
 
                             {/* Title */}
                             <div>
-                                <label className="block text-sm font-medium text-gray-300 mb-1">
+                                <label className="block text-sm font-medium text-gray-700 mb-1">
                                     Certificate Title
                                 </label>
                                 <input
@@ -268,14 +272,14 @@ export default function Certificates({ user, authUserId }) {
                                     name="title"
                                     value={formData.title}
                                     onChange={handleInputChange}
-                                    className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-white focus:outline-none focus:border-[#635985]"
+                                    className="w-full px-3 py-2 bg-white border border-orange-200 rounded-lg text-gray-800 focus:outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500"
                                     required
                                 />
                             </div>
 
                             {/* Issue Date */}
                             <div>
-                                <label className="block text-sm font-medium text-gray-300 mb-1">
+                                <label className="block text-sm font-medium text-gray-700 mb-1">
                                     Issue Date
                                 </label>
                                 <input
@@ -283,14 +287,14 @@ export default function Certificates({ user, authUserId }) {
                                     name="issue_date"
                                     value={formData.issue_date}
                                     onChange={handleInputChange}
-                                    className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-white focus:outline-none focus:border-[#635985]"
+                                    className="w-full px-3 py-2 bg-white border border-orange-200 rounded-lg text-gray-800 focus:outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500"
                                     required
                                 />
                             </div>
 
                             {/* Certificate Image */}
                             <div>
-                                <label className="block text-sm font-medium text-gray-300 mb-1">
+                                <label className="block text-sm font-medium text-gray-700 mb-1">
                                     Certificate Image
                                 </label>
                                 <input
@@ -298,14 +302,14 @@ export default function Certificates({ user, authUserId }) {
                                     name="certificate_image"
                                     onChange={handleFileChange}
                                     accept="image/*"
-                                    className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-white focus:outline-none focus:border-[#635985]"
+                                    className="w-full px-3 py-2 bg-white border border-orange-200 rounded-lg text-gray-800 focus:outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500"
                                     required
                                 />
                             </div>
 
                             {/* Description */}
                             <div>
-                                <label className="block text-sm font-medium text-gray-300 mb-1">
+                                <label className="block text-sm font-medium text-gray-700 mb-1">
                                     Description (Optional)
                                 </label>
                                 <textarea
@@ -313,7 +317,7 @@ export default function Certificates({ user, authUserId }) {
                                     value={formData.description}
                                     onChange={handleInputChange}
                                     rows="3"
-                                    className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-white focus:outline-none focus:border-[#635985]"
+                                    className="w-full px-3 py-2 bg-white border border-orange-200 rounded-lg text-gray-800 focus:outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500"
                                 />
                             </div>
 
@@ -325,14 +329,14 @@ export default function Certificates({ user, authUserId }) {
                                 <button
                                     type="button"
                                     onClick={() => setIsModalOpen(false)}
-                                    className="px-4 py-2 text-gray-300 hover:text-white transition-colors"
+                                    className="px-4 py-2 text-gray-600 hover:text-gray-800 transition-colors"
                                 >
                                     Cancel
                                 </button>
                                 <button
                                     type="submit"
                                     disabled={uploading}
-                                    className="px-4 py-2 bg-[#635985] text-white rounded-lg hover:bg-[#635985]/80 transition-colors disabled:opacity-50"
+                                    className="px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors disabled:opacity-50"
                                 >
                                     {uploading ? 'Uploading...' : 'Upload Certificate'}
                                 </button>

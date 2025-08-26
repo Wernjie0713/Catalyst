@@ -40,7 +40,7 @@ class MentorRequestSentNotification extends Notification
         $studentName = $this->student->name;
         $appName = config('app.name');
         $profileUrl = route('profile.view', $this->student->id);
-        $dashboardUrl = route('lecturer.dashboard');
+        $dashboardUrl = route('mentees.dashboard');
 
         return (new MailMessage)
             ->subject("New Mentorship Request from {$studentName} - {$appName}")
@@ -66,7 +66,7 @@ class MentorRequestSentNotification extends Notification
             'message' => "{$this->student->name} requested you as a mentor",
             'request_message' => $this->message,
             'type' => 'mentor_request_sent',
-            'action_url' => route('lecturer.dashboard')
+            'action_url' => route('mentees.dashboard')
         ];
     }
 

@@ -4,6 +4,7 @@ import { useForm } from '@inertiajs/react';
 import { useState, useEffect } from 'react';
 import axios from 'axios';
 import TagDisplay from './TagDisplay';
+import ShareButton from './ShareButton';
 
 export default function EventModal({ event: initialEvent, isOpen, onClose, onEventUpdate, auth }) {
     if (!isOpen) return null;
@@ -165,12 +166,12 @@ export default function EventModal({ event: initialEvent, isOpen, onClose, onEve
                         style={{ opacity: 0, scale: 0.95 }}
                         animate={{ opacity: 1, scale: 1 }}
                         exit={{ opacity: 0, scale: 0.95 }}
-                        className="relative w-full max-w-2xl rounded-2xl bg-[#1E1E2E] shadow-xl"
+                        className="relative w-full max-w-2xl rounded-2xl bg-white shadow-xl border border-orange-100"
                     >
                         {/* Close Button */}
                         <button
                             onClick={onClose}
-                            className="absolute right-4 top-4 z-10 text-gray-400 hover:text-white transition-colors p-2 hover:bg-gray-700/50 rounded-full"
+                            className="absolute right-4 top-4 z-10 text-gray-500 hover:text-gray-900 transition-colors p-2 hover:bg-gray-100 rounded-full"
                         >
                             <span className="material-symbols-outlined">close</span>
                         </button>
@@ -182,14 +183,14 @@ export default function EventModal({ event: initialEvent, isOpen, onClose, onEve
                                 alt={event.title}
                                 className="w-full h-full object-cover"
                             />
-                            <div className="absolute inset-0 bg-gradient-to-t from-[#1E1E2E] to-transparent" />
+                            <div className="absolute inset-0 bg-gradient-to-t from-white to-transparent" />
                         </div>
 
                         <div className="p-6">
                             {/* Header */}
                             <div className="mb-6">
                                 <div className="flex items-center justify-between">
-                                    <h2 className="text-2xl font-bold text-white">{event.title}</h2>
+                                    <h2 className="text-2xl font-bold text-gray-900">{event.title}</h2>
                                     <div className="flex items-center space-x-2">
                                         {event.is_external && (
                                             <span className="px-3 py-1 rounded-full text-sm font-medium bg-purple-500/20 text-purple-400">
@@ -210,7 +211,7 @@ export default function EventModal({ event: initialEvent, isOpen, onClose, onEve
                                         </span>
                                     </div>
                                 </div>
-                                <p className="text-gray-400 mt-1">
+                                <p className="text-gray-600 mt-1">
                                     {event.is_external ? `Organized by ${event.organizer_name}` : `Created by ${event.creator.name}`}
                                 </p>
                             </div>
@@ -218,24 +219,24 @@ export default function EventModal({ event: initialEvent, isOpen, onClose, onEve
                             {/* Event Details Grid */}
                             <div className="grid grid-cols-2 gap-6 mb-6">
                                 <div>
-                                    <h3 className="text-sm font-medium text-gray-400 mb-2">Date & Time</h3>
-                                    <div className="flex items-center text-white">
+                                    <h3 className="text-sm font-medium text-gray-500 mb-2">Date & Time</h3>
+                                    <div className="flex items-center text-gray-900">
                                         <span className="material-symbols-outlined mr-2 text-blue-400">calendar_today</span>
                                         <span>{format(new Date(event.date), 'MMMM dd, yyyy')} at {event.formatted_time}</span>
                                     </div>
                                 </div>
 
                                 <div>
-                                    <h3 className="text-sm font-medium text-gray-400 mb-2">Location</h3>
-                                    <div className="flex items-center text-white">
+                                    <h3 className="text-sm font-medium text-gray-500 mb-2">Location</h3>
+                                    <div className="flex items-center text-gray-900">
                                         <span className="material-symbols-outlined mr-2 text-green-400">location_on</span>
                                         <span>{event.location}</span>
                                     </div>
                                 </div>
 
                                 <div>
-                                    <h3 className="text-sm font-medium text-gray-400 mb-2">Event Type</h3>
-                                    <div className="flex items-center text-white">
+                                    <h3 className="text-sm font-medium text-gray-500 mb-2">Event Type</h3>
+                                    <div className="flex items-center text-gray-900">
                                         <span className="material-symbols-outlined mr-2 text-purple-400">category</span>
                                         <span>{event.event_type}</span>
                                     </div>
@@ -243,8 +244,8 @@ export default function EventModal({ event: initialEvent, isOpen, onClose, onEve
 
                                 {event.is_team_event && !event.is_external && (
                                     <div>
-                                        <h3 className="text-sm font-medium text-gray-400 mb-2">Team Requirements</h3>
-                                        <div className="flex items-center text-white">
+                                        <h3 className="text-sm font-medium text-gray-500 mb-2">Team Requirements</h3>
+                                        <div className="flex items-center text-gray-900">
                                             <span className="material-symbols-outlined mr-2 text-amber-400">group</span>
                                             <span>
                                                 {event.min_team_members === event.max_team_members 
@@ -257,25 +258,25 @@ export default function EventModal({ event: initialEvent, isOpen, onClose, onEve
 
                                 {!event.is_external && (
                                     <div>
-                                        <h3 className="text-sm font-medium text-gray-400 mb-2">
+                                        <h3 className="text-sm font-medium text-gray-500 mb-2">
                                             {event.is_team_event ? 'Team Enrollment Status' : 'Enrollment Status'}
                                         </h3>
                                         <div className="space-y-2">
                                             <div className="flex justify-between text-sm">
-                                                <span className="text-white">
+                                                <span className="text-gray-900">
                                                     {event.is_team_event 
                                                         ? `${event.enrolled_teams_count || 0} teams enrolled of ${event.max_participants} spots`
                                                         : `${event.enrolled_count} enrolled of ${event.max_participants} spots`
                                                     }
                                                 </span>
-                                                <span className="text-white">
+                                                <span className="text-gray-900">
                                                     {event.is_team_event
                                                         ? `${((event.enrolled_teams_count || 0) / event.max_participants * 100).toFixed(0)}%`
                                                         : `${((event.enrolled_count / event.max_participants) * 100).toFixed(0)}%`
                                                     }
                                                 </span>
                                             </div>
-                                            <div className="w-full bg-gray-700 rounded-full h-2">
+                                            <div className="w-full bg-gray-200 rounded-full h-2">
                                                 <div
                                                     className={`h-2 rounded-full ${
                                                         enrollmentPercentage >= 90 ? 'bg-red-500' :
@@ -291,8 +292,8 @@ export default function EventModal({ event: initialEvent, isOpen, onClose, onEve
 
                                 {event.is_enrolled && event.is_team_event && event.enrolled_team && (
                                     <div>
-                                        <h3 className="text-sm font-medium text-gray-400 mb-2">Your Team</h3>
-                                        <div className="flex items-center text-white">
+                                        <h3 className="text-sm font-medium text-gray-500 mb-2">Your Team</h3>
+                                        <div className="flex items-center text-gray-900">
                                             <span className="material-symbols-outlined mr-2 text-indigo-400">people</span>
                                             <span>{event.enrolled_team.name} ({event.enrolled_team.member_count} members)</span>
                                         </div>
@@ -301,14 +302,14 @@ export default function EventModal({ event: initialEvent, isOpen, onClose, onEve
 
                                 {event.is_external && event.organizer_website && (
                                     <div>
-                                        <h3 className="text-sm font-medium text-gray-400 mb-2">Organizer Website</h3>
-                                        <div className="flex items-center text-white">
+                                        <h3 className="text-sm font-medium text-gray-500 mb-2">Organizer Website</h3>
+                                        <div className="flex items-center text-gray-900">
                                             <span className="material-symbols-outlined mr-2 text-blue-400">language</span>
                                             <a 
                                                 href={event.organizer_website}
                                                 target="_blank"
                                                 rel="noopener noreferrer"
-                                                className="text-blue-400 hover:text-blue-300 transition-colors"
+                                                className="text-blue-600 hover:text-blue-500 transition-colors"
                                             >
                                                 Visit Website
                                             </a>
@@ -319,8 +320,8 @@ export default function EventModal({ event: initialEvent, isOpen, onClose, onEve
 
                             {/* Description */}
                             <div>
-                                <h3 className="text-sm font-medium text-gray-400 mb-2">Description</h3>
-                                <p className="text-white whitespace-pre-line">{event.description}</p>
+                                <h3 className="text-sm font-medium text-gray-500 mb-2">Description</h3>
+                                <p className="text-gray-900 whitespace-pre-line">{event.description}</p>
                             </div>
 
                             {/* Event Tags */}
@@ -362,7 +363,7 @@ export default function EventModal({ event: initialEvent, isOpen, onClose, onEve
                                         <select
                                             value={data.team_id}
                                             onChange={handleTeamChange}
-                                            className="w-full bg-[#2A2A3A] border border-gray-700 rounded-lg px-4 py-2 text-white"
+                                            className="w-full bg-white border border-gray-300 rounded-lg px-4 py-2 text-gray-900 focus:ring-[#F37022] focus:border-[#F37022]"
                                         >
                                             <option value="">Select a team</option>
                                             {availableTeams.map(team => (
@@ -376,18 +377,21 @@ export default function EventModal({ event: initialEvent, isOpen, onClose, onEve
                             )}
 
                             {/* Action Buttons */}
-                            <div className="mt-6 flex justify-end space-x-3">
-                                <button
-                                    onClick={onClose}
-                                    className="px-4 py-2 text-gray-400 hover:text-white transition-colors"
-                                >
-                                    Close
-                                </button>
+                            <div className="mt-6 flex justify-between items-center">
+                                <ShareButton event={event} />
+                                
+                                <div className="flex space-x-3">
+                                    <button
+                                        onClick={onClose}
+                                        className="px-4 py-2 text-gray-600 hover:text-gray-900 transition-colors"
+                                    >
+                                        Close
+                                    </button>
                                 
                                 {event.is_external ? (
                                     <button
                                         onClick={handleExternalRegistration}
-                                        className="px-4 py-2 bg-purple-500 hover:bg-purple-600 text-white rounded-lg transition-colors"
+                                        className="px-4 py-2 bg-[#F37022] hover:bg-[#e3641a] text-white rounded-lg transition-colors"
                                     >
                                         Register at External Site
                                     </button>
@@ -425,7 +429,7 @@ export default function EventModal({ event: initialEvent, isOpen, onClose, onEve
                                                     (event.enrolled_teams_count >= event.max_participants || !data.team_id || availableTeams.length === 0) : 
                                                     event.enrolled_count >= event.max_participants)
                                             }
-                                            className="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                            className="px-4 py-2 bg-[#F37022] hover:bg-[#e3641a] text-white rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                                         >
                                             {isEnrolling ? 'Processing...' : 
                                                 event.is_team_event ?
@@ -436,6 +440,7 @@ export default function EventModal({ event: initialEvent, isOpen, onClose, onEve
                                         </button>
                                     )
                                 )}
+                                </div>
                             </div>
                         </div>
                     </motion.div>

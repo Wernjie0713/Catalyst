@@ -14,6 +14,31 @@ use Illuminate\Validation\ValidationException;
 
 class TeamController extends Controller
 {
+    /**
+     * Get teams for a specific user (creator or accepted member).
+     */
+    public function userTeams(string $userId)
+    {
+        $teams = Team::with([
+                'creator',
+                'members' => function ($query) {
+                    $query->where('status', 'accepted');
+                },
+                'members.user'
+            ])
+            ->where(function ($query) use ($userId) {
+                $query->where('creator_id', $userId)
+                      ->orWhereHas('members', function ($q) use ($userId) {
+                          $q->where('user_id', $userId)
+                            ->where('status', 'accepted');
+                      });
+            })
+            ->get();
+
+        return response()->json([
+            'teams' => $teams
+        ]);
+    }
     public function store(Request $request)
     {
         try {

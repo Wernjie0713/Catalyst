@@ -19,7 +19,7 @@ export default function AuthenticatedLayout({ header, children }) {
     }, []);
 
     return (
-        <div className="min-h-screen" style={{ backgroundColor: '#1E1B3A' }}>
+        <div className="min-h-screen bg-gradient-to-b from-white to-orange-45 relative overflow-hidden overflow-x-hidden">
             <Sidebar />
             <main className={`
                 transition-all duration-300 ease-in-out

@@ -7,8 +7,8 @@ use Inertia\Inertia;
 use App\Models\Event;
 use App\Models\User;
 use Illuminate\Support\Facades\Gate;
+ 
 use Carbon\Carbon;
-use App\Models\Friend;
 use Illuminate\Support\Facades\Redirect;
 
 class DashboardController extends Controller
@@ -56,49 +56,6 @@ class DashboardController extends Controller
                 return $data;
             });
 
-        // Only show friend suggestions for students
-        $friendSuggestions = collect();
-        
-        if ($role === 'student') {
-            // Get IDs of existing friends (where status is 'accepted')
-            $existingFriendIds = Friend::where(function($query) use ($user) {
-                $query->where(function($q) use ($user) {
-                    $q->where('user_id', $user->id)
-                      ->orWhere('friend_id', $user->id);
-                })
-                ->where('status', 'accepted');
-            })
-            ->get()
-            ->map(function($friend) use ($user) {
-                return $friend->user_id == $user->id ? $friend->friend_id : $friend->user_id;
-            })
-            ->toArray();
-
-            // Fetch other student users for friend suggestions, excluding existing friends
-            $friendSuggestions = User::where('id', '!=', $user->id)
-                ->whereNotIn('id', $existingFriendIds)
-                ->whereHas('roles', function ($query) {
-                    $query->where('name', 'student');
-                })
-                ->with(['roles', 'student'])
-                ->inRandomOrder()
-                ->take(3)
-                ->get()
-                ->map(function ($user) {
-                    $profilePhotoPath = null;
-                    
-                    if ($user->student && $user->student->profile_photo_path) {
-                        $profilePhotoPath = $user->student->profile_photo_path;
-                    }
-
-                    return [
-                        'id' => $user->id,
-                        'name' => $user->name,
-                        'profile_picture' => $profilePhotoPath
-                    ];
-                });
-        }
-
         return Inertia::render('Dashboard', [
             'abilities' => [
                 'isStudent' => $user->isA('student'),
@@ -107,23 +64,9 @@ class DashboardController extends Controller
                 'isDepartment' => $user->isA('department_staff'),
                 'isOrganizer' => $user->isA('organizer'),
             ],
-            'auth' => [
-                'user' => [
-                    'id' => $user->id,
-                    'name' => $user->name,
-                    'email' => $user->email,
-                    'roles' => $user->roles()->get()->map(function($role) {
-                        return [
-                            'name' => $role->name,
-                            'title' => $role->title
-                        ];
-                    })
-                ]
-            ],
             'currentRole' => $role,
             'stats' => $stats,
             'recentEvents' => $recentEvents,
-            'friendSuggestions' => $friendSuggestions
         ]);
     }
     

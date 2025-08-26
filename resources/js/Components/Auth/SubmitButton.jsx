@@ -5,12 +5,12 @@ export default function SubmitButton({ processing, children }) {
             disabled={processing}
             className="w-full relative inline-flex items-center justify-center px-8 py-3 
             overflow-hidden font-medium tracking-wider rounded-full
-            bg-[#8B7FD3]
-            hover:bg-[#9D93DD]
+            bg-[#F37022]
+            hover:bg-[#e3641a]
             text-white transition-all duration-300 ease-out
             transform hover:scale-[1.02]
-            shadow-[0_0_20px_rgba(139,127,211,0.5)]
-            hover:shadow-[0_0_25px_rgba(139,127,211,0.7)]
+            shadow-[0_0_20px_rgba(243,112,34,0.3)]
+            hover:shadow-[0_0_25px_rgba(243,112,34,0.4)]
             disabled:opacity-50 disabled:cursor-not-allowed
             text-lg font-semibold"
         >

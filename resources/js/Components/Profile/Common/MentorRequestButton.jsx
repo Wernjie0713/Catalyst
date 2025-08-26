@@ -89,7 +89,7 @@ export default function MentorRequestButton({ lecturerId, mentorStatus: initialM
             <button
                 onClick={handleMentorRequest}
                 disabled={processing}
-                className="inline-flex items-center px-4 py-2 bg-[#635985]/80 hover:bg-[#635985] text-white rounded-xl text-sm font-medium transition-colors"
+                className="inline-flex items-center px-4 py-2 bg-orange-500 hover:bg-orange-600 text-white rounded-xl text-sm font-medium transition-colors shadow-sm"
             >
                 <span className="material-symbols-outlined text-lg mr-2">
                     person_add

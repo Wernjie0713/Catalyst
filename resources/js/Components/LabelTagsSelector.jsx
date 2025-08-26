@@ -48,17 +48,17 @@ const LabelTagsSelector = ({ selectedTags, onChange, error }) => {
             <InputLabel 
                 htmlFor="label_tags" 
                 value="Event Labels (Select all that apply)" 
-                className="text-white text-base font-semibold mb-3 flex items-center gap-2"
+                className="text-gray-800 text-base font-semibold mb-3 flex items-center gap-2"
             >
-                <span className="material-symbols-outlined text-[#635985] text-lg">label</span>
+                <span className="material-symbols-outlined text-orange-500 text-lg">label</span>
                 Event Labels (Select all that apply)
             </InputLabel>
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {Object.entries(tagCategories).map(([category, tags]) => (
-                    <div key={category} className="bg-[#2A2A3A]/50 rounded-lg p-4 border border-gray-600/30">
-                        <h4 className="text-[#635985] font-medium text-sm mb-3 flex items-center gap-2">
-                            <span className="material-symbols-outlined text-xs">category</span>
+                    <div key={category} className="bg-white rounded-lg p-4 border border-orange-200 shadow-sm">
+                        <h4 className="text-gray-800 font-medium text-sm mb-3 flex items-center gap-2">
+                            <span className="material-symbols-outlined text-orange-500 text-xs">category</span>
                             {category}
                         </h4>
                         <div className="space-y-2">
@@ -68,9 +68,13 @@ const LabelTagsSelector = ({ selectedTags, onChange, error }) => {
                                         type="checkbox"
                                         checked={selectedTags.includes(tag)}
                                         onChange={() => handleTagChange(tag)}
-                                        className="w-4 h-4 text-[#635985] bg-[#18122B] border-gray-600 rounded focus:ring-[#635985] focus:ring-2"
+                                        className="w-4 h-4 text-orange-500 bg-white border-orange-300 rounded focus:ring-orange-500 focus:ring-2"
                                     />
-                                    <span className="text-sm text-gray-300 group-hover:text-white transition-colors">
+                                    <span className={`text-sm transition-colors ${
+                                        selectedTags.includes(tag) 
+                                            ? 'text-gray-800 font-medium' 
+                                            : 'text-gray-600 group-hover:text-gray-800'
+                                    }`}>
                                         {tag}
                                     </span>
                                 </label>
@@ -82,16 +86,16 @@ const LabelTagsSelector = ({ selectedTags, onChange, error }) => {
 
             {/* Selected Tags Preview */}
             {selectedTags.length > 0 && (
-                <div className="bg-[#18122B]/50 rounded-lg p-4 border border-[#635985]/20">
-                    <h4 className="text-white font-medium text-sm mb-3 flex items-center gap-2">
-                        <span className="material-symbols-outlined text-[#635985] text-sm">preview</span>
+                <div className="bg-orange-50 rounded-lg p-4 border border-orange-200">
+                    <h4 className="text-gray-800 font-medium text-sm mb-3 flex items-center gap-2">
+                        <span className="material-symbols-outlined text-orange-500 text-sm">preview</span>
                         Selected Tags Preview ({selectedTags.length})
                     </h4>
                     <div className="flex flex-wrap gap-2">
                         {selectedTags.map((tag) => (
                             <span
                                 key={tag}
-                                className="px-3 py-1 bg-[#635985]/20 text-[#635985] rounded-full text-xs font-medium border border-[#635985]/30"
+                                className="px-3 py-1 bg-orange-100 text-orange-700 rounded-full text-xs font-medium border border-orange-200"
                             >
                                 {tag}
                             </span>

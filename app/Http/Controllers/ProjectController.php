@@ -488,7 +488,7 @@ class ProjectController extends Controller
             'overdue' => $acceptedProjects->where('is_overdue', true)->count(),
         ];
 
-        return Inertia::render('Projects/LecturerDashboard', [
+        return Inertia::render('Projects/ProjectDashboard', [
             'projects' => $acceptedProjects,
             'pendingInvitations' => $pendingInvitations,
             'stats' => $projectStats

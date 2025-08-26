@@ -29,7 +29,7 @@ export default function FriendRequestButton({ userId, friendStatus: initialFrien
     if (friendStatus === 'accepted') {
         return (
             <button
-                className="inline-flex items-center px-4 py-2 bg-green-500/80 text-white rounded-xl text-sm font-medium backdrop-blur-sm"
+                className="inline-flex items-center px-4 py-2 bg-green-500 text-white rounded-xl text-sm font-medium shadow-sm"
                 disabled
             >
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
@@ -43,7 +43,7 @@ export default function FriendRequestButton({ userId, friendStatus: initialFrien
     if (friendStatus === 'pending') {
         return (
             <button
-                className="inline-flex items-center px-4 py-2 bg-gray-500/80 text-white rounded-xl text-sm font-medium backdrop-blur-sm cursor-not-allowed"
+                className="inline-flex items-center px-4 py-2 bg-gray-500 text-white rounded-xl text-sm font-medium cursor-not-allowed shadow-sm"
                 disabled
             >
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
@@ -58,7 +58,7 @@ export default function FriendRequestButton({ userId, friendStatus: initialFrien
         <button
             onClick={handleFriendRequest}
             disabled={processing}
-            className="inline-flex items-center px-4 py-2 bg-[#635985]/80 hover:bg-[#635985] text-white rounded-xl text-sm font-medium transition-colors"
+            className="inline-flex items-center px-4 py-2 bg-orange-500 hover:bg-orange-600 text-white rounded-xl text-sm font-medium transition-colors shadow-sm"
         >
             <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
                 <path d="M8 9a3 3 0 100-6 3 3 0 000 6zM8 11a6 6 0 016 6H2a6 6 0 016-6zM16 7a1 1 0 10-2 0v1h-1a1 1 0 100 2h1v1a1 1 0 102 0v-1h1a1 1 0 100-2h-1V7z" />

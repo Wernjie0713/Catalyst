@@ -11,16 +11,16 @@ export default function AuthInput({
                 {...props}
                 type={type}
                 className={`w-full px-4 py-3 rounded-full border 
-                ${error ? 'border-red-300' : 'border-[#635985]'} 
-                bg-[#443C68]/20 backdrop-blur-sm
-                text-white placeholder-gray-300
-                focus:ring-2 focus:ring-[#635985] focus:border-[#635985] 
-                focus:shadow-[0_0_15px_rgba(99,89,133,0.5)]
+                ${error ? 'border-red-300' : 'border-gray-300'} 
+                bg-white
+                text-gray-900 placeholder-gray-500
+                focus:ring-2 focus:ring-[#F37022] focus:border-[#F37022] 
+                focus:shadow-[0_0_15px_rgba(243,112,34,0.35)]
                 transition-all duration-300
                 outline-none ${icon ? 'pl-12' : ''} ${className}`}
             />
             {icon && (
-                <div className="absolute left-4 top-1/2 -translate-y-1/2 text-[#635985]">
+                <div className="absolute left-4 top-1/2 -translate-y-1/2 text-[#F37022]">
                     {icon}
                 </div>
             )}

@@ -66,7 +66,7 @@ export default function MentorRequestModal({ isOpen, onClose, lecturer, onSubmit
 
                     {/* Modal Content */}
                     <motion.div
-                        className="relative bg-gradient-to-br from-gray-800 via-gray-900 to-gray-950 rounded-2xl p-6 w-full max-w-lg border border-white/10 shadow-2xl"
+                        className="relative bg-white rounded-2xl p-6 w-full max-w-lg border border-orange-200 shadow-2xl"
                         variants={contentVariants}
                         initial="hidden"
                         animate="visible"
@@ -74,28 +74,28 @@ export default function MentorRequestModal({ isOpen, onClose, lecturer, onSubmit
                     >
                         {/* Header */}
                         <div className="flex items-center justify-between mb-6">
-                            <h2 className="text-2xl font-bold text-white">Request Mentorship</h2>
+                            <h2 className="text-2xl font-bold text-gray-800">Request Mentorship</h2>
                             <motion.button
                                 onClick={onClose}
                                 whileHover={{ scale: 1.1 }}
                                 whileTap={{ scale: 0.9 }}
-                                className="text-gray-400 hover:text-white transition-colors"
+                                className="text-gray-400 hover:text-orange-600 transition-colors"
                             >
                                 <span className="material-symbols-outlined text-xl">close</span>
                             </motion.button>
                         </div>
 
                         {/* Lecturer Info */}
-                        <div className="flex items-center space-x-4 mb-6 p-4 bg-white/5 rounded-lg border border-white/10">
+                        <div className="flex items-center space-x-4 mb-6 p-4 bg-orange-50 rounded-lg border border-orange-200">
                             <div className="relative">
                                 {lecturer.profile_photo_path ? (
                                     <img 
                                         src={`/storage/${lecturer.profile_photo_path}`}
                                         alt={lecturer.name}
-                                        className="w-16 h-16 rounded-full object-cover border-2 border-white/20"
+                                        className="w-16 h-16 rounded-full object-cover border-2 border-orange-200"
                                     />
                                 ) : (
-                                    <div className="w-16 h-16 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
+                                    <div className="w-16 h-16 rounded-full bg-gradient-to-br from-orange-500 to-orange-600 flex items-center justify-center">
                                         <span className="text-white font-medium text-xl">
                                             {lecturer.name.charAt(0).toUpperCase()}
                                         </span>
@@ -103,27 +103,27 @@ export default function MentorRequestModal({ isOpen, onClose, lecturer, onSubmit
                                 )}
                             </div>
                             <div className="flex-1">
-                                <h3 className="text-white font-semibold text-lg">{lecturer.name}</h3>
-                                <p className="text-gray-400 text-sm">{lecturer.department}</p>
-                                <p className="text-gray-400 text-sm">{lecturer.specialization}</p>
+                                <h3 className="text-gray-800 font-semibold text-lg">{lecturer.name}</h3>
+                                <p className="text-gray-600 text-sm">{lecturer.department}</p>
+                                <p className="text-gray-600 text-sm">{lecturer.specialization}</p>
                             </div>
                         </div>
 
                         {/* Form */}
                         <form onSubmit={handleSubmit} className="space-y-4">
                             <div>
-                                <label className="block text-white font-medium mb-2">
+                                <label className="block text-gray-700 font-medium mb-2">
                                     Message (Optional)
                                 </label>
                                 <textarea
                                     value={message}
                                     onChange={(e) => setMessage(e.target.value)}
                                     placeholder="Tell the lecturer why you'd like them as your mentor..."
-                                    className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all duration-200 resize-none"
+                                    className="w-full px-4 py-3 bg-white border border-orange-200 rounded-lg text-gray-800 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-orange-200 focus:border-orange-500 transition-all duration-200 resize-none"
                                     rows="4"
                                     maxLength="500"
                                 />
-                                <p className="text-gray-400 text-xs mt-1">
+                                <p className="text-gray-500 text-xs mt-1">
                                     {message.length}/500 characters
                                 </p>
                             </div>
@@ -135,7 +135,7 @@ export default function MentorRequestModal({ isOpen, onClose, lecturer, onSubmit
                                     onClick={onClose}
                                     whileHover={{ scale: 1.02 }}
                                     whileTap={{ scale: 0.98 }}
-                                    className="flex-1 px-4 py-3 bg-gray-600/20 hover:bg-gray-600/30 text-gray-300 rounded-lg transition-all duration-200 border border-gray-600/30 hover:border-gray-600/50"
+                                    className="flex-1 px-4 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg transition-all duration-200 border border-gray-200"
                                 >
                                     Cancel
                                 </motion.button>
@@ -144,7 +144,7 @@ export default function MentorRequestModal({ isOpen, onClose, lecturer, onSubmit
                                     disabled={isSubmitting}
                                     whileHover={{ scale: isSubmitting ? 1 : 1.02 }}
                                     whileTap={{ scale: isSubmitting ? 1 : 0.98 }}
-                                    className="flex-1 px-4 py-3 bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white rounded-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2"
+                                    className="flex-1 px-4 py-3 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white rounded-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2 shadow-lg"
                                 >
                                     {isSubmitting ? (
                                         <>

@@ -1,6 +1,6 @@
 import { Link } from '@inertiajs/react';
 
-export default function ModernPagination({ links }) {
+export default function ModernPagination({ links, onPageChange }) {
     const isOnlyOnePage = links.length === 3;
     if (isOnlyOnePage) return null;
 
@@ -11,7 +11,7 @@ export default function ModernPagination({ links }) {
                     return (
                         <span
                             key={key}
-                            className="px-3 py-1.5 text-xs text-gray-400 bg-gray-800/50 rounded-md cursor-not-allowed"
+                            className="px-3 py-1.5 text-xs text-gray-400 bg-white border border-gray-300 rounded-md cursor-not-allowed"
                             dangerouslySetInnerHTML={{ __html: link.label }}
                         />
                     );
@@ -21,10 +21,16 @@ export default function ModernPagination({ links }) {
                     <Link
                         key={key}
                         href={link.url}
-                        className={`px-3 py-1.5 text-xs rounded-md transition-all duration-200 ${
+                        onClick={(e) => {
+                            if (onPageChange) {
+                                e.preventDefault();
+                                onPageChange(link.url);
+                            }
+                        }}
+                        className={`px-3 py-1.5 text-xs rounded-md transition-all duration-200 border ${
                             link.active
-                                ? 'bg-blue-500 text-white hover:bg-blue-600'
-                                : 'text-gray-300 hover:bg-gray-800/50'
+                                ? 'bg-[#F37022] border-[#F37022] text-white hover:bg-orange-600'
+                                : 'bg-white border-gray-300 text-gray-700 hover:bg-orange-50 hover:border-orange-300 hover:text-[#F37022]'
                         }`}
                         dangerouslySetInnerHTML={{ __html: link.label }}
                     />

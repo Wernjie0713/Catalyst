@@ -61,15 +61,15 @@ export default function CreateTeamModal({ isOpen, onClose, friends, onTeamCreate
                             leaveFrom="opacity-100 scale-100"
                             leaveTo="opacity-0 scale-95"
                         >
-                            <Dialog.Panel className="w-full max-w-md transform overflow-hidden rounded-2xl bg-gradient-to-br from-gray-800/80 via-gray-900/90 to-gray-950/95 p-6 text-left align-middle shadow-xl transition-all border border-white/10">
-                                <Dialog.Title as="h3" className="text-lg font-medium leading-6 text-white mb-4">
+                            <Dialog.Panel className="w-full max-w-md transform overflow-hidden rounded-2xl bg-white p-6 text-left align-middle shadow-xl transition-all border border-orange-200">
+                                <Dialog.Title as="h3" className="text-lg font-medium leading-6 text-gray-800 mb-4">
                                     Create a New Team
                                 </Dialog.Title>
 
                                 <form onSubmit={handleSubmit} className="space-y-4">
                                     {/* Team Name Input */}
                                     <div>
-                                        <label htmlFor="teamName" className="block text-sm font-medium text-gray-400 mb-2">
+                                        <label htmlFor="teamName" className="block text-sm font-medium text-gray-700 mb-2">
                                             Team Name
                                         </label>
                                         <input
@@ -77,24 +77,24 @@ export default function CreateTeamModal({ isOpen, onClose, friends, onTeamCreate
                                             id="teamName"
                                             value={teamName}
                                             onChange={(e) => setTeamName(e.target.value)}
-                                            className="w-full px-3 py-2 bg-gray-800/50 border border-white/10 rounded-lg text-white focus:ring-2 focus:ring-purple-500/30 focus:border-purple-500/60"
+                                            className="w-full px-3 py-2 bg-white border border-orange-200 rounded-lg text-gray-800 focus:ring-2 focus:ring-orange-200 focus:border-orange-500"
                                             placeholder="Enter team name"
                                         />
                                         {errors.name && (
-                                            <p className="mt-1 text-sm text-red-400">{errors.name}</p>
+                                            <p className="mt-1 text-sm text-red-600">{errors.name}</p>
                                         )}
                                     </div>
 
                                     {/* Friends Selection */}
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-400 mb-2">
+                                        <label className="block text-sm font-medium text-gray-700 mb-2">
                                             Select Members
                                         </label>
                                         <div className="space-y-2 max-h-48 overflow-y-auto pr-2 custom-scrollbar">
                                             {friends.map((friend) => (
                                                 <div
                                                     key={friend.id}
-                                                    className="flex items-center space-x-2 p-2 bg-gray-800/30 rounded-lg"
+                                                    className="flex items-center space-x-2 p-2 bg-orange-50 rounded-lg border border-orange-100"
                                                 >
                                                     <input
                                                         type="checkbox"
@@ -108,16 +108,16 @@ export default function CreateTeamModal({ isOpen, onClose, friends, onTeamCreate
                                                                 setSelectedFriends(selectedFriends.filter(id => id !== friend.id));
                                                             }
                                                         }}
-                                                        className="rounded border-gray-700 text-purple-500 focus:ring-purple-500/30 bg-gray-800"
+                                                        className="rounded border-orange-300 text-orange-600 focus:ring-orange-500 bg-white"
                                                     />
-                                                    <label htmlFor={`friend-${friend.id}`} className="text-white">
+                                                    <label htmlFor={`friend-${friend.id}`} className="text-gray-800">
                                                         {friend.name}
                                                     </label>
                                                 </div>
                                             ))}
                                         </div>
                                         {errors.friends && (
-                                            <p className="mt-1 text-sm text-red-400">{errors.friends}</p>
+                                            <p className="mt-1 text-sm text-red-600">{errors.friends}</p>
                                         )}
                                     </div>
 
@@ -126,14 +126,14 @@ export default function CreateTeamModal({ isOpen, onClose, friends, onTeamCreate
                                         <button
                                             type="button"
                                             onClick={onClose}
-                                            className="px-4 py-2 rounded-lg bg-gray-800/50 text-white text-sm hover:bg-gray-800/70 transition-colors duration-200"
+                                            className="px-4 py-2 rounded-lg bg-gray-100 text-gray-700 text-sm hover:bg-gray-200 transition-colors duration-200"
                                         >
                                             Cancel
                                         </button>
                                         <button
                                             type="submit"
                                             disabled={isLoading || !teamName || selectedFriends.length === 0}
-                                            className="px-4 py-2 rounded-lg bg-purple-500/20 text-purple-400 text-sm hover:bg-purple-500/30 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                                            className="px-4 py-2 rounded-lg bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white text-sm transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed shadow-md"
                                         >
                                             {isLoading ? 'Creating...' : 'Create Team'}
                                         </button>

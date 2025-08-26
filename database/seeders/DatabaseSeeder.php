@@ -51,6 +51,7 @@ class DatabaseSeeder extends Seeder
             'project_delete',
             'view-lecturer-dashboard',
             'view-project-analytics',
+            'view-faculty-students',
             
             // Other abilities
             'view_otherprofile',
@@ -273,6 +274,7 @@ class DatabaseSeeder extends Seeder
             'project_update',
             'view-lecturer-dashboard',
             'view-project-analytics',
+            'view-faculty-students',
             'event_view',
             'view_otherprofile'
         ]);

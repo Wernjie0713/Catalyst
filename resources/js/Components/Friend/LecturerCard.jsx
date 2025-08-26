@@ -32,7 +32,7 @@ export default function LecturerCard({ lecturer, onRequestMentor }) {
 
     return (
         <motion.div 
-            className="bg-gradient-to-br from-gray-800/30 via-gray-900/30 to-gray-950/30 rounded-xl p-6 border border-white/10 hover:border-white/20 transition-all duration-300 h-full flex flex-col"
+            className="bg-white rounded-xl p-6 border border-orange-200 hover:border-orange-300 transition-all duration-300 h-full flex flex-col shadow-lg hover:shadow-xl"
             whileHover={{ y: -2 }}
             layout
         >
@@ -42,10 +42,10 @@ export default function LecturerCard({ lecturer, onRequestMentor }) {
                         <img 
                             src={`/storage/${lecturer.profile_photo_path}`}
                             alt={lecturer.name}
-                            className="w-12 h-12 rounded-full object-cover border-2 border-white/20"
+                            className="w-12 h-12 rounded-full object-cover border-2 border-orange-200"
                         />
                     ) : (
-                        <div className="w-12 h-12 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
+                        <div className="w-12 h-12 rounded-full bg-gradient-to-br from-orange-500 to-orange-600 flex items-center justify-center">
                             <span className="text-white font-medium text-lg">
                                 {lecturer.name.charAt(0).toUpperCase()}
                             </span>
@@ -53,31 +53,31 @@ export default function LecturerCard({ lecturer, onRequestMentor }) {
                     )}
                 </div>
                 <div className="flex-1">
-                    <h3 className="text-white font-semibold text-lg">{lecturer.name}</h3>
-                    <p className="text-gray-400 text-sm">{lecturer.email}</p>
+                    <h3 className="text-gray-800 font-semibold text-lg">{lecturer.name}</h3>
+                    <p className="text-gray-600 text-sm">{lecturer.email}</p>
                 </div>
             </div>
 
             <div className="space-y-2 mb-4 flex-1">
                 <div className="flex items-center text-sm min-h-[20px]">
-                    <span className="material-symbols-outlined text-blue-400 mr-2 text-lg">
+                    <span className="material-symbols-outlined text-orange-500 mr-2 text-lg">
                         domain
                     </span>
-                    <span className="text-gray-300 truncate">{lecturer.department}</span>
+                    <span className="text-gray-700 truncate">{lecturer.department}</span>
                 </div>
                 
                 <div className="flex items-center text-sm min-h-[20px]">
-                    <span className="material-symbols-outlined text-purple-400 mr-2 text-lg">
+                    <span className="material-symbols-outlined text-orange-500 mr-2 text-lg">
                         psychology
                     </span>
-                    <span className="text-gray-300 truncate">{lecturer.specialization}</span>
+                    <span className="text-gray-700 truncate">{lecturer.specialization}</span>
                 </div>
                 
                 <div className="flex items-center text-sm min-h-[20px]">
-                    <span className="material-symbols-outlined text-amber-400 mr-2 text-lg">
+                    <span className="material-symbols-outlined text-orange-500 mr-2 text-lg">
                         school
                     </span>
-                    <span className="text-gray-300 truncate">{lecturer.university}</span>
+                    <span className="text-gray-700 truncate">{lecturer.university}</span>
                 </div>
             </div>
 
@@ -93,7 +93,7 @@ export default function LecturerCard({ lecturer, onRequestMentor }) {
                         onClick={() => onRequestMentor(lecturer)}
                         whileHover={{ scale: 1.05 }}
                         whileTap={{ scale: 0.95 }}
-                        className="px-4 py-2 bg-gradient-to-r from-blue-500/20 to-purple-600/20 hover:from-blue-500/30 hover:to-purple-600/30 text-white rounded-lg text-sm border border-white/10 hover:border-white/20 transition-all duration-200 flex items-center space-x-2"
+                        className="px-4 py-2 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white rounded-lg text-sm border border-orange-500 transition-all duration-200 flex items-center space-x-2 shadow-md"
                     >
                         <span className="material-symbols-outlined text-sm">
                             person_add

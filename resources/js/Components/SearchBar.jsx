@@ -47,9 +47,9 @@ export default function SearchBar() {
                     placeholder="Search users..."
                     value={query}
                     onChange={handleSearch}
-                    className="w-full px-4 py-2 bg-gray-800/50 border border-gray-700 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-200 placeholder-gray-400"
+                    className="w-full px-4 py-2 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#F37022] focus:border-[#F37022] text-gray-900 placeholder-gray-400"
                 />
-                <span className="absolute right-3 top-2.5 text-gray-400 material-symbols-outlined">
+                <span className="absolute right-3 top-2.5 text-gray-500 material-symbols-outlined">
                     search
                 </span>
             </div>
@@ -60,16 +60,16 @@ export default function SearchBar() {
                         initial={{ opacity: 0, y: -10 }}
                         animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0, y: -10 }}
-                        className="absolute z-50 w-full mt-2 bg-gray-800 border border-gray-700 rounded-lg shadow-lg overflow-hidden"
+                        className="absolute z-50 w-full mt-2 bg-white border border-gray-200 rounded-lg shadow-lg overflow-hidden"
                     >
                         {results.map((user) => (
                             <Link
                                 key={user.id}
                                 href={route('profile.view', user.id)}
-                                className="block px-4 py-3 hover:bg-gray-700/50 transition-colors duration-150"
+                                className="block px-4 py-3 hover:bg-orange-50 transition-colors duration-150"
                             >
                                 <div className="flex items-center space-x-3">
-                                    <div className="flex-shrink-0 w-10 h-10 rounded-full overflow-hidden bg-gray-700">
+                                    <div className="flex-shrink-0 w-10 h-10 rounded-full overflow-hidden bg-gray-100">
                                         {user.profile_photo ? (
                                             <img
                                                 src={user.profile_photo}
@@ -78,14 +78,14 @@ export default function SearchBar() {
                                             />
                                         ) : (
                                             <div className="w-full h-full flex items-center justify-center">
-                                                <span className="material-symbols-outlined text-gray-400">
+                                                <span className="material-symbols-outlined text-gray-500">
                                                     person
                                                 </span>
                                             </div>
                                         )}
                                     </div>
                                     <div>
-                                        <div className="text-sm font-medium text-white">
+                                        <div className="text-sm font-medium text-gray-900">
                                             {user.name}
                                         </div>
                                     </div>

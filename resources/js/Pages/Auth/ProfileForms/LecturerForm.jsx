@@ -109,15 +109,15 @@ export default function LecturerForm({ data, onChange, visibleFields = [] }) {
     return (
         <div className="space-y-6">
             <div>
-                <h3 className="text-xl font-semibold text-white mb-4">{title}</h3>
-                <p className="text-gray-400 mb-6">{description}</p>
+                <h3 className="text-xl font-semibold text-gray-900 mb-2">{title}</h3>
+                <p className="text-gray-600 mb-6">{description}</p>
             </div>
             
             <div className="grid grid-cols-1 gap-6">
                 {/* Specialization */}
                 {isVisible('specialization') && (
                     <div>
-                        <label htmlFor="specialization" className="block text-sm font-medium text-gray-300 mb-1">
+                        <label htmlFor="specialization" className="block text-sm font-medium text-gray-700 mb-1">
                             Specialization
                         </label>
                         <input
@@ -126,9 +126,9 @@ export default function LecturerForm({ data, onChange, visibleFields = [] }) {
                             name="specialization"
                             value={form.specialization}
                             onChange={handleInputChange}
-                            className="w-full px-4 py-2 bg-white/5 border border-white/10 rounded-lg 
-                                text-white placeholder-gray-500 focus:border-[#635985] focus:ring-1 
-                                focus:ring-[#635985] transition-colors"
+                            className="w-full px-4 py-2 bg-white border border-gray-300 rounded-lg 
+                                text-gray-900 placeholder-gray-400 focus:border-orange-500 focus:ring-1 
+                                focus:ring-orange-500 transition-colors shadow-sm"
                             placeholder="Enter your specialization"
                         />
                     </div>
@@ -137,7 +137,7 @@ export default function LecturerForm({ data, onChange, visibleFields = [] }) {
                 {/* Faculty */}
                 {isVisible('faculty') && (
                     <div>
-                        <label htmlFor="faculty" className="block text-sm font-medium text-gray-300 mb-1">
+                        <label htmlFor="faculty" className="block text-sm font-medium text-gray-700 mb-1">
                             Faculty
                         </label>
                         <select
@@ -145,10 +145,9 @@ export default function LecturerForm({ data, onChange, visibleFields = [] }) {
                             name="faculty"
                             value={form.faculty}
                             onChange={handleInputChange}
-                            className="w-full px-4 py-2 bg-white/5 border border-white/10 rounded-lg 
-                                text-white placeholder-gray-500 focus:border-[#635985] focus:ring-1 
-                                focus:ring-[#635985] transition-colors appearance-none"
-                            style={{ colorScheme: 'dark' }}
+                            className="w-full px-4 py-2 bg-white border border-gray-300 rounded-lg 
+                                text-gray-900 placeholder-gray-400 focus:border-orange-500 focus:ring-1 
+                                focus:ring-orange-500 transition-colors appearance-none shadow-sm"
                         >
                             <option value="">Select faculty</option>
                             {FACULTIES.map(faculty => (
@@ -161,7 +160,7 @@ export default function LecturerForm({ data, onChange, visibleFields = [] }) {
                 {/* University */}
                 {isVisible('university') && (
                     <div>
-                        <label htmlFor="university" className="block text-sm font-medium text-gray-300 mb-1">
+                        <label htmlFor="university" className="block text-sm font-medium text-gray-700 mb-1">
                             University
                         </label>
                         <select
@@ -169,10 +168,9 @@ export default function LecturerForm({ data, onChange, visibleFields = [] }) {
                             name="university"
                             value={form.university}
                             onChange={handleInputChange}
-                            className="w-full px-4 py-2 bg-white/5 border border-white/10 rounded-lg 
-                                text-white placeholder-gray-500 focus:border-[#635985] focus:ring-1 
-                                focus:ring-[#635985] transition-colors appearance-none"
-                            style={{ colorScheme: 'dark' }}
+                            className="w-full px-4 py-2 bg-white border border-gray-300 rounded-lg 
+                                text-gray-900 placeholder-gray-400 focus:border-orange-500 focus:ring-1 
+                                focus:ring-orange-500 transition-colors appearance-none shadow-sm"
                         >
                             <option value="">Select university</option>
                             {UNIVERSITIES.map(university => (
@@ -185,7 +183,7 @@ export default function LecturerForm({ data, onChange, visibleFields = [] }) {
                 {/* Contact Number */}
                 {isVisible('contact_number') && (
                     <div>
-                        <label htmlFor="contact_number" className="block text-sm font-medium text-gray-300 mb-1">
+                        <label htmlFor="contact_number" className="block text-sm font-medium text-gray-700 mb-1">
                             Contact Number
                         </label>
                         <input
@@ -194,9 +192,9 @@ export default function LecturerForm({ data, onChange, visibleFields = [] }) {
                             name="contact_number"
                             value={form.contact_number}
                             onChange={handleInputChange}
-                            className="w-full px-4 py-2 bg-white/5 border border-white/10 rounded-lg 
-                                text-white placeholder-gray-500 focus:border-[#635985] focus:ring-1 
-                                focus:ring-[#635985] transition-colors"
+                            className="w-full px-4 py-2 bg-white border border-gray-300 rounded-lg 
+                                text-gray-900 placeholder-gray-400 focus:border-orange-500 focus:ring-1 
+                                focus:ring-orange-500 transition-colors shadow-sm"
                             placeholder="Enter your contact number"
                         />
                     </div>
@@ -205,7 +203,7 @@ export default function LecturerForm({ data, onChange, visibleFields = [] }) {
                 {/* LinkedIn */}
                 {isVisible('linkedin') && (
                     <div>
-                        <label htmlFor="linkedin" className="block text-sm font-medium text-gray-300 mb-1">
+                        <label htmlFor="linkedin" className="block text-sm font-medium text-gray-700 mb-1">
                             LinkedIn Profile
                         </label>
                         <input
@@ -214,9 +212,9 @@ export default function LecturerForm({ data, onChange, visibleFields = [] }) {
                             name="linkedin"
                             value={form.linkedin}
                             onChange={handleInputChange}
-                            className="w-full px-4 py-2 bg-white/5 border border-white/10 rounded-lg 
-                                text-white placeholder-gray-500 focus:border-[#635985] focus:ring-1 
-                                focus:ring-[#635985] transition-colors"
+                            className="w-full px-4 py-2 bg-white border border-gray-300 rounded-lg 
+                                text-gray-900 placeholder-gray-400 focus:border-orange-500 focus:ring-1 
+                                focus:ring-orange-500 transition-colors shadow-sm"
                             placeholder="https://linkedin.com/in/yourprofile"
                         />
                     </div>
@@ -225,7 +223,7 @@ export default function LecturerForm({ data, onChange, visibleFields = [] }) {
                 {/* Bio */}
                 {isVisible('bio') && (
                     <div>
-                        <label htmlFor="bio" className="block text-sm font-medium text-gray-300 mb-1">
+                        <label htmlFor="bio" className="block text-sm font-medium text-gray-700 mb-1">
                             Bio
                         </label>
                         <textarea
@@ -234,9 +232,9 @@ export default function LecturerForm({ data, onChange, visibleFields = [] }) {
                             rows="3"
                             value={form.bio}
                             onChange={handleInputChange}
-                            className="w-full px-4 py-2 bg-white/5 border border-white/10 rounded-lg 
-                                text-white placeholder-gray-500 focus:border-[#635985] focus:ring-1 
-                                focus:ring-[#635985] transition-colors"
+                            className="w-full px-4 py-2 bg-white border border-gray-300 rounded-lg 
+                                text-gray-900 placeholder-gray-400 focus:border-orange-500 focus:ring-1 
+                                focus:ring-orange-500 transition-colors shadow-sm"
                             placeholder="Tell us about your research interests and teaching experience"
                         ></textarea>
                     </div>
