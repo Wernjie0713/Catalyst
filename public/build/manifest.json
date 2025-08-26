@@ -317,12 +317,12 @@
     "isDynamicEntry": true
   },
   "resources/css/app.css": {
-    "file": "assets/app-C1T8nAAZ.css",
+    "file": "assets/app-BvlY6cAD.css",
     "src": "resources/js/app.jsx",
     "isEntry": true
   },
   "resources/js/Pages/Admin/Roles/Edit.jsx": {
-    "file": "assets/Edit-8JBc2MHz.js",
+    "file": "assets/Edit-BAdsV951.js",
     "name": "Edit",
     "src": "resources/js/Pages/Admin/Roles/Edit.jsx",
     "isEntry": true,
@@ -336,7 +336,7 @@
     ]
   },
   "resources/js/Pages/Admin/Roles/Index.jsx": {
-    "file": "assets/Index-DZ5qSnBb.js",
+    "file": "assets/Index-KH6GKHZZ.js",
     "name": "Index",
     "src": "resources/js/Pages/Admin/Roles/Index.jsx",
     "isEntry": true,
@@ -1056,7 +1056,7 @@
     ]
   },
   "resources/js/app.jsx": {
-    "file": "assets/app-DKAwtGl1.js",
+    "file": "assets/app-D8GA_Lt4.js",
     "name": "app",
     "src": "resources/js/app.jsx",
     "isEntry": true,
@@ -1149,7 +1149,7 @@
       "_index-BpekFtwt.js"
     ],
     "css": [
-      "assets/app-C1T8nAAZ.css"
+      "assets/app-BvlY6cAD.css"
     ]
   }
 }

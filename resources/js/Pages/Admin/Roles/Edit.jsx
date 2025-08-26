@@ -3,7 +3,12 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import InputError from '@/Components/InputError';
 import PrimaryButton from '@/Components/PrimaryButton';
 
-export default function Edit({ auth, role, abilities, roleAbilities }) {
+export default function Edit({ auth, role, abilities = [], roleAbilities = [] }) {
+    // Debug logging to see what we're receiving
+    console.log('Role:', role);
+    console.log('All Abilities:', abilities);
+    console.log('Current Role Abilities:', roleAbilities);
+    
     const { data, setData, put, processing, errors } = useForm({
         abilities: roleAbilities,
     });
@@ -31,9 +36,25 @@ export default function Edit({ auth, role, abilities, roleAbilities }) {
                     <div className="mb-8">
                         <div className="text-center">
                             <h1 className="text-4xl font-bold text-gray-900 mb-3">Edit Role</h1>
-                            <div className="flex items-center justify-center space-x-2 text-gray-600 text-lg">
+                            <div className="flex items-center justify-center space-x-2 text-gray-600 text-lg mb-4">
                                 <span>Modifying permissions for</span>
                                 <span className="font-semibold text-orange-600 bg-orange-50 px-3 py-1 rounded-full">{role.title}</span>
+                            </div>
+                            {/* Current Abilities Summary */}
+                            <div className="bg-white rounded-xl p-4 border border-orange-200 max-w-2xl mx-auto">
+                                <div className="flex items-center justify-center space-x-2 mb-2">
+                                    <span className="text-sm font-medium text-gray-700">Currently Assigned:</span>
+                                    <span className="text-sm font-bold text-orange-600">{roleAbilities.length} abilities</span>
+                                </div>
+                                {roleAbilities.length > 0 && (
+                                    <div className="flex flex-wrap justify-center gap-2">
+                                        {roleAbilities.map((abilityName, index) => (
+                                            <span key={index} className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-orange-100 text-orange-800">
+                                                {abilityName}
+                                            </span>
+                                        ))}
+                                    </div>
+                                )}
                             </div>
                         </div>
                     </div>
@@ -44,12 +65,12 @@ export default function Edit({ auth, role, abilities, roleAbilities }) {
                         <div className="bg-gradient-to-r from-orange-500 to-orange-600 px-8 py-6">
                             <div className="flex items-center justify-between">
                                 <div className="flex items-center space-x-4">
-                                        <div className="w-8 h-8 bg-orange-100 rounded-lg flex items-center justify-center">
-                                            <svg className="w-5 h-5 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-                                            </svg>
-                                        </div>
-                                        <h3 className="text-xl font-semibold text-white">Role Permissions</h3>
+                                    <div className="w-8 h-8 bg-orange-100 rounded-lg flex items-center justify-center">
+                                        <svg className="w-5 h-5 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                                        </svg>
+                                    </div>
+                                    <h3 className="text-xl font-semibold text-white">Role Permissions</h3>
                                 </div>
                             </div>
                         </div>
@@ -58,33 +79,68 @@ export default function Edit({ auth, role, abilities, roleAbilities }) {
                         <div className="p-8">
                             <form onSubmit={handleSubmit}>
                                 {/* Permissions Section */}
-                                <div className="mb-8">                                    
-                                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                                            {abilities.map((ability) => (
-                                                <div key={ability.id} className="bg-white rounded-xl p-4 border border-gray-100 hover:border-orange-300 transition-all duration-200">
-                                                    <div className="flex items-center space-x-3">
-                                                        <input
-                                                            type="checkbox"
-                                                            id={`ability-${ability.id}`}
-                                                            checked={data.abilities.includes(ability.name)}
-                                                            onChange={() => toggleAbility(ability.name)}
-                                                            className="w-5 h-5 rounded border-orange-300 text-orange-600 shadow-sm focus:border-orange-300 focus:ring focus:ring-orange-200 focus:ring-opacity-50 transition-all duration-200"
-                                                        />
-                                                        <label
-                                                            htmlFor={`ability-${ability.id}`}
-                                                            className="text-sm font-medium text-gray-700 cursor-pointer hover:text-orange-600 transition-colors duration-200"
-                                                        >
-                                                            {ability.title}
-                                                        </label>
-                                                    </div>
-                                                    {data.abilities.includes(ability.name) && (
-                                                        <div className="mt-2 flex items-center space-x-2">
-                                                            <div className="w-2 h-2 bg-orange-400 rounded-full"></div>
-                                                            <span className="text-xs text-orange-600 font-medium">Enabled</span>
+                                <div className="mb-8">
+                                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                                        {abilities && abilities.length > 0 ? (
+                                            abilities.map((ability) => {
+                                                const isCurrentlyAssigned = roleAbilities.includes(ability.name);
+                                                const isSelected = data.abilities.includes(ability.name);
+                                                
+                                                return (
+                                                    <div key={ability.id} className={`bg-white rounded-xl p-4 border transition-all duration-200 ${
+                                                        isCurrentlyAssigned 
+                                                            ? 'border-orange-300 bg-orange-50' 
+                                                            : 'border-gray-100 hover:border-orange-300'
+                                                    }`}>
+                                                        <div className="flex items-center space-x-3">
+                                                            <input
+                                                                type="checkbox"
+                                                                id={`ability-${ability.id}`}
+                                                                checked={isSelected}
+                                                                onChange={() => toggleAbility(ability.name)}
+                                                                className="w-5 h-5 rounded border-orange-300 text-orange-600 shadow-sm focus:border-orange-300 focus:ring focus:ring-orange-200 focus:ring-opacity-50 transition-all duration-200"
+                                                            />
+                                                            <label
+                                                                htmlFor={`ability-${ability.id}`}
+                                                                className={`text-sm font-medium cursor-pointer transition-colors duration-200 ${
+                                                                    isCurrentlyAssigned ? 'text-orange-700' : 'text-gray-700 hover:text-orange-600'
+                                                                }`}
+                                                            >
+                                                                {ability.title}
+                                                            </label>
                                                         </div>
-                                                    )}
+                                                        <div className="mt-2 flex items-center space-x-2">
+                                                            {isCurrentlyAssigned && (
+                                                                <div className="flex items-center space-x-1">
+                                                                    <div className="w-2 h-2 bg-orange-400 rounded-full"></div>
+                                                                    <span className="text-xs text-orange-600 font-medium">Currently Assigned</span>
+                                                                </div>
+                                                            )}
+                                                            {isSelected && !isCurrentlyAssigned && (
+                                                                <div className="flex items-center space-x-1">
+                                                                    <div className="w-2 h-2 bg-green-400 rounded-full"></div>
+                                                                    <span className="text-xs text-green-600 font-medium">Will Be Added</span>
+                                                                </div>
+                                                            )}
+                                                            {!isSelected && isCurrentlyAssigned && (
+                                                                <div className="flex items-center space-x-1">
+                                                                    <div className="w-2 h-2 bg-red-400 rounded-full"></div>
+                                                                    <span className="text-xs text-red-600 font-medium">Will Be Removed</span>
+                                                                </div>
+                                                            )}
+                                                        </div>
+                                                    </div>
+                                                );
+                                            })
+                                        ) : (
+                                            <div className="col-span-full text-center py-8">
+                                                <div className="text-gray-500">
+                                                    <div className="text-4xl mb-4">🔒</div>
+                                                    <h3 className="text-lg font-medium text-gray-900 mb-2">No Abilities Found</h3>
+                                                    <p className="text-gray-600">There are no abilities available to assign to this role.</p>
                                                 </div>
-                                            ))}
+                                            </div>
+                                        )}
                                     </div>
                                 </div>
 
