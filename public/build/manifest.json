@@ -50,8 +50,8 @@
       "_index-D3Bj6weo.js"
     ]
   },
-  "_EventModal-022eCLAz.js": {
-    "file": "assets/EventModal-022eCLAz.js",
+  "_EventModal-COJyB6y-.js": {
+    "file": "assets/EventModal-COJyB6y-.js",
     "name": "EventModal",
     "imports": [
       "_index-D3Bj6weo.js",
@@ -317,7 +317,7 @@
     "isDynamicEntry": true
   },
   "resources/css/app.css": {
-    "file": "assets/app-900hsgtH.css",
+    "file": "assets/app-CqCPLh7d.css",
     "src": "resources/js/app.jsx",
     "isEntry": true
   },
@@ -516,7 +516,7 @@
     ]
   },
   "resources/js/Pages/Dashboard.jsx": {
-    "file": "assets/Dashboard-Bp2Fbg-u.js",
+    "file": "assets/Dashboard-CDF3TB_F.js",
     "name": "Dashboard",
     "src": "resources/js/Pages/Dashboard.jsx",
     "isEntry": true,
@@ -524,7 +524,7 @@
       "_index-D3Bj6weo.js",
       "_AuthenticatedLayout-DgmrdonU.js",
       "_index.esm-CYkcvaz4.js",
-      "_EventModal-022eCLAz.js",
+      "_EventModal-COJyB6y-.js",
       "_iconBase-C6hKYsF6.js",
       "_use-motion-value-BX-IYv_n.js",
       "_proxy-CrpZcEeN.js",
@@ -574,7 +574,7 @@
     ]
   },
   "resources/js/Pages/Events/Index.jsx": {
-    "file": "assets/Index-D-HIH3Xr.js",
+    "file": "assets/Index-C9zHZteZ.js",
     "name": "Index",
     "src": "resources/js/Pages/Events/Index.jsx",
     "isEntry": true,
@@ -582,7 +582,7 @@
       "_index-D3Bj6weo.js",
       "_index.esm-CYkcvaz4.js",
       "_AuthenticatedLayout-DgmrdonU.js",
-      "_EventModal-022eCLAz.js",
+      "_EventModal-COJyB6y-.js",
       "_use-motion-value-BX-IYv_n.js",
       "_proxy-CrpZcEeN.js",
       "_format-CzgadoOX.js",
@@ -597,7 +597,7 @@
     ]
   },
   "resources/js/Pages/Events/MyEvents.jsx": {
-    "file": "assets/MyEvents-Bssz-tn6.js",
+    "file": "assets/MyEvents-DUfGf-Vv.js",
     "name": "MyEvents",
     "src": "resources/js/Pages/Events/MyEvents.jsx",
     "isEntry": true,
@@ -605,7 +605,7 @@
       "_index-D3Bj6weo.js",
       "_index.esm-CYkcvaz4.js",
       "_AuthenticatedLayout-DgmrdonU.js",
-      "_EventModal-022eCLAz.js",
+      "_EventModal-COJyB6y-.js",
       "_Modal-BIwpINXw.js",
       "_proxy-CrpZcEeN.js",
       "_index-Dh0BU1j3.js",
@@ -821,7 +821,7 @@
     ]
   },
   "resources/js/Pages/Projects/Create.jsx": {
-    "file": "assets/Create-p_VpLQjl.js",
+    "file": "assets/Create-DRkP5lMN.js",
     "name": "Create",
     "src": "resources/js/Pages/Projects/Create.jsx",
     "isEntry": true,
@@ -838,7 +838,7 @@
     ]
   },
   "resources/js/Pages/Projects/Index.jsx": {
-    "file": "assets/Index-DBAYA3QC.js",
+    "file": "assets/Index-BWlhiPQn.js",
     "name": "Index",
     "src": "resources/js/Pages/Projects/Index.jsx",
     "isEntry": true,
@@ -1056,7 +1056,7 @@
     ]
   },
   "resources/js/app.jsx": {
-    "file": "assets/app-CcBkg9cY.js",
+    "file": "assets/app-D9DILkkc.js",
     "name": "app",
     "src": "resources/js/app.jsx",
     "isEntry": true,
@@ -1123,7 +1123,7 @@
       "_LottieAnimation-DXXHONGt.js",
       "_iconBase-C6hKYsF6.js",
       "_LoginLayout-CJd1z9ay.js",
-      "_EventModal-022eCLAz.js",
+      "_EventModal-COJyB6y-.js",
       "_TagDisplay-Bl1IuvVv.js",
       "_proxy-CrpZcEeN.js",
       "_index-Dh0BU1j3.js",
@@ -1149,7 +1149,7 @@
       "_index-BpekFtwt.js"
     ],
     "css": [
-      "assets/app-900hsgtH.css"
+      "assets/app-CqCPLh7d.css"
     ]
   }
 }

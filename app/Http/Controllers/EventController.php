@@ -217,7 +217,8 @@ class EventController extends Controller
         $events = $query->latest()
             ->paginate(12)
             ->through(function ($event) use ($user) {
-                $event->is_enrolled = Enrollment::where('user_id', $user->id)
+                // Check enrollment status without setting it as a property
+                $event->enrollment_status = Enrollment::where('user_id', $user->id)
                     ->where('event_id', $event->event_id)
                     ->exists();
                 // Format the time
@@ -413,7 +414,7 @@ class EventController extends Controller
             ->get()
             ->map(function ($event) use ($user) {
                 $event->formatted_time = Carbon::parse($event->time)->format('g:i A');
-                $event->is_enrolled = $event->enrollments->contains('user_id', $user->id);
+                $event->enrollment_status = $event->enrollments->contains('user_id', $user->id);
                 if ($event->is_team_event) {
                     $event->enrolled_team = $event->userEnrolledTeam();
                 }

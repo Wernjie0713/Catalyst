@@ -22,13 +22,13 @@ export default function EventModal({ event: initialEvent, isOpen, onClose, onEve
     useEffect(() => {
         setEvent({
             ...initialEvent,
-            is_enrolled: Boolean(initialEvent.is_enrolled)
+            is_enrolled: Boolean(initialEvent.enrollment_status)
         });
     }, [initialEvent]);
 
     // Fetch available teams for team events
     useEffect(() => {
-        if (isOpen && event.is_team_event && !event.is_enrolled && !event.is_external) {
+        if (isOpen && event.is_team_event && !event.enrollment_status && !event.is_external) {
             fetchAvailableTeams();
         }
     }, [isOpen, event.event_id, event.is_team_event]);
@@ -74,7 +74,7 @@ export default function EventModal({ event: initialEvent, isOpen, onClose, onEve
                 // Update local event state
                 setEvent(prev => ({
                     ...prev,
-                    is_enrolled: true,
+                    enrollment_status: true,
                     enrolled_count: prev.is_team_event 
                         ? prev.enrolled_count + (selectedTeam?.members_count || 0)
                         : prev.enrolled_count + 1,
@@ -87,7 +87,7 @@ export default function EventModal({ event: initialEvent, isOpen, onClose, onEve
                 if (onEventUpdate) {
                     onEventUpdate({
                         ...event,
-                        is_enrolled: true,
+                        enrollment_status: true,
                         enrolled_count: event.is_team_event 
                             ? event.enrolled_count + (selectedTeam?.members_count || 0)
                             : event.enrolled_count + 1,
@@ -115,7 +115,7 @@ export default function EventModal({ event: initialEvent, isOpen, onClose, onEve
                 
                 setEvent(prev => ({
                     ...prev,
-                    is_enrolled: false,
+                    enrollment_status: false,
                     enrolled_count: prev.is_team_event 
                         ? prev.enrolled_count - memberCount
                         : prev.enrolled_count - 1,
@@ -129,7 +129,7 @@ export default function EventModal({ event: initialEvent, isOpen, onClose, onEve
                 if (onEventUpdate) {
                     onEventUpdate({
                         ...event,
-                        is_enrolled: false,
+                        enrollment_status: false,
                         enrolled_count: event.is_team_event 
                             ? event.enrolled_count - memberCount
                             : event.enrolled_count - 1,
@@ -290,7 +290,7 @@ export default function EventModal({ event: initialEvent, isOpen, onClose, onEve
                                     </div>
                                 )}
 
-                                {event.is_enrolled && event.is_team_event && event.enrolled_team && (
+                                {event.enrollment_status && event.is_team_event && event.enrolled_team && (
                                     <div>
                                         <h3 className="text-sm font-medium text-gray-500 mb-2">Your Team</h3>
                                         <div className="flex items-center text-gray-900">
@@ -341,7 +341,7 @@ export default function EventModal({ event: initialEvent, isOpen, onClose, onEve
                             )}
 
                             {/* Team Selection (for team events) */}
-                            {event.is_team_event && !event.is_external && !event.is_enrolled && event.status === 'Upcoming' && (
+                            {event.is_team_event && !event.is_external && !event.enrollment_status && event.status === 'Upcoming' && (
                                 <div className="mt-6">
                                     <h3 className="text-sm font-medium text-gray-400 mb-2">Select Your Team</h3>
                                     
@@ -396,7 +396,7 @@ export default function EventModal({ event: initialEvent, isOpen, onClose, onEve
                                         Register at External Site
                                     </button>
                                 ) : (
-                                    event.is_enrolled ? (
+                                    event.enrollment_status ? (
                                         // For team events, only show unenroll button if user is the team leader
                                         (event.is_team_event && event.enrolled_team && event.enrolled_team.creator_id !== auth?.user?.id) ? (
                                             <div className="flex flex-col items-end">

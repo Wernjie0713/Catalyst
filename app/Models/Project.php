@@ -92,4 +92,26 @@ class Project extends Model
     {
         return $this->supervisor_request_status === 'rejected';
     }
+
+    // Calculate progress based on latest update or default to 0
+    public function calculateProgress()
+    {
+        $latestUpdate = $this->getLatestUpdate();
+        if ($latestUpdate && $latestUpdate->progress_percentage !== null) {
+            return $latestUpdate->progress_percentage;
+        }
+        
+        // If no updates or no progress in updates, return the stored progress or 0
+        return $this->progress_percentage ?? 0;
+    }
+
+    // Get the effective progress percentage
+    public function getProgressPercentageAttribute($value)
+    {
+        // If the value is null, calculate it
+        if ($value === null) {
+            return $this->calculateProgress();
+        }
+        return $value;
+    }
 } 

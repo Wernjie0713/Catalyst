@@ -535,7 +535,7 @@ const MyEvents = ({ organizedEvents, enrolledEvents }) => {
                                     <th className="px-6 py-4 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
                                         {activeTab === 'organized' ? 'Participants' : 'Type'}
                                     </th>
-                                    <th className="px-6 py-4 text-right text-xs font-medium text-gray-700 uppercase tracking-wider">
+                                    <th className="px-6 py-4 text-left text-xs font-medium text-gray-700 uppercase tracking-wider w-48">
                                         Actions
                                     </th>
                                 </tr>
@@ -649,60 +649,66 @@ const MyEvents = ({ organizedEvents, enrolledEvents }) => {
                                                 </span>
                                             )}
                                         </td>
-                                        <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                        {activeTab === 'organized' && event.status === 'Completed' && !event.is_external && (
+                                        <td className="px-6 py-4 text-left text-sm font-medium">
+                                            <div className="flex items-center space-x-3">
+                                                {activeTab === 'organized' && event.status === 'Completed' && !event.is_external && (
+                                                    <motion.button
+                                                        whileHover={{ scale: 1.1 }}
+                                                        whileTap={{ scale: 0.95 }}
+                                                        onClick={() => {
+                                                            setSelectedEvent(event);
+                                                            setShowCertificateOptions(true);
+                                                            setIsParticipantsModalOpen(true);
+                                                        }}
+                                                        className="text-[#F37022] hover:opacity-80 transition-colors p-1 rounded-md hover:bg-orange-50"
+                                                        title="Assign Certificates"
+                                                    >
+                                                        <span className="material-symbols-outlined text-lg">workspace_premium</span>
+                                                    </motion.button>
+                                                )}
                                                 <motion.button
-                                                    whileHover={{ scale: 1.1 }}
+                                                    whileHover={{ scale: 1.05 }}
                                                     whileTap={{ scale: 0.95 }}
-                                                    onClick={() => {
-                                                        setSelectedEvent(event);
-                                                        setShowCertificateOptions(true);
-                                                        setIsParticipantsModalOpen(true);
-                                                    }}
-                                                    className="text-[#F37022] hover:opacity-80 transition-colors mr-4"
-                                                    title="Assign Certificates"
+                                                    onClick={() => handleViewEvent(event)}
+                                                    className="text-[#F37022] hover:opacity-80 transition-colors p-1 rounded-md hover:bg-orange-50"
+                                                    title="View Event"
                                                 >
-                                                    <span className="material-symbols-outlined text-base">workspace_premium</span>
+                                                    <span className="material-symbols-outlined text-lg">visibility</span>
                                                 </motion.button>
-                                            )}
-                                            <motion.button
-                                                whileHover={{ scale: 1.05 }}
-                                                whileTap={{ scale: 0.95 }}
-                                                onClick={() => handleViewEvent(event)}
-                                                className="text-[#F37022] hover:opacity-80 transition-colors mr-4"
-                                            >
-                                                View
-                                            </motion.button>
-                                            {activeTab === 'enrolled' && event.status === 'Completed' && can.event_feedback && (
-                                                <motion.a
-                                                    whileHover={{ scale: 1.05 }}
-                                                    whileTap={{ scale: 0.95 }}
-                                                    href={route('feedback.create', event.event_id)}
-                                                    className="text-[#F37022] hover:opacity-80 transition-colors mr-4"
-                                                >
-                                                    Feedback
-                                                </motion.a>
-                                            )}
-                                            {activeTab === 'organized' && event.status === 'Completed' && can.event_feedbackview && (
-                                                <motion.a
-                                                    whileHover={{ scale: 1.05 }}
-                                                    whileTap={{ scale: 0.95 }}
-                                                    href={route('feedback.index', event.event_id)}
-                                                    className="text-[#F37022] hover:opacity-80 transition-colors mr-4"
-                                                >
-                                                    View Feedback
-                                                </motion.a>
-                                            )}
-                                            {showEditButton && can.event_edit && (
-                                                <motion.a
-                                                    whileHover={{ scale: 1.05 }}
-                                                    whileTap={{ scale: 0.95 }}
-                                                    href={route('events.edit', event.event_id)}
-                                                    className="text-[#F37022] hover:opacity-80 transition-colors"
-                                                >
-                                                    Edit
-                                                </motion.a>
-                                            )}
+                                                {activeTab === 'enrolled' && event.status === 'Completed' && can.event_feedback && (
+                                                    <motion.a
+                                                        whileHover={{ scale: 1.05 }}
+                                                        whileTap={{ scale: 0.95 }}
+                                                        href={route('feedback.create', event.event_id)}
+                                                        className="text-[#F37022] hover:opacity-80 transition-colors p-1 rounded-md hover:bg-orange-50"
+                                                        title="Submit Feedback"
+                                                    >
+                                                        <span className="material-symbols-outlined text-lg">rate_review</span>
+                                                    </motion.a>
+                                                )}
+                                                {activeTab === 'organized' && event.status === 'Completed' && can.event_feedbackview && (
+                                                    <motion.a
+                                                        whileHover={{ scale: 1.05 }}
+                                                        whileTap={{ scale: 0.95 }}
+                                                        href={route('feedback.index', event.event_id)}
+                                                        className="text-[#F37022] hover:opacity-80 transition-colors p-1 rounded-md hover:bg-orange-50"
+                                                        title="View Feedback"
+                                                    >
+                                                        <span className="material-symbols-outlined text-lg">rate_review</span>
+                                                    </motion.a>
+                                                )}
+                                                {showEditButton && can.event_edit && (
+                                                    <motion.a
+                                                        whileHover={{ scale: 1.05 }}
+                                                        whileTap={{ scale: 0.95 }}
+                                                        href={route('events.edit', event.event_id)}
+                                                        className="text-[#F37022] hover:opacity-80 transition-colors p-1 rounded-md hover:bg-orange-50"
+                                                        title="Edit Event"
+                                                    >
+                                                        <span className="material-symbols-outlined text-lg">edit</span>
+                                                    </motion.a>
+                                                )}
+                                            </div>
                                         </td>
                                     </motion.tr>
                                 ))}

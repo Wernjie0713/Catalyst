@@ -39,7 +39,7 @@ class Event extends Model
         'share_token',
     ];
 
-    protected $appends = ['enrolled_count', 'is_enrolled', 'enrolled_teams_count'];
+    protected $appends = ['enrolled_count', 'enrolled_teams_count'];
 
     protected $casts = [
         'date' => 'date',

@@ -37,14 +37,27 @@ class ProjectController extends Controller
             
         // Ensure all projects have proper progress values
         foreach ($projects as $project) {
+            $needsUpdate = false;
+            
+            // Set default progress if null or not set
+            if ($project->progress_percentage === null) {
+                $project->progress_percentage = 0;
+                $needsUpdate = true;
+            }
+            
             // Update projects that might have progress inconsistencies
             if ($project->status === 'completed' && $project->progress_percentage !== 100) {
                 $project->progress_percentage = 100;
-                $project->save();
+                $needsUpdate = true;
             }
             
             if ($project->status === 'completed' && !$project->actual_end_date) {
                 $project->actual_end_date = now();
+                $needsUpdate = true;
+            }
+            
+            // Save if any updates were made
+            if ($needsUpdate) {
                 $project->save();
             }
         }

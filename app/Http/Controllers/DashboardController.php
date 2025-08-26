@@ -43,7 +43,7 @@ class DashboardController extends Controller
                 $data = [
                     ...$event->toArray(),
                     'formatted_time' => Carbon::parse($event->time)->format('g:i A'),
-                    'is_enrolled' => $event->enrollments->contains('user_id', $user->id),
+                    'enrollment_status' => $event->enrollments->contains('user_id', $user->id),
                     'creator' => $event->creator,
                     'enrollments' => $event->enrollments
                 ];
