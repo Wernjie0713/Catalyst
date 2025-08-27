@@ -181,7 +181,8 @@ class MentorController extends Controller
         // Get requests where current user is the lecturer
         $pendingRequests = Mentor::where('lecturer_id', auth()->id())
             ->where('status', 'pending')
-            ->with(['student.student', 'lecturer.lecturer'])
+            // Do not eager load profile photo paths to keep payload lean
+            ->with(['student' => function($q){ $q->select('id','name','email'); }, 'student.student' => function($q){ $q->select('user_id','matric_no','year','faculty'); }, 'lecturer.lecturer' ])
             ->get();
 
         \Log::info('Retrieved pending requests:', [

@@ -18,12 +18,35 @@ export default function MenteesDashboard({ mentees, stats }) {
     const [searchQuery, setSearchQuery] = useState('');
     const [isMentorRequestsDropdownOpen, setIsMentorRequestsDropdownOpen] = useState(false);
     const [pendingMentorRequests, setPendingMentorRequests] = useState([]);
+    const [loadingStates, setLoadingStates] = useState({ mentorRequests: {} });
 
     useEffect(() => {
         axios.get(route('mentor.pending'))
             .then(res => setPendingMentorRequests(res.data || []))
             .catch(() => {});
     }, []);
+    
+    const handleMentorResponse = async (requestId, action) => {
+        setLoadingStates(prev => ({
+            ...prev,
+            mentorRequests: {
+                ...prev.mentorRequests,
+                [requestId]: action === 'accept' ? 'accepting' : 'rejecting'
+            }
+        }));
+        try {
+            await axios.post(route(`mentor.${action}`, requestId));
+            const res = await axios.get(route('mentor.pending'));
+            setPendingMentorRequests(res.data || []);
+        } catch (e) {
+            // no-op; UI already shows disabled state
+        } finally {
+            setLoadingStates(prev => ({
+                ...prev,
+                mentorRequests: { ...prev.mentorRequests, [requestId]: null }
+            }));
+        }
+    };
     
     // Animation variants
     const containerVariants = {
@@ -96,7 +119,7 @@ export default function MenteesDashboard({ mentees, stats }) {
                                 <span className="material-symbols-outlined text-sm mr-2">group_add</span>
                                 Mentor Requests
                                 {pendingMentorRequests.length > 0 && (
-                                    <span className="ml-2 bg-red-500/20 text-red-700 px-2 py-0.5 rounded-full text-xs">
+                                    <span className="ml-2 bg-red-600 text-white px-2 py-0.5 rounded-full text-xs shadow ring-1 ring-red-700/40">
                                         {pendingMentorRequests.length}
                                     </span>
                                 )}
@@ -105,10 +128,10 @@ export default function MenteesDashboard({ mentees, stats }) {
                                 isOpen={isMentorRequestsDropdownOpen}
                                 onClose={() => setIsMentorRequestsDropdownOpen(false)}
                                 requests={pendingMentorRequests}
-                                onAccept={(id) => axios.post(route('mentor.accept', id)).then(() => axios.get(route('mentor.pending')).then(r=>setPendingMentorRequests(r.data||[]))) }
-                                onReject={(id) => axios.post(route('mentor.reject', id)).then(() => axios.get(route('mentor.pending')).then(r=>setPendingMentorRequests(r.data||[]))) }
+                                onAccept={(id) => handleMentorResponse(id, 'accept')}
+                                onReject={(id) => handleMentorResponse(id, 'reject')}
                                 auth={auth}
-                                loadingStates={{}}
+                                loadingStates={loadingStates.mentorRequests}
                             />
                         </div>
                     </div>

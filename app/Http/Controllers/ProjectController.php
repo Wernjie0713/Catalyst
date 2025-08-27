@@ -12,6 +12,8 @@ use Silber\Bouncer\BouncerFacade as Bouncer;
 use App\Models\User;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\DB;
+use App\Notifications\SupervisorRequestSentNotification;
+use App\Notifications\SupervisorRequestAcceptedNotification;
 
 class ProjectController extends Controller
 {
@@ -194,6 +196,12 @@ class ProjectController extends Controller
                 'progress_percentage' => 0,
                 'supervisor_request_status' => 'pending', // Always pending since supervisor is required
             ]);
+
+            // Notify the selected supervisor about the pending request
+            $lecturerUser = User::find($validated['supervisor_id']);
+            if ($lecturerUser) {
+                $lecturerUser->notify(new SupervisorRequestSentNotification(Auth::user(), $project));
+            }
 
             $successMessage = 'Project created successfully! Your supervisor request has been sent and is pending approval.';
             
@@ -621,6 +629,12 @@ class ProjectController extends Controller
             $project->supervisor_request_status = 'accepted';
             $project->save();
             
+            // Notify the student that the request was accepted
+            $studentUser = $project->student?->user; // expects relation student->user
+            if ($studentUser) {
+                $studentUser->notify(new SupervisorRequestAcceptedNotification(auth()->user(), $project));
+            }
+
 
 
             return back()->with('success', 'Supervisor request accepted successfully. You can now supervise this project.');
@@ -700,6 +714,12 @@ class ProjectController extends Controller
             $project->supervisor_id = $validated['supervisor_id'];
             $project->supervisor_request_status = 'pending';
             $project->save();
+            
+            // Notify the new supervisor
+            $lecturerUser = User::find($validated['supervisor_id']);
+            if ($lecturerUser) {
+                $lecturerUser->notify(new SupervisorRequestSentNotification(Auth::user(), $project));
+            }
             
             return back()->with('success', 'New supervisor request sent successfully. Waiting for approval.');
         } catch (\Exception $e) {

@@ -96,19 +96,11 @@ export default function MentorRequestsDropdown({ isOpen, onClose, requests, onAc
                                     >
                                         <div className="flex items-start space-x-3">
                                             <div className="flex-shrink-0">
-                                                {request.student?.student?.profile_photo_path ? (
-                                                    <img 
-                                                        src={`/storage/${request.student.student.profile_photo_path}`}
-                                                        alt={request.student.name}
-                                                        className="w-10 h-10 rounded-full object-cover"
-                                                    />
-                                                ) : (
-                                                    <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
-                                                        <span className="text-white font-medium text-sm">
-                                                            {request.student?.name?.charAt(0).toUpperCase()}
-                                                        </span>
-                                                    </div>
-                                                )}
+                                                <div className="w-10 h-10 rounded-full bg-[#F37022] flex items-center justify-center shadow-sm">
+                                                    <span className="text-white font-medium text-sm select-none">
+                                                        {request.student?.name?.slice(0,2).toUpperCase() || '?'}
+                                                    </span>
+                                                </div>
                                             </div>
                                             
                                             <div className="flex-1 min-w-0">
@@ -146,9 +138,9 @@ export default function MentorRequestsDropdown({ isOpen, onClose, requests, onAc
                                                         onClick={() => !loadingStates[request.id] && onAccept(request.id)}
                                                         whileHover={!loadingStates[request.id] ? { scale: 1.05 } : {}}
                                                         whileTap={!loadingStates[request.id] ? { scale: 0.95 } : {}}
-                                                        disabled={loadingStates[request.id]}
+                                                        disabled={Boolean(loadingStates[request.id])}
                                                         className={`px-3 py-1.5 bg-green-600 hover:bg-green-700 text-white rounded-lg text-xs font-medium flex items-center space-x-1 transition-colors ${
-                                                            loadingStates[request.id] === 'accepting' ? 'opacity-75 cursor-not-allowed' : ''
+                                                            loadingStates[request.id] ? 'opacity-75 cursor-wait' : ''
                                                         }`}
                                                     >
                                                         {loadingStates[request.id] === 'accepting' ? (
@@ -168,9 +160,9 @@ export default function MentorRequestsDropdown({ isOpen, onClose, requests, onAc
                                                         onClick={() => !loadingStates[request.id] && onReject(request.id)}
                                                         whileHover={!loadingStates[request.id] ? { scale: 1.05 } : {}}
                                                         whileTap={!loadingStates[request.id] ? { scale: 0.95 } : {}}
-                                                        disabled={loadingStates[request.id]}
+                                                        disabled={Boolean(loadingStates[request.id])}
                                                         className={`px-3 py-1.5 bg-red-600 hover:bg-red-700 text-white rounded-lg text-xs font-medium flex items-center space-x-1 transition-colors ${
-                                                            loadingStates[request.id] === 'rejecting' ? 'opacity-75 cursor-not-allowed' : ''
+                                                            loadingStates[request.id] ? 'opacity-75 cursor-wait' : ''
                                                         }`}
                                                     >
                                                         {loadingStates[request.id] === 'rejecting' ? (

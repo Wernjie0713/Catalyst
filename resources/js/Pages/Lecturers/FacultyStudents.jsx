@@ -88,7 +88,7 @@ export default function FacultyStudents({ students = [], stats = {}, auth }) {
                 <div key={s.user_id || i} data-card className="group bg-white rounded-xl border border-gray-200 shadow-sm hover:shadow-md hover:border-orange-300 transition will-change-transform will-change-opacity">
                   <div className="p-5">
                     <div className="flex items-start gap-4">
-                      <Avatar name={s.name} photo={s.profile_photo_path} />
+                      <Avatar name={s.name} />
                       <div className="min-w-0">
                         <div className="flex items-center gap-2 flex-wrap">
                           <h3 className="font-semibold text-gray-900 truncate max-w-[220px]">{s.name}</h3>
@@ -166,14 +166,21 @@ function MiniStat({icon, label, value, color='slate'}){
   );
 }
 
-function Avatar({ name, photo }){
-  if (photo) {
-    return <img src={photo} alt={name} className="w-12 h-12 rounded-full object-cover border border-gray-200" />
-  }
-  const initial = (name || '?').charAt(0).toUpperCase();
+function Avatar({ name }){
+  const initials = React.useMemo(() => {
+    const safe = (name || '').trim();
+    if (!safe) return '?';
+    const words = safe.split(/\s+/).filter(Boolean);
+    const first = words[0]?.charAt(0) || '';
+    const second = words.length > 1 ? words[1].charAt(0) : '';
+    return `${first}${second}`.toUpperCase();
+  }, [name]);
+
   return (
-    <div className="w-12 h-12 rounded-full bg-[#F37022] text-white flex items-center justify-center text-lg font-medium">
-      {initial}
+    <div className="w-12 h-12 rounded-full bg-[#F37022] border border-[#F37022] flex items-center justify-center shadow-md">
+      <span className="text-white font-semibold select-none">
+        {initials}
+      </span>
     </div>
   );
 }

@@ -419,30 +419,28 @@ export default function FriendsList({ auth, friends = [], teams: initialTeams = 
         setIsMentorRequestModalOpen(true);
     };
 
-    const handleMentorRequestSubmit = async (message) => {
-        try {
-            console.log('Submitting mentor request:', {
-                lecturerId: selectedLecturer.id,
-                message: message,
-                route: route('mentor.request', selectedLecturer.id)
-            });
-            
-            // Use Inertia's router.post instead of axios for proper CSRF handling
-            router.post(route('mentor.request', selectedLecturer.id), { message }, {
-                onSuccess: () => {
-                    console.log('Mentor request sent successfully');
-                    setIsMentorRequestModalOpen(false);
-                    setSelectedLecturer(null);
-                    fetchLecturers(); // Refresh lecturers to update request status
-                },
-                onError: (errors) => {
-                    console.error('Error sending mentor request:', errors);
-                }
-            });
-        } catch (error) {
-            console.error('Error sending mentor request:', error);
-            console.error('Error response:', error.response?.data);
-        }
+    const handleMentorRequestSubmit = (message) => {
+        return new Promise((resolve, reject) => {
+            try {
+                router.post(route('mentor.request', selectedLecturer.id), { message }, {
+                    onSuccess: () => {
+                        setIsMentorRequestModalOpen(false);
+                        setSelectedLecturer(null);
+                        fetchLecturers();
+                        resolve();
+                    },
+                    onError: (errors) => {
+                        console.error('Error sending mentor request:', errors);
+                        reject(errors);
+                    },
+                    onFinish: () => {
+                        // no-op; resolve handled above
+                    }
+                });
+            } catch (error) {
+                reject(error);
+            }
+        });
     };
 
     return (
@@ -797,7 +795,7 @@ export default function FriendsList({ auth, friends = [], teams: initialTeams = 
                                                     variants={emptyStateVariants}
                                                 >
                                                     <motion.div 
-                                                        className="bg-gradient-to-br from-orange-50 via-white to-orange-50 rounded-xl p-6 text-center border border-orange-200"
+                                                        className="bg-white rounded-xl p-8 text-center border border-gray-200"
                                                         initial={{ opacity: 0, y: 20 }}
                                                         animate={{ opacity: 1, y: 0 }}
                                                         transition={{ delay: 0.2, duration: 0.5 }}

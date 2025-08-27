@@ -102,9 +102,9 @@ export default function SupervisorInvitationsDropdown({
                                     >
                                         <div className="flex items-start space-x-3">
                                             <div className="flex-shrink-0">
-                                                <div className="w-10 h-10 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-full flex items-center justify-center">
-                                                    <span className="text-white font-medium text-sm">
-                                                        {project.student_name?.charAt(0).toUpperCase()}
+                                                <div className="w-10 h-10 rounded-full bg-[#F37022] flex items-center justify-center shadow-sm">
+                                                    <span className="text-white font-medium text-sm select-none">
+                                                        {project.student_name?.slice(0,2).toUpperCase() || '?'}
                                                     </span>
                                                 </div>
                                             </div>

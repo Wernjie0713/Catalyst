@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState } from 'react';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, Link, router } from '@inertiajs/react';
 import { motion } from 'framer-motion';
@@ -19,12 +19,6 @@ export default function LecturerDashboard({ projects, pendingInvitations, stats,
     const [isInvitationsDropdownOpen, setIsInvitationsDropdownOpen] = useState(false);
     // Mentor request UI removed from project dashboard
     
-    // Refs for GSAP animations (loaded dynamically)
-    const headerRef = useRef(null);
-    const statCardsRef = useRef([]);
-    const tableRef = useRef(null);
-    const gsapRef = useRef(null);
-    
     // Loading states for different actions
     const [loadingStates, setLoadingStates] = useState({
         mentorRequests: {},
@@ -34,51 +28,7 @@ export default function LecturerDashboard({ projects, pendingInvitations, stats,
     // Fetch mentor requests on component mount
     // Mentor requests moved to mentors/dashboard only
 
-    // Lazy-load GSAP to avoid build errors if not installed yet
-    useEffect(() => {
-        let isMounted = true;
-        (async () => {
-            try {
-                const mod = await import('gsap');
-                if (!isMounted) return;
-                const gsap = mod.gsap || mod.default || mod;
-                gsapRef.current = gsap;
-
-                // Header fade/slide in
-                if (headerRef.current) {
-                    gsap.fromTo(
-                        headerRef.current,
-                        { autoAlpha: 0, y: -16 },
-                        { autoAlpha: 1, y: 0, duration: 0.6, ease: 'power2.out' }
-                    );
-                }
-
-                // Stat cards stagger
-                if (statCardsRef.current.length) {
-                    gsap.fromTo(
-                        statCardsRef.current,
-                        { autoAlpha: 0, y: 18 },
-                        { autoAlpha: 1, y: 0, duration: 0.6, ease: 'power2.out', stagger: 0.08, delay: 0.1 }
-                    );
-                }
-
-                // Table block
-                if (tableRef.current) {
-                    gsap.fromTo(
-                        tableRef.current,
-                        { autoAlpha: 0, y: 18 },
-                        { autoAlpha: 1, y: 0, duration: 0.6, ease: 'power2.out', delay: 0.2 }
-                    );
-                }
-            } catch (e) {
-                // GSAP not installed; animations gracefully skip
-            }
-        })();
-
-        return () => { isMounted = false; };
-    }, []);
-
-    // no-op
+    // Animations removed to improve responsiveness
 
     // Handle mentor request responses
     const handleMentorResponse = async (requestId, action) => {
@@ -103,67 +53,7 @@ export default function LecturerDashboard({ projects, pendingInvitations, stats,
         }
     };
     
-    // Animation variants
-    const containerVariants = {
-        hidden: { opacity: 0 },
-        visible: { 
-            opacity: 1,
-            transition: { 
-                when: "beforeChildren",
-                staggerChildren: 0.1 
-            }
-        }
-    };
-    
-    const itemVariants = {
-        hidden: { y: 20, opacity: 0 },
-        visible: { 
-            y: 0, 
-            opacity: 1,
-            transition: { 
-                type: "spring", 
-                stiffness: 100 
-            }
-        }
-    };
-
-    const cardVariants = {
-        hidden: { scale: 0.9, opacity: 0 },
-        visible: { 
-            scale: 1, 
-            opacity: 1,
-            transition: { type: "spring", stiffness: 300 } 
-        },
-        hover: { 
-            y: -5,
-            boxShadow: "0 10px 25px -5px rgba(0, 0, 0, 0.1)",
-            transition: { type: "spring", stiffness: 300 }
-        }
-    };
-
-    const progressVariants = {
-        hidden: { width: 0 },
-        visible: progress => ({
-            width: `${progress}%`,
-            transition: { duration: 1, ease: "easeOut" }
-        })
-    };
-
-    const tableRowVariants = {
-        hidden: { opacity: 0, x: -20 },
-        visible: i => ({ 
-            opacity: 1, 
-            x: 0,
-            transition: { 
-                delay: i * 0.05,
-                duration: 0.3
-            }
-        }),
-        hover: { 
-            backgroundColor: "rgba(243, 244, 246, 0.7)",
-            transition: { duration: 0.2 }
-        }
-    };
+    // Framer-motion variants removed for heavy sections (cards/table rows)
     
     const getStatusColor = (status) => {
         const colors = {
@@ -216,10 +106,10 @@ export default function LecturerDashboard({ projects, pendingInvitations, stats,
         <AuthenticatedLayout>
             <Head title="Project Dashboard" />
 
-            <div className="py-12 bg-gradient-to-b from-white to-orange-50/30 min-h-screen isolate">
+            <div className="py-12 bg-gray-50 min-h-screen isolate">
                 <div className="max-w-7xl mx-auto sm:px-6 lg:px-8 relative">
                     {/* Dashboard Header */}
-                    <div ref={headerRef} className="mb-8 flex items-center justify-between relative z-50">
+                    <div className="mb-8 flex items-center justify-between relative z-50">
                         <div>
                             <h1 className="text-3xl font-bold text-gray-900 flex items-center">
                                 <AcademicCapIcon className="h-8 w-8 text-[#F37022] mr-3" />
@@ -238,7 +128,7 @@ export default function LecturerDashboard({ projects, pendingInvitations, stats,
                                 onClick={() => setIsInvitationsDropdownOpen(!isInvitationsDropdownOpen)}
                                 whileHover={{ scale: 1.02 }}
                                 whileTap={{ scale: 0.98 }}
-                                className="inline-flex items-center px-4 py-2 bg-orange-100 hover:bg-orange-200 text-[#F37022] rounded-lg text-sm border border-orange-200 hover:border-orange-300 transition-all duration-200 font-medium shadow"
+                                className="inline-flex items-center px-4 py-2 bg-[#F37022] hover:bg-orange-600 text-white rounded-lg text-sm border border-transparent transition-all duration-200 font-medium shadow"
                             >
                                 <span className="material-symbols-outlined text-sm mr-2">
                                     mail
@@ -246,7 +136,7 @@ export default function LecturerDashboard({ projects, pendingInvitations, stats,
                                 Supervisor Invitations
                                 {pendingInvitations.length > 0 && (
                                     <motion.span 
-                                        className="ml-2 bg-red-500/20 text-red-700 px-2 py-0.5 rounded-full text-xs"
+                                        className="ml-2 bg-red-600 text-white px-2 py-0.5 rounded-full text-xs shadow ring-1 ring-red-700/40"
                                         initial={{ scale: 0 }}
                                         animate={{ scale: 1 }}
                                         transition={{ 
@@ -273,20 +163,14 @@ export default function LecturerDashboard({ projects, pendingInvitations, stats,
                     </div>
                 
                     {/* Stats Overview */}
-                    <motion.div 
+                    <div 
                         className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4 mb-8 relative z-10"
-                        variants={containerVariants}
-                        initial="hidden"
-                        animate="visible"
                     >
-                        <motion.div 
-                            ref={(el) => (statCardsRef.current[0] = el)}
-                            className="bg-gradient-to-br from-white to-orange-50 overflow-hidden shadow-md rounded-xl p-6 border border-orange-100"
-                            variants={cardVariants}
-                            whileHover="hover"
+                        <div 
+                            className="bg-white overflow-hidden shadow-md rounded-xl p-6 border border-gray-200 hover:shadow-lg transition"
                         >
                             <div className="flex items-center">
-                                <div className="p-3 bg-orange-100 rounded-lg">
+                                <div className="p-3 bg-orange-500/10 rounded-lg">
                                     <DocumentTextIcon className="h-6 w-6 text-[#F37022]" />
                                 </div>
                                 <div className="ml-4">
@@ -294,16 +178,13 @@ export default function LecturerDashboard({ projects, pendingInvitations, stats,
                                     <p className="mt-1 text-3xl font-semibold text-gray-900">{stats.total}</p>
                                 </div>
                             </div>
-                        </motion.div>
+                        </div>
 
-                        <motion.div 
-                            ref={(el) => (statCardsRef.current[1] = el)}
-                            className="bg-gradient-to-br from-white to-orange-50 overflow-hidden shadow-md rounded-xl p-6 border border-orange-100"
-                            variants={cardVariants}
-                            whileHover="hover"
+                        <div 
+                            className="bg-white overflow-hidden shadow-md rounded-xl p-6 border border-gray-200 hover:shadow-lg transition"
                         >
                             <div className="flex items-center">
-                                <div className="p-3 bg-orange-100 rounded-lg">
+                                <div className="p-3 bg-orange-500/10 rounded-lg">
                                     <CheckCircleIcon className="h-6 w-6 text-[#F37022]" />
                                 </div>
                                 <div className="ml-4">
@@ -311,16 +192,13 @@ export default function LecturerDashboard({ projects, pendingInvitations, stats,
                                     <p className="mt-1 text-3xl font-semibold text-gray-900">{stats.completed}</p>
                                 </div>
                             </div>
-                        </motion.div>
+                        </div>
 
-                        <motion.div 
-                            ref={(el) => (statCardsRef.current[2] = el)}
-                            className="bg-gradient-to-br from-white to-orange-50 overflow-hidden shadow-md rounded-xl p-6 border border-orange-100"
-                            variants={cardVariants}
-                            whileHover="hover"
+                        <div 
+                            className="bg-white overflow-hidden shadow-md rounded-xl p-6 border border-gray-200 hover:shadow-lg transition"
                         >
                             <div className="flex items-center">
-                                <div className="p-3 bg-orange-100 rounded-lg">
+                                <div className="p-3 bg-orange-500/10 rounded-lg">
                                     <ClockIcon className="h-6 w-6 text-[#F37022]" />
                                 </div>
                                 <div className="ml-4">
@@ -328,16 +206,13 @@ export default function LecturerDashboard({ projects, pendingInvitations, stats,
                                     <p className="mt-1 text-3xl font-semibold text-gray-900">{stats.in_progress}</p>
                                 </div>
                             </div>
-                        </motion.div>
+                        </div>
 
-                        <motion.div 
-                            ref={(el) => (statCardsRef.current[3] = el)}
-                            className="bg-gradient-to-br from-white to-orange-50 overflow-hidden shadow-md rounded-xl p-6 border border-orange-100"
-                            variants={cardVariants}
-                            whileHover="hover"
+                        <div 
+                            className="bg-white overflow-hidden shadow-md rounded-xl p-6 border border-gray-200 hover:shadow-lg transition"
                         >
                             <div className="flex items-center">
-                                <div className="p-3 bg-orange-100 rounded-lg">
+                                <div className="p-3 bg-orange-500/10 rounded-lg">
                                     <ExclamationCircleIcon className="h-6 w-6 text-[#F37022]" />
                                 </div>
                                 <div className="ml-4">
@@ -345,15 +220,12 @@ export default function LecturerDashboard({ projects, pendingInvitations, stats,
                                     <p className="mt-1 text-3xl font-semibold text-gray-900">{stats.overdue}</p>
                                 </div>
                             </div>
-                        </motion.div>
-                    </motion.div>
+                        </div>
+                    </div>
 
                     {/* Projects Table */}
-                    <motion.div 
+                    <div 
                         className="bg-white overflow-hidden shadow-md rounded-xl border border-gray-100"
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: 0.3, duration: 0.5 }}
                     >
                         <div className="p-6 border-b border-gray-200">
                             <div className="flex flex-wrap items-center justify-between">
@@ -368,8 +240,8 @@ export default function LecturerDashboard({ projects, pendingInvitations, stats,
                                         onClick={() => setStatusFilter('all')}
                                         className={`px-3 py-1.5 text-sm font-medium rounded-lg transition-colors ${
                                             statusFilter === 'all' 
-                                            ? 'bg-orange-100 text-[#F37022]' 
-                                            : 'text-gray-600 hover:bg-orange-50'
+                                            ? 'bg-[#F37022] text-white shadow' 
+                                            : 'border border-gray-300 text-gray-700 hover:border-[#F37022] hover:text-[#F37022]'
                                         }`}
                                     >
                                         All
@@ -379,8 +251,8 @@ export default function LecturerDashboard({ projects, pendingInvitations, stats,
                                         onClick={() => setStatusFilter('in_progress')}
                                         className={`px-3 py-1.5 text-sm font-medium rounded-lg transition-colors ${
                                             statusFilter === 'in_progress' 
-                                            ? 'bg-orange-100 text-[#F37022]' 
-                                            : 'text-gray-600 hover:bg-orange-50'
+                                            ? 'bg-[#F37022] text-white shadow' 
+                                            : 'border border-gray-300 text-gray-700 hover:border-[#F37022] hover:text-[#F37022]'
                                         }`}
                                     >
                                         In Progress
@@ -390,8 +262,8 @@ export default function LecturerDashboard({ projects, pendingInvitations, stats,
                                         onClick={() => setStatusFilter('completed')}
                                         className={`px-3 py-1.5 text-sm font-medium rounded-lg transition-colors ${
                                             statusFilter === 'completed' 
-                                            ? 'bg-orange-100 text-[#F37022]' 
-                                            : 'text-gray-600 hover:bg-orange-50'
+                                            ? 'bg-[#F37022] text-white shadow' 
+                                            : 'border border-gray-300 text-gray-700 hover:border-[#F37022] hover:text-[#F37022]'
                                         }`}
                                     >
                                         Completed
@@ -401,8 +273,8 @@ export default function LecturerDashboard({ projects, pendingInvitations, stats,
                                         onClick={() => setStatusFilter('on_hold')}
                                         className={`px-3 py-1.5 text-sm font-medium rounded-lg transition-colors ${
                                             statusFilter === 'on_hold' 
-                                            ? 'bg-orange-100 text-[#F37022]' 
-                                            : 'text-gray-600 hover:bg-orange-50'
+                                            ? 'bg-[#F37022] text-white shadow' 
+                                            : 'border border-gray-300 text-gray-700 hover:border-[#F37022] hover:text-[#F37022]'
                                         }`}
                                     >
                                         On Hold
@@ -410,7 +282,7 @@ export default function LecturerDashboard({ projects, pendingInvitations, stats,
                                 </div>
                             </div>
                         </div>
-                        <div ref={tableRef} className="overflow-x-auto">
+                        <div className="overflow-x-auto">
                             <table className="min-w-full divide-y divide-gray-200">
                                 <thead className="bg-gray-50">
                                     <tr>
@@ -432,14 +304,9 @@ export default function LecturerDashboard({ projects, pendingInvitations, stats,
                                         </tr>
                                     ) : (
                                         filteredProjects.map((project, index) => (
-                                            <motion.tr 
+                                            <tr 
                                                 key={project.id} 
-                                                custom={index}
-                                                variants={tableRowVariants}
-                                                initial="hidden"
-                                                animate="visible"
-                                                whileHover="hover"
-                                                className={project.is_overdue ? 'bg-red-50 hover:bg-red-100' : ''}
+                                                className={`${project.is_overdue ? 'bg-red-50' : ''} hover:bg-gray-50 transition-colors`}
                                             >
                                                 <td className="px-6 py-4 whitespace-nowrap">
                                                     <div className="text-sm font-medium text-gray-900">{project.title}</div>
@@ -458,12 +325,9 @@ export default function LecturerDashboard({ projects, pendingInvitations, stats,
                                                 </td>
                                                 <td className="px-6 py-4 whitespace-nowrap">
                                                     <div className="w-full bg-gray-200 rounded-full h-2.5">
-                                                        <motion.div 
-                                                            className="bg-gradient-to-r from-blue-500 to-indigo-600 h-2.5 rounded-full" 
-                                                            custom={project.progress}
-                                                            variants={progressVariants}
-                                                            initial="hidden"
-                                                            animate="visible"
+                                                        <div 
+                                                            className="bg-[#F37022] h-2.5 rounded-full transition-all" 
+                                                            style={{ width: `${project.progress}%` }}
                                                         />
                                                     </div>
                                                     <div className="text-sm text-gray-500 mt-1">{project.progress}%</div>
@@ -474,8 +338,8 @@ export default function LecturerDashboard({ projects, pendingInvitations, stats,
                                                 <td className="px-6 py-4 whitespace-nowrap">
                                                     <span className={`px-2.5 py-1 text-xs font-medium rounded-full ${
                                                         project.days_remaining < 0 
-                                                        ? 'bg-red-100 text-red-800' 
-                                                        : 'bg-orange-100 text-[#F37022]'
+                                                        ? 'bg-red-500/10 text-red-700' 
+                                                        : 'bg-[#F37022]/10 text-[#F37022]'
                                                     }`}>
                                                         {Math.floor(Math.abs(project.days_remaining))} days 
                                                         {project.days_remaining < 0 ? ' overdue' : ' remaining'}
@@ -495,13 +359,13 @@ export default function LecturerDashboard({ projects, pendingInvitations, stats,
                                                         View
                                                     </Link>
                                                 </td>
-                                            </motion.tr>
+                                            </tr>
                                         ))
                                     )}
                                 </tbody>
                             </table>
                         </div>
-                    </motion.div>
+                    </div>
                 </div>
             </div>
         </AuthenticatedLayout>

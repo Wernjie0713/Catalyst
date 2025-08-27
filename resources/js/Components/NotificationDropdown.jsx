@@ -100,7 +100,11 @@ export default function NotificationDropdown() {
                                     className={`px-4 py-3 hover:bg-orange-50/40 border-b border-gray-100 cursor-pointer flex items-start ${
                                         !notification.read_at ? 'bg-blue-50' : ''
                                     }`}
-                                    onClick={() => markAsRead(notification.id)}
+                                    onClick={() => {
+                                        markAsRead(notification.id);
+                                        const url = notification?.data?.action_url;
+                                        if (url) router.visit(url);
+                                    }}
                                 >
                                     <div className="flex-1">
                                         <div className={`text-sm ${!notification.read_at ? 'font-semibold text-gray-900' : 'font-medium text-gray-800'}`}>
