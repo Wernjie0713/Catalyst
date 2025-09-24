@@ -173,6 +173,12 @@ export const Sidebar = () => {
       visible: true
     },
     {
+      name: "Feedback",
+      icon: "feedback",
+      action: () => window.open('https://forms.gle/ws8WsHAzwWgUfeH7A', '_blank', 'noopener,noreferrer'),
+      visible: true
+    },
+    {
       name: "Logout",
       icon: "logout",
       method: "post",
@@ -182,7 +188,7 @@ export const Sidebar = () => {
     }
   ];
 
-  const logo = "/images/Catalyst.png";
+  const logo = "/images/logo2.png";
 
   // Filter nav items based on visibility
   const filteredNavItems = navItems.filter(item => item.visible);
@@ -295,8 +301,8 @@ export const Sidebar = () => {
       <aside className="sidebar">
         <div className="inner">
           <div className="header">
-            <img src={logo} className="logo" alt="Catalyst Logo" />
-            <h2 className="text-black">Catalyst</h2>
+            <img src={logo} className="logo" alt="KooQ Logo" />
+            <h2 className="text-black">KooQ</h2>
           </div>
           <nav
             className="menu"

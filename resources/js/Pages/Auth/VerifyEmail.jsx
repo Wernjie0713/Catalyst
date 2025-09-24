@@ -20,7 +20,7 @@ export default function VerifyEmail({ status }) {
                 <span className="text-2xl px-4 py-2 rounded-full 
                 bg-black/30 border border-gray-700/50 
                 text-white font-space font-bold tracking-wide">
-                    Catalyst
+                    KooQ
                 </span>
             </div>
 

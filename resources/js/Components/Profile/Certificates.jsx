@@ -202,17 +202,15 @@ export default function Certificates({ user, authUserId }) {
 
                                 {/* Download/View actions */}
                                 {certificate.type === 'external' ? (
-                                    user.id === authUserId && (
-                                        <a
-                                            href={`/${certificate.certificate_image}`}
-                                            target="_blank"
-                                            rel="noopener noreferrer"
-                                            className="w-full px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors flex items-center justify-center gap-2"
-                                        >
-                                            <span className="material-symbols-outlined text-sm">visibility</span>
-                                            View Certificate
-                                        </a>
-                                    )
+                                    <a
+                                        href={`/${certificate.certificate_image}`}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="w-full px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors flex items-center justify-center gap-2"
+                                    >
+                                        <span className="material-symbols-outlined text-sm">visibility</span>
+                                        View Certificate
+                                    </a>
                                 ) : (
                                     user.id === authUserId && (
                                         <button

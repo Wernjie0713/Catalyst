@@ -28,7 +28,7 @@
                             
                             <!-- Greeting -->
                             <h1 style="font-size: 24px; font-weight: 600; color: #ffffff; margin: 0 0 20px 0;">
-                                Welcome to Catalyst! 🚀
+                                Welcome to KooQ! 🚀
                             </h1>
                             
                             <!-- Message -->

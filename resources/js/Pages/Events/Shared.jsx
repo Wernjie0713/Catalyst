@@ -49,7 +49,7 @@ const Shared = ({ event, isShared }) => {
                                     className="inline-flex items-center space-x-2 text-blue-400 hover:text-blue-300 transition-colors"
                                 >
                                     <span className="material-symbols-outlined">arrow_back</span>
-                                    <span>Back to Catalyst</span>
+                                    <span>Back to KooQ</span>
                                 </Link>
                             </motion.div>
                             
@@ -277,7 +277,7 @@ const Shared = ({ event, isShared }) => {
                             transition={{ delay: 0.8 }}
                             className="text-center mt-8 text-gray-400"
                         >
-                            <p>This event was shared from Catalyst Energy</p>
+                            <p>This event was shared from KooQ</p>
                         </motion.div>
                     </div>
                 </motion.div>

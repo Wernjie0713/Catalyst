@@ -28,7 +28,7 @@ export default function Register() {
                     <span className="text-2xl px-4 py-2 rounded-full 
                     bg-orange-50 border border-orange-200 
                     text-[#F37022] font-space font-bold tracking-wide">
-                        Catalyst
+                    KooQ
                     </span>
                 </div>
 

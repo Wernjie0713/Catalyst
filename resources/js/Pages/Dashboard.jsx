@@ -199,7 +199,7 @@ export default function Dashboard() {
                             }}
                         >
                             <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black text-black tracking-tight drop-shadow-sm text-center">
-                                Recent Events
+                                Recent News
                             </h2>
                         </motion.div>
                         <div className="flex items-center justify-center mb-6">
@@ -246,7 +246,7 @@ export default function Dashboard() {
                                             return [
                                                 { id: 'news-1', title: 'Latest News', description: 'Highlights', cover: '/images/news/ASEAN-AI-Malaysia-SUmmit-2025-scaled.jpg' },
                                                 { id: 'news-2', title: 'AI Summit', description: 'Malaysia 2025', cover: '/images/news/MGF12082025-Anwar-Ai-SUMMIT-14.jpg' },
-                                                { id: 'news-3', title: 'Catalyst', description: 'Updates', cover: '/images/news/1745232495368-9a3936fa-5a4c-43d0-8247-cf23eb8f986a.png' },
+                                                { id: 'news-3', title: 'KooQ', description: 'Updates', cover: '/images/news/1745232495368-9a3936fa-5a4c-43d0-8247-cf23eb8f986a.png' },
                                             ];
                                         }
                                         return fromEvents;

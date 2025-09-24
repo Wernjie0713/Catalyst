@@ -56,7 +56,7 @@ export default function RoleSelection() {
                 
                 <div className="max-w-4xl mx-auto">
                     <div className="text-center mb-12">
-                        <h2 className="text-4xl font-bold text-gray-900 mb-4">Welcome to Catalyst</h2>
+                        <h2 className="text-4xl font-bold text-gray-900 mb-4">Welcome to KooQ</h2>
                         <p className="text-lg text-gray-600">Choose your role to get started</p>
                     </div>
                     

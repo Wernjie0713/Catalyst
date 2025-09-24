@@ -24,7 +24,7 @@ export default function Welcome({ auth }) {
     }, []);
     return (
         <>
-            <Head title="Welcome to Catalyst" />
+            <Head title="Welcome to KooQ" />
             <div className="min-h-screen bg-gradient-to-b from-white via-orange-50 to-orange-100 relative overflow-hidden overflow-x-hidden">
                 {/* Enhanced Animated Background Elements */}
                 <div className="absolute inset-0 overflow-hidden">
@@ -52,9 +52,9 @@ export default function Welcome({ auth }) {
                             {/* Enhanced Logo with animation */}
                             <div className="flex items-center group">
                                 <img 
-                                    src="/images/Catalyst.png" 
-                                    alt="Catalyst Logo" 
-                                    className="h-12 w-auto transition-transform duration-300 group-hover:scale-110"
+                                    src="/images/kooq.png" 
+                                    alt="KooQ Logo" 
+                                    className="h-9 sm:h-10 w-auto transition-transform duration-300 group-hover:scale-110"
                                 />
                             </div>
                             
@@ -104,7 +104,7 @@ export default function Welcome({ auth }) {
                         <div className="text-center mb-12 sm:mb-20">
                             <div className="inline-block mb-6">
                                 <h1 className="text-5xl sm:text-7xl md:text-8xl font-black mb-4 sm:mb-6 animate-fade-in-up text-[#F37022] leading-tight">
-                                    Catalyst
+                                    KooQ
                                 </h1>
                             </div>
                             <p className="hidden sm:block text-xl sm:text-2xl md:text-3xl font-bold text-gray-800 mb-4 sm:mb-6 leading-relaxed px-2">
@@ -306,7 +306,7 @@ export default function Welcome({ auth }) {
                     <div className="max-w-7xl mx-auto px-6">
                         <div className="flex flex-col md:flex-row justify-between items-center">
                             <div className="flex items-center space-x-4 mb-4 md:mb-0">
-                                <p className="text-sm text-gray-600">© {new Date().getFullYear()} Catalyst. All rights reserved.</p>
+                                <p className="text-sm text-gray-600">© {new Date().getFullYear()} KooQ. All rights reserved.</p>
                             </div>
                             <div className="flex space-x-6">
                                 <a href="#" className="text-sm text-gray-600 hover:text-[#F37022] transition-colors duration-200">Privacy Policy</a>
